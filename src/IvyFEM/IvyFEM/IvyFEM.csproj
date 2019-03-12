@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E2A59C1F-CF7C-4ED3-BAE8-FC6FCDCE7E3C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IvyFEM</RootNamespace>
+    <AssemblyName>IvyFEM</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WarningLevel>2</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenTK, Version=3.0.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.0.1\lib\net20\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=3.0.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.GLControl.3.0.1\lib\net20\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BoundingBox2D.cs" />
+    <Compile Include="BoundingBox3D.cs" />
+    <Compile Include="BRep.cs" />
+    <Compile Include="BRep2D.cs" />
+    <Compile Include="CadEdge2DPolyline.cs" />
+    <Compile Include="CadObject2D.cs" />
+    <Compile Include="CadObject2DDrawer.cs" />
+    <Compile Include="CadObject2DDrawPart.cs" />
+    <Compile Include="CadObject2DMove.cs" />
+    <Compile Include="CadObjectArray.cs" />
+    <Compile Include="CadUtils.cs" />
+    <Compile Include="Camera.cs" />
+    <Compile Include="Camera2D.cs" />
+    <Compile Include="CircleConstraint.cs" />
+    <Compile Include="ColorLegend.cs" />
+    <Compile Include="ColorMap.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Constraint.cs" />
+    <Compile Include="ConstraintDrawer.cs" />
+    <Compile Include="ConstraintDrawerArray.cs" />
+    <Compile Include="DielectricMaterial.cs" />
+    <Compile Include="DrawerArray.cs" />
+    <Compile Include="Edge2D.cs" />
+    <Compile Include="EdgeFieldDrawer.cs" />
+    <Compile Include="Elastic2DBaseFEM.cs" />
+    <Compile Include="Elastic2DBaseFEM.MultipointConstraint.cs" />
+    <Compile Include="Elastic2DBaseFEM.TwoBodyContact.cs" />
+    <Compile Include="Elastic2DBaseFEM.TwoBodyContactMortar.cs" />
+    <Compile Include="Elastic2DDerivedBaseFEM.cs" />
+    <Compile Include="Elastic2DFEM.cs" />
+    <Compile Include="Elastic2DFEM.LinearElastic.cs" />
+    <Compile Include="Elastic2DFEM.SaintVenantHyperelastic.cs" />
+    <Compile Include="Elastic2DTDFEM.cs" />
+    <Compile Include="Elastic2DTDFEM.LinearElastic.cs" />
+    <Compile Include="Elastic2DTDFEM.SaintVenantHyperelastic.cs" />
+    <Compile Include="ElasticLameBaseMaterial.cs" />
+    <Compile Include="EMWaveguide1DEigenFEM.cs" />
+    <Compile Include="EMWaveguide2DHPlaneFEM.cs" />
+    <Compile Include="FaceFieldDrawer.cs" />
+    <Compile Include="FaceFieldDrawPart.cs" />
+    <Compile Include="FE.cs" />
+    <Compile Include="FEM.cs" />
+    <Compile Include="FEWorld.cs" />
+    <Compile Include="FEWorldQuantity.cs" />
+    <Compile Include="FieldDrawerArray.cs" />
+    <Compile Include="FieldFixedCad.cs" />
+    <Compile Include="FieldValue.cs" />
+    <Compile Include="HalfEdge.cs" />
+    <Compile Include="Hyperelastic2DDerivedBaseFEM.cs" />
+    <Compile Include="Hyperelastic2DFEM.cs" />
+    <Compile Include="Hyperelastic2DFEM.MooneyRivlin.cs" />
+    <Compile Include="Hyperelastic2DFEM.Ogden.cs" />
+    <Compile Include="Hyperelastic2DFEM.Ogden.Original.cs" />
+    <Compile Include="Hyperelastic2DTDFEM.cs" />
+    <Compile Include="Hyperelastic2DTDFEM.MooneyRivlin.cs" />
+    <Compile Include="Hyperelastic2DTDFEM.Ogden.cs" />
+    <Compile Include="Hyperelastic2DTDFEM.Ogden.Original.cs" />
+    <Compile Include="IColorMap.cs" />
+    <Compile Include="IDrawer.cs" />
+    <Compile Include="IFieldDrawer.cs" />
+    <Compile Include="IntegrationPoints.cs" />
+    <Compile Include="ItrLoop.cs" />
+    <Compile Include="ItrVertex.cs" />
+    <Compile Include="Lapack.ComplexBandMatrix.cs" />
+    <Compile Include="Lapack.ComplexHermitianBandMatrix.cs" />
+    <Compile Include="Lapack.ComplexMatrix.cs" />
+    <Compile Include="Lapack.Constants.cs" />
+    <Compile Include="Lapack.DoubleBandMatrix.cs" />
+    <Compile Include="Lapack.DoubleMatrix.cs" />
+    <Compile Include="Lapack.DoubleSymmetricBandMatrix.cs" />
+    <Compile Include="Lapack.Functions.cs" />
+    <Compile Include="Lapack.ImportedFunctions.cs" />
+    <Compile Include="Lapack.Utils.cs" />
+    <Compile Include="Linear.ComplexSparseMatrix.cs" />
+    <Compile Include="Linear.Constants.cs" />
+    <Compile Include="Linear.DoubleSparseMatrix.cs" />
+    <Compile Include="Linear.Functions.Complex.cs" />
+    <Compile Include="Linear.Functions.Double.cs" />
+    <Compile Include="Linear.IEquationSolver.cs" />
+    <Compile Include="Linear.IvyFEMEquationSolver.cs" />
+    <Compile Include="Linear.LapackEquationSolver.cs" />
+    <Compile Include="Linear.LisEquationSolver.cs" />
+    <Compile Include="Linear.Utils.cs" />
+    <Compile Include="LinearElasticMaterial.cs" />
+    <Compile Include="LineConstraint.cs" />
+    <Compile Include="LineFE.1st.cs" />
+    <Compile Include="LineFE.2nd.cs" />
+    <Compile Include="LineFE.cs" />
+    <Compile Include="Lis.Constants.cs" />
+    <Compile Include="Lis.Functions.cs" />
+    <Compile Include="Lis.ImportedFunctions.cs" />
+    <Compile Include="Lis.LisInitializer.cs" />
+    <Compile Include="Lis.LisMatrix.cs" />
+    <Compile Include="Lis.LisSolver.cs" />
+    <Compile Include="Lis.LisVector.cs" />
+    <Compile Include="Lis.NativeClasses.cs" />
+    <Compile Include="Loop2D.cs" />
+    <Compile Include="Material.cs" />
+    <Compile Include="MeshBar.cs" />
+    <Compile Include="MeshBarArray.cs" />
+    <Compile Include="Mesher2D.cs" />
+    <Compile Include="Mesher2DDrawer.cs" />
+    <Compile Include="Mesher2DDrawPart.cs" />
+    <Compile Include="MeshPoint2D.cs" />
+    <Compile Include="MeshQuad2D.cs" />
+    <Compile Include="MeshQuadArray2D.cs" />
+    <Compile Include="MeshTri2D.cs" />
+    <Compile Include="MeshTriArray2D.cs" />
+    <Compile Include="MeshUtils.cs" />
+    <Compile Include="MeshVertex.cs" />
+    <Compile Include="MooneyRivlinHyperelasticMaterial.cs" />
+    <Compile Include="MultipointConstraint.cs" />
+    <Compile Include="Native.Functions.cs" />
+    <Compile Include="Native.ImportedFunctions.cs" />
+    <Compile Include="ObjectArray.cs" />
+    <Compile Include="OgdenHyperelasticMaterial.cs" />
+    <Compile Include="OpenGLUtils.cs" />
+    <Compile Include="PickedObject.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaintVenantHyperelasticMaterial.cs" />
+    <Compile Include="SelectedObject.cs" />
+    <Compile Include="Serializer.cs" />
+    <Compile Include="TriangleFE.1st.cs" />
+    <Compile Include="TriangleFE.2nd.cs" />
+    <Compile Include="TriangleFE.cs" />
+    <Compile Include="TriDiaMat3.cs" />
+    <Compile Include="UseLoop.cs" />
+    <Compile Include="UseVertex.cs" />
+    <Compile Include="VectorFieldDrawer.cs" />
+    <Compile Include="VectorFieldDrawPart.cs" />
+    <Compile Include="Vertex2D.cs" />
+    <Compile Include="VertexArray.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="OpenTK.dll.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IvyFEM.Native.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libblas.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libgcc_s_seh-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libgfortran-4.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="liblapack.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="liblapacke.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="liblis.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libquadmath-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="libwinpthread-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
