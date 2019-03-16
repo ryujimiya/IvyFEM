@@ -39,6 +39,9 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　  
 　  IvyFEMライブラリを使ったサンプルアプリケーションIvyFEMProtoAppをご参照ください。  
 　  
+　  また、実装概略を次のページにまとめました。  
+　  [.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
+　  
 　[IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
 　  
 ![IvyFEMProtoAppアプリ](https://pbs.twimg.com/media/DjHvvKfUcAEMU_H.jpg)  
