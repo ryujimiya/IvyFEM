@@ -213,7 +213,14 @@ namespace IvyFEM
 
         public void SetCadEdgeMaterial(uint eCadId, uint maId)
         {
-            CadEdge2Material.Add(eCadId, maId);
+            if (!CadEdge2Material.ContainsKey(eCadId))
+            {
+                CadEdge2Material.Add(eCadId, maId);
+            }
+            else
+            {
+                CadEdge2Material[eCadId] = maId;
+            }
         }
 
         public uint GetCadEdgeMaterial(uint eCadId)
@@ -230,7 +237,14 @@ namespace IvyFEM
 
         public void SetCadLoopMaterial(uint lCadId, uint maId)
         {
-            CadLoop2Material.Add(lCadId, maId);
+            if (!CadLoop2Material.ContainsKey(lCadId))
+            {
+                CadLoop2Material.Add(lCadId, maId);
+            }
+            else
+            {
+                CadLoop2Material[lCadId] = maId;
+            }
         }
 
         public uint GetCadLoopMaterial(uint lCadId)

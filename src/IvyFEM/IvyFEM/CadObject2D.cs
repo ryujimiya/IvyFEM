@@ -664,7 +664,21 @@ namespace IvyFEM
             return nullVec;
         }
 
-        public OpenTK.Vector2d GetVertex(uint vId)
+        public Vertex2D GetVertex(uint vId)
+        {
+            if (!BRep.IsElemId(CadElementType.Vertex, vId))
+            {
+                return null;
+            }
+            if (!VertexArray.IsObjectId(vId))
+            {
+                return null;
+            }
+            Vertex2D v = VertexArray.GetObject(vId);
+            return v;
+        }
+
+        public OpenTK.Vector2d GetVertexCoord(uint vId)
         {
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(vId));
             Vertex2D v = VertexArray.GetObject(vId);
@@ -720,7 +734,7 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Vertex, eVId));
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(sVId));
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(eVId));
-            e.SetVertexs(GetVertex(sVId), GetVertex(eVId));
+            e.SetVertexs(GetVertexCoord(sVId), GetVertexCoord(eVId));
             return e;
         }
 
@@ -1127,7 +1141,7 @@ namespace IvyFEM
                 {
                     uint vId0 = itrl.GetVertexId();
                     System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Vertex, vId0));
-                    OpenTK.Vector2d p1 = GetVertex(vId0);
+                    OpenTK.Vector2d p1 = GetVertexCoord(vId0);
                     return OpenTK.Vector2d.Distance(point, p1);
                 }
                 System.Diagnostics.Debug.Assert(EdgeArray.IsObjectId(eId));
@@ -1518,12 +1532,12 @@ namespace IvyFEM
                         if (isSameDir1)
                         {
                             tmpEdge.SetVertexIds(vId2, tmpEdge.GetVertexId(false));
-                            tmpEdge.SetVertexs(GetVertex(vId2), tmpEdge.GetVertex(false));
+                            tmpEdge.SetVertexs(GetVertexCoord(vId2), tmpEdge.GetVertex(false));
                         }
                         else
                         {
                             tmpEdge.SetVertexIds(tmpEdge.GetVertexId(true), vId2);
-                            tmpEdge.SetVertexs(tmpEdge.GetVertex(true), GetVertex(vId2));
+                            tmpEdge.SetVertexs(tmpEdge.GetVertex(true), GetVertexCoord(vId2));
                         }
                     }
                     {

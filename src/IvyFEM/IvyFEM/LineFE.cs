@@ -24,7 +24,7 @@ namespace IvyFEM
             NodeCount = GetNodeCount();
         }
 
-        public LineFE(TriangleFE src)
+        public LineFE(LineFE src)
         {
             Copy(src);
         }

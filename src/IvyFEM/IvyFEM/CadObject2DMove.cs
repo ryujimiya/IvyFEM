@@ -92,7 +92,7 @@ namespace IvyFEM
                     {
                         continue; // this point is already moved
                     }
-                    mapOldVec.Add(vId, GetVertex(vId));
+                    mapOldVec.Add(vId, GetVertexCoord(vId));
                     Vertex2D vertex = VertexArray.GetObject(vId);
                     {
                         double oldX = vertex.Point.X;
@@ -372,14 +372,15 @@ namespace IvyFEM
             {
                 OpenTK.Vector2d sPt = edge.GetVertex(true);
                 OpenTK.Vector2d ePt = edge.GetVertex(false);
-                double baseLen = Math.Sqrt(CadUtils.SquareLength(sPt, ePt));
-                if (Math.Abs(CadUtils.TriHeight(vec, sPt, ePt)) > baseLen * 0.02)
+                double edgeLen = Math.Sqrt(CadUtils.SquareLength(sPt, ePt));
+                if (Math.Abs(CadUtils.TriHeight(vec, sPt, ePt)) > edgeLen * 0.02)
                 {
                     OpenTK.Vector2d cPt;
                     bool ret = CadUtils.CenterCircumcircle(sPt, ePt, vec, out cPt);
                     System.Diagnostics.Debug.Assert(ret);
                     double dist = CadUtils.TriHeight(cPt, sPt, ePt);
-                    edge.SetCurveArc(CadUtils.TriArea(sPt, ePt, vec) > 0, dist);
+                    double distRatio = dist / edgeLen;
+                    edge.SetCurveArc(CadUtils.TriArea(sPt, ePt, vec) > 0, distRatio);
                 }
                 else
                 {

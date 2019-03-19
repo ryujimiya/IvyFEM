@@ -17,6 +17,7 @@ namespace IvyFEM
         private uint ValueId = 0;
         private FieldDerivativeType ValueDt = FieldDerivativeType.Value;
         private bool IsntDisplacementValue = false;
+        private bool IsDrawInnerEdge = true;
         public RotMode SutableRotMode { get; private set; } = RotMode.RotModeNotSet;
         public bool IsAntiAliasing { get; set; } = false;
 
@@ -25,13 +26,18 @@ namespace IvyFEM
 
         }
 
-        public EdgeFieldDrawer(uint valueId, FieldDerivativeType valueDt, bool isntDisplacementValue,
+        public EdgeFieldDrawer(uint valueId, FieldDerivativeType valueDt,
+            bool isntDisplacementValue,
+            bool isDrawInnerEdge,
             FEWorld world)
         {
-            Set(valueId, valueDt, isntDisplacementValue, world);
+            Set(valueId, valueDt, isntDisplacementValue, isDrawInnerEdge, world);
         }
 
-        private void Set(uint valueId, FieldDerivativeType valueDt, bool isntDisplacementValue, FEWorld world)
+        private void Set(uint valueId, FieldDerivativeType valueDt,
+            bool isntDisplacementValue,
+            bool isDrawInnerEdge,
+            FEWorld world)
         {
             var mesh = world.Mesh;
 
@@ -49,7 +55,35 @@ namespace IvyFEM
 
             // 線要素を生成
             uint quantityId = fv.QuantityId;
-            LineFEs = world.MakeBoundOfElements(quantityId);
+            if (isDrawInnerEdge)
+            {
+                // 内部の全ての辺を描画
+                LineFEs = world.MakeBoundOfElements(quantityId);
+            }
+            else
+            {
+                // 境界の辺だけ描画
+                LineFEs = new List<LineFE>();
+                IList<MeshBarArray> barArrays = mesh.GetBarArrays();
+                foreach (MeshBarArray barArray in barArrays)
+                {
+                    uint eCadId = barArray.ECadId;
+                    IList<int> allCoIds = world.GetCoordIdsFromCadId(quantityId, eCadId, CadElementType.Edge);
+
+                    for (int i = 0; i < (allCoIds.Count - 1); i++)
+                    {
+                        int workFEOrder = 1;
+                        LineFE lineFE = new LineFE(workFEOrder);
+                        {
+                            int[] coIds = { allCoIds[i], allCoIds[i + 1] };
+                            lineFE.SetVertexCoordIds(coIds);
+                            lineFE.SetNodeCoordIds(coIds);
+                        }
+                        LineFEs.Add(lineFE);
+                    }
+                }
+            }
+
             int feOrder;
             {
                 LineFE lineFE = LineFEs[0]; // 先頭の要素

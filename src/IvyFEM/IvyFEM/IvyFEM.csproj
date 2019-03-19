@@ -191,6 +191,7 @@
     <Compile Include="OpenGLUtils.cs" />
     <Compile Include="PickedObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RectDrawer.cs" />
     <Compile Include="SaintVenantHyperelasticMaterial.cs" />
     <Compile Include="SelectedObject.cs" />
     <Compile Include="Serializer.cs" />

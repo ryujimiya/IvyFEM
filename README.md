@@ -7,7 +7,7 @@
 IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブラリとなります。(DelFEM4Netは開発中止)  
 　  
 　  
-　**いまできること（2019-03-12更新）**  
+　**いまできること**  
 　  
 　  ☑ 単純な2D(ポリゴン)の図面作成  
 　  ☑ 有限要素（三角形要素）分割  
@@ -28,9 +28,9 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　　　　　　　　　  弾性体二体接触  
 　　　 これからいろんな問題を解けるようにしていきます。  
 　  
-　**バイナリ**  
+　**バイナリ（2019-03-19更新）**  
 　  
-　  IvyFEM.dll version 0.0.0.1  
+　  IvyFEM.dll version 0.0.0.2  
 　  ※開発途中なのでDebug版しかありません。  
 　  
 　  [IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -39,10 +39,10 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　  
 　  IvyFEMライブラリを使ったサンプルアプリケーションIvyFEMProtoAppをご参照ください。  
 　  
+　  [IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
+　  
 　  また、実装概略を次のページにまとめました。  
 　  [.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
-　  
-　[IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
 　  
 ![IvyFEMProtoAppアプリ](https://pbs.twimg.com/media/DjHvvKfUcAEMU_H.jpg)  
 　  

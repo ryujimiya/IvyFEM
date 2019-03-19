@@ -99,8 +99,8 @@ namespace IvyFEM
             }
             uint sVId = cad2D.GetEdgeVertexId(eId, true);
             uint eVId = cad2D.GetEdgeVertexId(eId, false);
-            OpenTK.Vector2d sV = cad2D.GetVertex(sVId);
-            OpenTK.Vector2d eV = cad2D.GetVertex(eVId);
+            OpenTK.Vector2d sV = cad2D.GetVertexCoord(sVId);
+            OpenTK.Vector2d eV = cad2D.GetVertexCoord(eVId);
             OpenTK.Vector2d hse = eV - sV;
             OpenTK.Vector2d vse = new OpenTK.Vector2d(-hse.Y, hse.X);
             xys.Add(sV.X);

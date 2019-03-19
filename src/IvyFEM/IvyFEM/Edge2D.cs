@@ -147,10 +147,10 @@ namespace IvyFEM
             }
         }
 
-        public void GetCurveArc(out bool isLeftSide, out double dist)
+        public void GetCurveArc(out bool isLeftSide, out double distRatio)
         {
             isLeftSide = IsLeftSide;
-            dist = DistanceRatio;
+            distRatio = DistanceRatio;
         }
 
         public IList<double> GetCurveRelPoint()
@@ -1386,9 +1386,9 @@ namespace IvyFEM
             }
 
             GetCenterRadius(out cPt, out radius);
-            OpenTK.Vector2d rsV = new OpenTK.Vector2d(SPt.X - cPt.X, SPt.Y - cPt.Y);
-            lx.X = rsV.X / radius;
-            lx.Y = rsV.Y / radius;
+            OpenTK.Vector2d sRV = new OpenTK.Vector2d(SPt.X - cPt.X, SPt.Y - cPt.Y);
+            lx.X = sRV.X / radius;
+            lx.Y = sRV.Y / radius;
             if (IsLeftSide)
             {
                 ly.X = lx.Y;
@@ -1399,11 +1399,11 @@ namespace IvyFEM
                 ly.X = -lx.Y;
                 ly.Y = lx.X;
             }
-            OpenTK.Vector2d reV = new OpenTK.Vector2d(EPt.X-cPt.X, EPt.Y - cPt.Y);
+            OpenTK.Vector2d eRV = new OpenTK.Vector2d(EPt.X - cPt.X, EPt.Y - cPt.Y);
             System.Diagnostics.Debug.Assert(
-                Math.Abs(CadUtils.SquareLength(rsV) - CadUtils.SquareLength(reV)) < 1.0e-10);
-            double x = OpenTK.Vector2d.Dot(reV, lx);
-            double y = OpenTK.Vector2d.Dot(reV, ly);
+                Math.Abs(CadUtils.SquareLength(sRV) - CadUtils.SquareLength(eRV)) < 1.0e-10);
+            double x = OpenTK.Vector2d.Dot(eRV, lx);
+            double y = OpenTK.Vector2d.Dot(eRV, ly);
             theta = Math.Atan2(y, x);
             if (theta < 0.0)
             {

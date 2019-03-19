@@ -445,7 +445,7 @@ namespace IvyFEM
                     uint vId = vIds[(int)iV];
                     System.Diagnostics.Debug.Assert(GetIdFromCadId(vId, CadElementType.Vertex) == 0);
                     uint addId = GetFreeObjectId();
-                    OpenTK.Vector2d vec2d = cad2D.GetVertex(vId);
+                    OpenTK.Vector2d vec2d = cad2D.GetVertexCoord(vId);
                     Vec2Ds.Add(vec2d);
                     {
                         MeshVertex tmpVer = new MeshVertex();
@@ -2041,7 +2041,7 @@ namespace IvyFEM
                         continue;
                     }
                     uint addId = GetFreeObjectId();
-                    OpenTK.Vector2d vec2d = cad2D.GetVertex(vId);
+                    OpenTK.Vector2d vec2d = cad2D.GetVertexCoord(vId);
                     Vec2Ds.Add(vec2d);
                     {
                         MeshVertex tmpVer = new MeshVertex();
