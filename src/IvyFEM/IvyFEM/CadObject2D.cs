@@ -1361,6 +1361,8 @@ namespace IvyFEM
             if (LoopArray.IsObjectId(res.LId))
             {
                 Loop2D addLoop = LoopArray.GetObject(res.LId);
+                // 2019-03-20 BUGFIX
+                addLoop = new Loop2D(addLoop);
                 LoopArray.AddObject(new KeyValuePair<uint, Loop2D>(res.AddLId, addLoop));
             }
             else
