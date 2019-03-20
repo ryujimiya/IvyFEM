@@ -28,7 +28,7 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　　　　　　　　　  弾性体二体接触  
 　　　 これからいろんな問題を解けるようにしていきます。  
 　  
-　**バイナリ（2019-03-19更新）**  
+　**バイナリ（2019-03-21更新）**  
 　  
 　  IvyFEM.dll version 0.0.0.3  
 　  ※開発途中なのでDebug版しかありません。  
