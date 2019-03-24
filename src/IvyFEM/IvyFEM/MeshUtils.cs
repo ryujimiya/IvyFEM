@@ -1051,6 +1051,123 @@ namespace IvyFEM
             return false;
         }
 
+
+        public static bool MakePointSurTri(IList<MeshTri2D> tris, uint npoin, uint[] elsupInd,
+            out uint nelsup, out uint[] elsup )
+        {
+
+            uint nnotri = 3;
+
+            for (int ipoin = 0; ipoin < npoin + 1; ipoin++)
+            {
+                elsupInd[ipoin] = 0;
+            }
+            for (int itri = 0; itri < tris.Count; itri++)
+            {
+                for (int inotri = 0; inotri < nnotri; inotri++)
+                {
+                    elsupInd[tris[itri].V[inotri] + 1]++;
+                }
+            }
+            for (int ipoin = 0; ipoin < npoin; ipoin++)
+            {
+                elsupInd[ipoin + 1] += elsupInd[ipoin];
+            }
+            nelsup = elsupInd[npoin];
+            elsup = new uint[nelsup];
+            for (int itri = 0; itri < tris.Count; itri++)
+            {
+                for (int inotri = 0; inotri < nnotri; inotri++)
+                {
+                    uint ipoin0 = tris[itri].V[inotri];
+                    uint ielsup = elsupInd[ipoin0];
+                    elsup[ielsup] = (uint)itri;
+                    elsupInd[ipoin0]++;
+                }
+            }
+            for (int ipoin = (int)npoin; ipoin > 0; ipoin--)
+            {
+                elsupInd[ipoin] = elsupInd[ipoin - 1];
+            }
+            elsupInd[0] = 0;
+
+            return true;
+        }
+
+        public static bool MakeInnerRelationTri(IList<MeshTri2D> tris, uint npoin,
+            uint[] elsupInd, uint nelsup, uint[] elsup)
+        {
+            uint[][] EdEd2Rel = {
+                new uint[(int)TriEdNo]{ 0, 2, 1 },
+                new uint[(int)TriEdNo]{ 2, 1, 0 },
+                new uint[(int)TriEdNo]{ 1, 0, 2 }
+            };
+            System.Diagnostics.Debug.Assert(EdEd2Rel.Length == TriEdNo);
+
+            uint[] tmpPoin = new uint[npoin];
+            for (int ipoin = 0; ipoin < npoin; ipoin++)
+            {
+                tmpPoin[ipoin] = 0;
+            }
+            uint[] inpofa = new uint[2];
+
+            int nTri = tris.Count;
+            for (int itri = 0; itri < nTri; itri++)
+            {
+                for (int iedtri = 0; iedtri < TriEdNo; iedtri++)
+                {
+                    for (int ipoed = 0; ipoed < EdNo; ipoed++)
+                    {
+                        inpofa[ipoed] = tris[itri].V[TriElEdgeNo[iedtri][ipoed]];
+                        tmpPoin[inpofa[ipoed]] = 1;
+                    }
+                    uint ipoin0 = inpofa[0];
+                    bool iflg = false;
+                    for (uint ielsup = elsupInd[ipoin0]; ielsup < elsupInd[ipoin0 + 1]; ielsup++)
+                    {
+                        uint jtri0 = elsup[ielsup];
+                        if (jtri0 == itri)
+                        {
+                            continue;
+                        }
+                        for (int jedtri = 0; jedtri < TriEdNo; jedtri++)
+                        {
+                            iflg = true;
+                            for (int jpoed = 0; jpoed < EdNo; jpoed++)
+                            {
+                                uint jpoin0 = tris[(int)jtri0].V[TriElEdgeNo[jedtri][jpoed]];
+                                if (tmpPoin[jpoin0] == 0)
+                                {
+                                    iflg = false;
+                                    break;
+                                }
+                            }
+                            if (iflg)
+                            {
+                                tris[itri].G2[iedtri] = -2;
+                                tris[itri].S2[iedtri] = jtri0;
+                                tris[itri].R2[iedtri] = EdEd2Rel[iedtri][jedtri];
+                                break;
+                            }
+                        }
+                        if (iflg)
+                        {
+                            break;
+                        }
+                    }
+                    if (!iflg)
+                    {
+                        tris[itri].G2[iedtri] = -1;
+                    }
+                    for (int ipofa = 0; ipofa < EdNo; ipofa++)
+                    {
+                        tmpPoin[inpofa[ipofa]] = 0;
+                    }
+                }
+            }
+            return true;
+        }
+
         public static void LaplacianSmoothing(IList<MeshPoint2D> points, IList<MeshTri2D> tris, IList<uint> isntMoves)
         {
             for (uint iPt = 0; iPt < points.Count; iPt++)

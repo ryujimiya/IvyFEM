@@ -82,6 +82,11 @@ namespace IvyFEM
 
         }
 
+        public CadObject2D(CadObject2D src)
+        {
+            Copy(src);
+        }
+
         ~CadObject2D()
         {
             Clear();
@@ -2009,7 +2014,9 @@ namespace IvyFEM
                 {
                     return false;
                 }
-                int nv, ne, nl;
+                int nv;
+                int ne;
+                int nl;
                 {
                     values = arch.GetValues();
                     nv = int.Parse(values[0]);
@@ -2292,6 +2299,55 @@ namespace IvyFEM
                 arch.ShiftDepth(false);
             }
             return true;
+        }
+
+        public void Copy(CadObject2D src)
+        {
+            Clear();
+
+            // Vertex
+            {
+                IList<uint> srcIds = src.VertexArray.GetObjectIds();
+                foreach (uint srcId in srcIds)
+                {
+                    Vertex2D srcV = src.VertexArray.GetObject(srcId);
+                    uint id = srcId;
+                    Vertex2D v = new Vertex2D(srcV);
+                    uint tmpId = VertexArray.AddObject(
+                        new KeyValuePair<uint, Vertex2D>(id, v));
+                    System.Diagnostics.Debug.Assert(tmpId == id);
+                }
+            }
+            // Edge
+            {
+                IList<uint> srcIds = src.EdgeArray.GetObjectIds();
+                foreach (uint srcId in srcIds)
+                {
+                    Edge2D srcE = src.EdgeArray.GetObject(srcId);
+                    uint id = srcId;
+                    Edge2D e = new Edge2D(srcE);
+                    uint tmp_id = EdgeArray.AddObject(
+                        new KeyValuePair<uint, Edge2D>((uint)id, e));
+                    System.Diagnostics.Debug.Assert(tmp_id == id);
+                }
+            }
+            // Loop
+            {
+                IList<uint> srcIds = src.LoopArray.GetObjectIds();
+                foreach (uint srcId in srcIds)
+                {
+                    Loop2D srcL = src.LoopArray.GetObject(srcId);
+                    uint id = srcId;
+                    Loop2D e = new Loop2D(srcL);
+                    uint tmp_id = LoopArray.AddObject(
+                        new KeyValuePair<uint, Loop2D>((uint)id, e));
+                    System.Diagnostics.Debug.Assert(tmp_id == id);
+                }
+            }
+
+            BRep.Copy(src.BRep);
+
+            AssertValid();
         }
 
     }

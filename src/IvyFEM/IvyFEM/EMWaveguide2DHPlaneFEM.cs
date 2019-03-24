@@ -16,6 +16,7 @@ namespace IvyFEM
         // output
         public System.Numerics.Complex[] Ez { get; private set; }
         public System.Numerics.Complex[][] S { get; private set; }
+        public EMWaveguide1DEigenFEM[] EigenFEMs { get; private set; } 
 
         public EMWaveguide2DHPlaneFEM(FEWorld world)
         {
@@ -27,6 +28,7 @@ namespace IvyFEM
             int t;
             Ez = null;
             S = null;
+            EigenFEMs = null;
 
             // 波数
             double k0 = 2.0 * Math.PI / WaveLength;
@@ -45,6 +47,7 @@ namespace IvyFEM
             EMWaveguide1DEigenFEM[] eigenFEMs;
             SetBoundaryCondition(omega, A, B, portCnt, out eigenFEMs);
             System.Diagnostics.Debug.WriteLine("SetBoundaryCondition t = " + (System.Environment.TickCount - t));
+            EigenFEMs = eigenFEMs;
 
             t = System.Environment.TickCount;
             //----------------------------------

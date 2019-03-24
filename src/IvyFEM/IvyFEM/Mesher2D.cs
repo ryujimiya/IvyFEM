@@ -27,7 +27,7 @@ namespace IvyFEM
 
     public class Mesher2D
     {
-        private HashSet<uint> CutMeshLCadIdSet = new HashSet<uint>();
+        private HashSet<uint> CutMeshLCadIds = new HashSet<uint>();
         private uint MeshingMode;
         private double ELen;
         private uint ESize;
@@ -56,7 +56,7 @@ namespace IvyFEM
             IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
             for (uint i = 0; i < lIds.Count; i++)
             {
-                CutMeshLCadIdSet.Add(lIds[(int)i]);
+                CutMeshLCadIds.Add(lIds[(int)i]);
             }
 
             Meshing(cad2D);
@@ -71,7 +71,7 @@ namespace IvyFEM
             IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
             for (int i = 0; i < lIds.Count; i++)
             {
-                CutMeshLCadIdSet.Add(lIds[i]);
+                CutMeshLCadIds.Add(lIds[i]);
             }
 
             Meshing(cad2D);
@@ -80,7 +80,7 @@ namespace IvyFEM
         public Mesher2D(Mesher2D src)
         {
             Clear();
-            CutMeshLCadIdSet = new HashSet<uint>(src.CutMeshLCadIdSet);
+            CutMeshLCadIds = new HashSet<uint>(src.CutMeshLCadIds);
             MeshingMode = src.MeshingMode;
             ELen = src.ELen;
             ESize = src.ESize;
@@ -101,7 +101,7 @@ namespace IvyFEM
 
         public void Clear()
         {
-            CutMeshLCadIdSet.Clear();
+            CutMeshLCadIds.Clear();
             MeshingMode = 1;
             ELen = 0.1;
             ESize = 1000;
@@ -412,7 +412,7 @@ namespace IvyFEM
         {
             IList<uint> cutLIds = new List<uint>();
             {
-                foreach (uint lId in CutMeshLCadIdSet)
+                foreach (uint lId in CutMeshLCadIds)
                 {
                     if (!cad2D.IsElemId(CadElementType.Loop, lId))
                     {
@@ -1983,6 +1983,43 @@ namespace IvyFEM
             }
         }
 
+        // 要素の場所と種類をハッシュ（IDが引数）している配列を初期化
+        private void MakeElemLocationType()
+        {
+            uint maxId = FindMaxId();
+            ////////////////
+            TypeLocs.Clear();
+            for (int i = 0; i < (maxId + 1); i++)
+            {
+                TypeLocs.Add(new MeshTypeLoc());
+            }
+            ////////////////
+            for (int iver = 0; iver < Vertexs.Count; iver++)
+            {
+                int id0 = (int)Vertexs[iver].Id;
+                TypeLocs[id0].Loc = iver;
+                TypeLocs[id0].Type = 0;
+            }
+            for (int ibarary = 0; ibarary < BarArrays.Count; ibarary++)
+            {
+                int id0 = (int)BarArrays[ibarary].Id;
+                TypeLocs[id0].Loc = ibarary;
+                TypeLocs[id0].Type = 1;
+            }
+            for (int itriary = 0; itriary < TriArrays.Count; itriary++)
+            {
+                int id0 = (int)TriArrays[itriary].Id;
+                TypeLocs[id0].Loc = itriary;
+                TypeLocs[id0].Type = 2;
+            }
+            for (int iquadary = 0; iquadary < QuadArrays.Count; iquadary++)
+            {
+                int id0 = (int)QuadArrays[iquadary].Id;
+                TypeLocs[id0].Loc = iquadary;
+                TypeLocs[id0].Type = 3;
+            }
+        }
+
         private bool MeshingElemSize(CadObject2D cad2D, uint eSize, IList<uint> loopIds)
         {
             System.Diagnostics.Debug.Assert(eSize != 0);
@@ -2535,6 +2572,458 @@ namespace IvyFEM
             return true;
         }
 
+        public bool Serialize(Serializer arch, bool isOnlyCadMshLink = false)
+        {
+            if (arch.IsLoading)
+            {
+                // 読み込み時の処理
+                Clear();
+
+                string className;
+                string[] values;
+
+                className = arch.ReadDepthClassName();
+                System.Diagnostics.Debug.Assert(className == "CMesher2D");
+                arch.ShiftDepth(true);
+
+                ////////////////////////////////
+                // CADとの接続関係のロード
+
+                {
+                    className = arch.ReadDepthClassName();
+                    System.Diagnostics.Debug.Assert(className == "setIdLCad_CutMesh");
+                    int nl;
+                    values = arch.GetValues();
+                    nl = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(nl >= 0);
+                    uint ind;
+                    uint lId;
+                    CutMeshLCadIds.Clear();
+                    for (uint il = 0; il < nl; il++)
+                    {
+                        values = arch.GetValues();
+                        ind = uint.Parse(values[0]);
+                        lId = uint.Parse(values[1]);
+                        System.Diagnostics.Debug.Assert(ind == il);
+                        CutMeshLCadIds.Add(lId);
+                    }
+                }
+                {
+                    // メッシュ生成モードのロード
+                    int ntmp0;
+                    int ntmp1;
+                    double dtmp0;
+                    values = arch.GetValues();
+                    ntmp0 = int.Parse(values[0]);
+                    ntmp1 = int.Parse(values[1]);
+                    dtmp0 = double.Parse(values[2]);
+                    System.Diagnostics.Debug.Assert(ntmp0 >= 0 && ntmp0 < 3);
+                    MeshingMode = (uint)ntmp0;
+                    System.Diagnostics.Debug.Assert(ntmp1 > 0);
+                    ESize = (uint)ntmp1;
+                    System.Diagnostics.Debug.Assert(dtmp0 > 0);
+                    ELen = dtmp0;
+                }
+                if (isOnlyCadMshLink)
+                {
+                    arch.ShiftDepth(false);
+                    return true;
+                }
+
+                ////////////////////////////////
+                // メッシュ情報のロード
+
+                {   // 座標をロード
+                    int nvec;
+                    int ndim;
+                    values = arch.GetValues();
+                    nvec = int.Parse(values[0]);
+                    ndim = int.Parse(values[1]);
+                    System.Diagnostics.Debug.Assert(nvec > 0 && (ndim > 0 && ndim < 4));
+                    Vec2Ds.Clear();
+                    for (int ivec = 0; ivec < nvec; ivec++)
+                    {
+                        int itmp0;
+                        double x;
+                        double y;
+                        values = arch.GetValues();
+                        itmp0 = int.Parse(values[0]);
+                        x = double.Parse(values[1]);
+                        y = double.Parse(values[2]);
+                        System.Diagnostics.Debug.Assert(itmp0 == ivec);
+                        OpenTK.Vector2d vec = new OpenTK.Vector2d(x, y);
+                        Vec2Ds.Add(vec);
+                    }
+                }
+                int nVerA;
+                int nBarA;
+                int nTriA;
+                int nQuadA;
+                values = arch.GetValues();
+                nVerA = int.Parse(values[0]);
+                nBarA = int.Parse(values[1]);
+                nTriA = int.Parse(values[2]);
+                nQuadA = int.Parse(values[3]);
+                System.Diagnostics.Debug.Assert(nVerA >= 0 && nBarA >= 0 && nTriA >= 0 && nQuadA >= 0);
+                for (int iVerA = 0; iVerA < nVerA; iVerA++)
+                {
+                    className = arch.ReadDepthClassName();
+                    System.Diagnostics.Debug.Assert(className == "SVertex");
+                    int id;
+                    values = arch.GetValues();
+                    id = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(id > 0);
+                    int cadId;
+                    values = arch.GetValues();
+                    cadId = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(cadId >= 0);
+                    int iv;
+                    values = arch.GetValues();
+                    iv = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(iv >= 0);
+                    MeshVertex ver = new MeshVertex();
+                    ver.Id = (uint)id;
+                    ver.VCadId = (uint)cadId;
+                    ver.V = (uint)iv;
+                    Vertexs.Add(ver);
+                }
+                for (int iBarA = 0; iBarA < nBarA; iBarA++)
+                {
+                    className = arch.ReadDepthClassName();
+                    System.Diagnostics.Debug.Assert(className == "CBarAry");
+                    int id;
+                    values = arch.GetValues();
+                    id = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(id > 0);
+                    int cadId;
+                    values = arch.GetValues();
+                    cadId = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(cadId >= 0);
+                    int sId;
+                    int eId;
+                    values = arch.GetValues();
+                    sId = int.Parse(values[0]);
+                    eId = int.Parse(values[1]);
+                    int lId;
+                    int rId;
+                    values = arch.GetValues();
+                    lId = int.Parse(values[0]);
+                    rId = int.Parse(values[1]);
+                    int nbar;
+                    values = arch.GetValues();
+                    nbar = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(nbar > 0);
+                    MeshBarArray barA = new MeshBarArray();
+                    BarArrays.Add(barA);
+                    barA.Id = (uint)id;
+                    barA.ECadId = (uint)cadId;
+                    barA.SEId[0] = (uint)sId;
+                    barA.SEId[1] = (uint)eId;
+                    barA.LRId[0] = (uint)lId;
+                    barA.LRId[1] = (uint)rId;
+                    barA.Bars.Clear();
+                    for (int ibar = 0; ibar < nbar; ibar++)
+                    {
+                        int ibarTmp;
+                        int iv0;
+                        int iv1;
+                        int s0;
+                        int s1;
+                        int r0;
+                        int r1;
+                        values = arch.GetValues();
+                        ibarTmp = int.Parse(values[0]);
+                        iv0 = int.Parse(values[1]);
+                        iv1 = int.Parse(values[2]);
+                        s0 = int.Parse(values[3]);
+                        s1 = int.Parse(values[4]);
+                        r0 = int.Parse(values[5]);
+                        r1 = int.Parse(values[6]);
+                        System.Diagnostics.Debug.Assert(ibarTmp == ibar);
+                        System.Diagnostics.Debug.Assert(iv0 >= 0 && iv1 >= 0);
+                        MeshBar bar = new MeshBar();
+                        barA.Bars.Add(bar);
+                        bar.V[0] = (uint)iv0;
+                        bar.V[1] = (uint)iv1;
+                        bar.S2[0] = (uint)s0;
+                        bar.S2[1] = (uint)s1;
+                        bar.R2[0] = (uint)r0;
+                        bar.R2[1] = (uint)r1;
+                    }
+                }
+                for (int iTriA = 0; iTriA < nTriA; iTriA++){
+                    className = arch.ReadDepthClassName();
+                    System.Diagnostics.Debug.Assert(className == "CTriAry2D");
+                    int id;
+                    values = arch.GetValues();
+                    id = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(id > 0);
+                    int cadId;
+                    values = arch.GetValues();
+                    cadId = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(cadId >= 0);
+                    int ntri;
+                    values = arch.GetValues();
+                    ntri = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(ntri > 0);
+                    MeshTriArray2D triA = new MeshTriArray2D();
+                    TriArrays.Add(triA);
+                    triA.Id = (uint)id;
+                    triA.LCadId = (uint)cadId;
+                    for (int itri = 0; itri < ntri; itri++)
+                    {
+                        int itriTmp;
+                        int iv0;
+                        int iv1;
+                        int iv2;
+                        values = arch.GetValues();
+                        itriTmp = int.Parse(values[0]);
+                        iv0 = int.Parse(values[1]);
+                        iv1 = int.Parse(values[2]);
+                        iv2 = int.Parse(values[3]);
+                        System.Diagnostics.Debug.Assert(itriTmp == itri);
+                        System.Diagnostics.Debug.Assert(iv0 >= 0 && iv1 >= 0 && iv2 >= 0);
+                        MeshTri2D tri = new MeshTri2D();
+                        triA.Tris.Add(tri);
+                        tri.V[0] = (uint)iv0;
+                        tri.V[1] = (uint)iv1;
+                        tri.V[2] = (uint)iv2;
+                    }
+                    {
+                        uint npoin = (uint)Vec2Ds.Count;
+                        uint[] elsupInd = new uint[npoin + 1];
+                        uint nelsup;
+                        uint[] elsup;
+                        MeshUtils.MakePointSurTri(triA.Tris, npoin, elsupInd, out nelsup, out elsup);
+                        MeshUtils.MakeInnerRelationTri(triA.Tris, npoin, elsupInd, nelsup, elsup);
+                    }
+                }
+                for (int iQuadA = 0; iQuadA < nQuadA; iQuadA++)
+                {
+                    className = arch.ReadDepthClassName();
+                    System.Diagnostics.Debug.Assert(className == "CQuadAry2D");
+                    int id;
+                    values = arch.GetValues();
+                    id = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(id > 0);
+                    int cadId;
+                    values = arch.GetValues();
+                    cadId = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(cadId >= 0);
+                    int nquad;
+                    values = arch.GetValues();
+                    nquad = int.Parse(values[0]);
+                    System.Diagnostics.Debug.Assert(nquad > 0);
+                    MeshQuadArray2D quadA = new MeshQuadArray2D();
+                    QuadArrays.Add(quadA);
+                    quadA.Id = (uint)id;
+                    quadA.LCadId = (uint)cadId;
+                    for (int iquad = 0; iquad < nquad; iquad++)
+                    {
+                        int iquadTmp;
+                        int iv0;
+                        int iv1;
+                        int iv2;
+                        int iv3;
+                        values = arch.GetValues();
+                        iquadTmp = int.Parse(values[0]);
+                        iv0 = int.Parse(values[1]);
+                        iv1 = int.Parse(values[2]);
+                        iv2 = int.Parse(values[3]);
+                        iv3 = int.Parse(values[4]);
+                        System.Diagnostics.Debug.Assert(iquadTmp == iquad);
+                        System.Diagnostics.Debug.Assert(iv0 >= 0 && iv1 >= 0 && iv2 >= 0 && iv3 >= 0);
+                        MeshQuad2D quad = new MeshQuad2D();
+                        quadA.Quads.Add(quad);
+                        quad.V[0] = (uint)iv0;
+                        quad.V[1] = (uint)iv1;
+                        quad.V[2] = (uint)iv2;
+                        quad.V[3] = (uint)iv3;
+                    }
+                }
+                MakeElemLocationType();
+
+                ////////////////////////////////
+                // build the internal relationship
+                for (int ibarary = 0; ibarary <BarArrays.Count; ibarary++)
+                {
+                    uint barMshId = BarArrays[ibarary].Id;
+                    int barLoc = TypeLocs[(int)barMshId].Loc;
+                    IList<MeshBar> bars = BarArrays[barLoc].Bars;
+                    for (int isidebar = 0; isidebar < 2; isidebar++)
+                    {
+                        uint adjMshId = BarArrays[barLoc].LRId[isidebar];
+                        if (adjMshId == 0)
+                        {
+                            continue;
+                        }
+                        //System.Diagnostics.Debug.WriteLine(adjMshId + " " + TypeLocs.Count);
+                        System.Diagnostics.Debug.Assert(adjMshId < (int)TypeLocs.Count);
+                        int adjLoc = TypeLocs[(int)adjMshId].Loc;
+                        if (TypeLocs[(int)adjMshId].Type == 2)
+                        {
+                            // tri mesh
+                            IList<MeshTri2D> tris = TriArrays[adjLoc].Tris;
+                            for (int ibar = 0; ibar < bars.Count; ibar++)
+                            {
+                                uint itri = bars[ibar].S2[isidebar];
+                                uint inotri = bars[ibar].R2[isidebar];
+                                tris[(int)itri].G2[inotri] = (int)barMshId;
+                                tris[(int)itri].S2[inotri] = (uint)ibar;
+                                tris[(int)itri].R2[inotri] = (uint)isidebar;
+                            }
+                        }
+                    }
+                }
+                System.Diagnostics.Debug.Assert(CheckMesh() == 0);
+                arch.ShiftDepth(false);
+                return true;
+            }
+            else
+            {
+                string line;
+
+                // write file
+                arch.WriteDepthClassName("CMesher2D");
+                arch.ShiftDepth(true);
+
+                ////////////////////////////////
+                // write relation to CAD
+
+                {
+                    arch.WriteDepthClassName("setIdLCad_CutMesh");
+
+                    line = string.Format("{0}", CutMeshLCadIds.Count);
+                    arch.WriteLine(line);
+
+                    int icnt = 0;
+                    foreach (uint lId in CutMeshLCadIds)
+                    {
+                        line = string.Format("{0} {1}", icnt, lId);
+                        arch.WriteLine(line);
+                        icnt++;
+                    }
+                }
+
+                line = string.Format("{0} {0} {0}", MeshingMode, ESize, ELen);
+                arch.WriteLine(line);
+
+                if (isOnlyCadMshLink)
+                { // 
+                    arch.ShiftDepth(false);
+                    return true;
+                }
+
+                ////////////////////////////////
+                // Write information of Msh
+
+                line = string.Format("{0} {1}", Vec2Ds.Count, 2);
+                arch.WriteLine(line);
+                for (int ivec = 0; ivec < Vec2Ds.Count; ivec++)
+                {
+                    line = string.Format("{0} {1} {2}", ivec, Vec2Ds[ivec].X, Vec2Ds[ivec].Y);
+                    arch.WriteLine(line);
+                }
+                line = string.Format("{0} {1} {2} {3}",
+                    Vertexs.Count, BarArrays.Count, TriArrays.Count, QuadArrays.Count);
+                arch.WriteLine(line);
+                {
+                    // Vertexの出力
+                    for (int iver = 0; iver < Vertexs.Count; iver++)
+                    {
+                        arch.WriteDepthClassName("SVertex");
+
+                        line = string.Format("{0}", Vertexs[iver].Id);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", Vertexs[iver].VCadId);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", Vertexs[iver].V);
+                        arch.WriteLine(line);
+                    }
+                }
+                {
+                    // Barの出力
+                    for (int ibarary = 0; ibarary < BarArrays.Count; ibarary++)
+                    {
+                        arch.WriteDepthClassName("CBarAry");
+
+                        line = string.Format("{0}", BarArrays[ibarary].Id);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", BarArrays[ibarary].ECadId);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0} {1}", BarArrays[ibarary].SEId[0], BarArrays[ibarary].SEId[1]);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0} {1}", BarArrays[ibarary].LRId[0], BarArrays[ibarary].LRId[1]);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", BarArrays[ibarary].Bars.Count);
+                        arch.WriteLine(line);
+                        IList<MeshBar> bars = BarArrays[ibarary].Bars;
+                        for (int ibar = 0; ibar < bars.Count; ibar++)
+                        {
+                            line = string.Format("{0} {1} {2}  {3} {4}  {5} {6}", ibar,
+                                bars[ibar].V[0], bars[ibar].V[1],
+                                bars[ibar].S2[0], bars[ibar].S2[1],
+                                bars[ibar].R2[0], bars[ibar].R2[1]);
+                            arch.WriteLine(line);
+                        }
+                    }
+                }
+                {
+                    // Triの出力
+                    for (int itriary = 0; itriary < TriArrays.Count; itriary++)
+                    {
+                        arch.WriteDepthClassName("CTriAry2D");
+
+                        line = string.Format("{0}", TriArrays[itriary].Id);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", TriArrays[itriary].LCadId);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", TriArrays[itriary].Tris.Count);
+                        arch.WriteLine(line);
+                        IList<MeshTri2D> tirs = TriArrays[itriary].Tris;
+                        for (int itri = 0; itri < tirs.Count; itri++)
+                        {
+                            line = string.Format("{0} {1} {2} {3}",
+                                itri, tirs[itri].V[0], tirs[itri].V[1], tirs[itri].V[2]);
+                            arch.WriteLine(line);
+                        }
+                    }
+                }
+                {
+                    // Quadの出力
+                    for (int iquadary = 0; iquadary < QuadArrays.Count; iquadary++)
+                    {
+                        arch.WriteDepthClassName("CQuadAry2D");
+
+                        line = string.Format("{0}", QuadArrays[iquadary].Id);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", QuadArrays[iquadary].LCadId);
+                        arch.WriteLine(line);
+
+                        line = string.Format("{0}", QuadArrays[iquadary].Quads.Count);
+                        arch.WriteLine(line);
+                        IList<MeshQuad2D> quads = QuadArrays[iquadary].Quads;
+                        for (int iquad = 0; iquad < quads.Count; iquad++)
+                        {
+                            line = string.Format("{0} {1} {2} {3} {4}",
+                                iquad, quads[iquad].V[0], quads[iquad].V[1], quads[iquad].V[2], quads[iquad].V[3]);
+                            arch.WriteLine(line);
+                        }
+                    }
+                }
+                arch.ShiftDepth(false);
+            }
+            return true;
+        }
 
 
     }
