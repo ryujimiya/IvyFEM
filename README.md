@@ -30,21 +30,19 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　  
 　**バイナリ（2019-03-24更新）**  
 　  
-　  IvyFEM.dll version 0.0.0.4  
-　  ※開発途中なのでDebug版しかありません。  
+　　IvyFEM.dll version 0.0.0.4  
+　　※開発途中なのでDebug版しかありません。  
 　  
-　  **プラットフォームターゲット:　x64**  
-　  
-　  [IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
+　　**プラットフォームターゲット:　x64**  
+　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
 　  
 　**使い方**  
 　  
-　  IvyFEMライブラリを使ったサンプルアプリケーションIvyFEMProtoAppをご参照ください。  
+　　IvyFEMライブラリを使ったサンプルアプリケーションIvyFEMProtoAppをご参照ください。  
+　　[IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
 　  
-　  [IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
-　  
-　  また、実装概略を次のページにまとめました。  
-　  [.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
+　　また、実装概略を次のページにまとめました。  
+　　[.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
 　  
 ![IvyFEMProtoAppアプリ](https://pbs.twimg.com/media/DjHvvKfUcAEMU_H.jpg)  
 　  
