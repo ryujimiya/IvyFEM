@@ -33,6 +33,8 @@ IvyFEMは[DelFEM4Net](https://code.google.com/p/delfem4net/) の後継ライブ�
 　  IvyFEM.dll version 0.0.0.4  
 　  ※開発途中なのでDebug版しかありません。  
 　  
+　  **プラットフォームターゲット:　x64**  
+　  
 　  [IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
 　  
 　**使い方**  
