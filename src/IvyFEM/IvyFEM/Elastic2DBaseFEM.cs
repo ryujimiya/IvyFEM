@@ -112,7 +112,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
-                    SetFixedCadsCondtion(World, A, B, NodeCounts, Dofs);
+                    DoubleSetFixedCadsCondtion(A, B, NodeCounts, Dofs);
                     System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
@@ -160,7 +160,7 @@ namespace IvyFEM
                 System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
-                SetFixedCadsCondtion(World, A, B, NodeCounts, Dofs);
+                DoubleSetFixedCadsCondtion(A, B, NodeCounts, Dofs);
                 System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;

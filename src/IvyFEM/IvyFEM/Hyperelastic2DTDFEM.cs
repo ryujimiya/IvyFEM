@@ -39,47 +39,12 @@ namespace IvyFEM
             //CalcElementABs.Add(CalcOgdenOriginalRivlinIncompressibleHyperelasticElementAB);
         }
 
-        public void UpdateFieldValues()
+        public void UpdateFieldValuesTimeDomain()
         {
-            double dt = TimeStep;
-            double beta = NewmarkBeta;
-            double gamma = NewmarkGamma;
-
-            var uFV = World.GetFieldValue(UValueId);
-            var prevUFV = World.GetFieldValue(PrevUValueId);
-            prevUFV.Copy(uFV);
-
-            World.UpdateFieldValueValuesFromNodeValues(UValueId, FieldDerivativeType.Value, U);
-            World.UpdateFieldValueValuesFromNodeValues(LValueId, FieldDerivativeType.Value, U);
-
-            double[] u = uFV.GetDoubleValues(FieldDerivativeType.Value);
-            double[] velU = uFV.GetDoubleValues(FieldDerivativeType.Velocity);
-            double[] accU = uFV.GetDoubleValues(FieldDerivativeType.Acceleration);
-            double[] prevU = prevUFV.GetDoubleValues(FieldDerivativeType.Value);
-            double[] prevVelU = prevUFV.GetDoubleValues(FieldDerivativeType.Velocity);
-            double[] prevAccU = prevUFV.GetDoubleValues(FieldDerivativeType.Acceleration);
-
-            uint uCoCnt = uFV.GetPointCount();
-            uint uQuantityId = uFV.QuantityId;
-            int uDof = (int)uFV.Dof;
-            System.Diagnostics.Debug.Assert(uCoCnt == World.GetCoordCount(uQuantityId));
-            System.Diagnostics.Debug.Assert(uDof == 2);
-            System.Diagnostics.Debug.Assert(u.Length == uCoCnt * uDof);
-            for (int iPt = 0; iPt < uCoCnt; iPt++)
-            {
-                for (int iDof = 0; iDof < uDof; iDof++)
-                {
-                    int index = iPt * uDof + iDof;
-                    velU[index] =
-                        (gamma / (beta * dt)) * (u[index] - prevU[index]) +
-                        (1.0 - gamma / beta) * prevVelU[index] +
-                        dt * (1.0 - gamma / (2.0 * beta)) * prevAccU[index];
-                    accU[index] =
-                        (1.0 / (beta * dt * dt)) * (u[index] - prevU[index]) -
-                        (1.0 / (beta * dt)) * prevVelU[index] -
-                        (1.0 / (2.0 * beta) - 1.0) * prevAccU[index];
-                }
-            }
+            UpdateFieldValuesTimeDomain(
+                U, UValueId, PrevUValueId,
+                TimeStep,
+                NewmarkBeta, NewmarkGamma);
         }
     }
 }

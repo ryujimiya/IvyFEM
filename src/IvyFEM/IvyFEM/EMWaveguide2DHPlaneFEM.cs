@@ -12,7 +12,7 @@ namespace IvyFEM
 
         // Solve
         // input
-        public double WaveLength { get; set; }
+        public double Frequency { get; set; }
         // output
         public System.Numerics.Complex[] Ez { get; private set; }
         public System.Numerics.Complex[][] S { get; private set; }
@@ -30,10 +30,10 @@ namespace IvyFEM
             S = null;
             EigenFEMs = null;
 
-            // 波数
-            double k0 = 2.0 * Math.PI / WaveLength;
             // 角周波数
-            double omega = k0 * Constants.C0;
+            double omega = 2.0 * Math.PI * Frequency;
+            // 波数
+            double k0 = omega / Constants.C0;
 
             t = System.Environment.TickCount;
             int nodeCnt = (int)World.GetNodeCount(QuantityId);
@@ -123,7 +123,7 @@ namespace IvyFEM
                 var eigenFEM = new EMWaveguide1DEigenFEM(World, QuantityId, portId);
                 eigenFEMs[portId] = eigenFEM;
 
-                eigenFEM.WaveLength = WaveLength;
+                eigenFEM.Frequency = Frequency;
                 eigenFEM.Solve();
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
                 System.Numerics.Complex[][] ezEVecs = eigenFEM.EzEVecs;

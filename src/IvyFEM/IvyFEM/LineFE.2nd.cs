@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public partial class LineFE
     {
-        public double[] Calc2ndN(double[] L)
+        protected double[] Calc2ndN(double[] L)
         {
             double[] N = new double[3];
 
@@ -21,7 +21,7 @@ namespace IvyFEM
             return N;
         }
 
-        public double[][] Calc2ndNu(double[] L)
+        protected double[][] Calc2ndNu(double[] L)
         {
             double[][] Nu = new double[1][];
             double[] a;
@@ -39,7 +39,7 @@ namespace IvyFEM
             return Nu;
         }
 
-        public double[,] Calc2ndSNN()
+        protected double[,] Calc2ndSNN()
         {
             double l = GetLineLength();
             double[,] sNN = new double[3, 3]
@@ -58,7 +58,7 @@ namespace IvyFEM
             return sNN;
         }
 
-        public double[,] Calc2ndSNxNx()
+        protected double[,] Calc2ndSNxNx()
         {
             double l = GetLineLength();
             double[,] sNxNx = new double[3, 3] 

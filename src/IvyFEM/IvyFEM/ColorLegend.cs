@@ -47,7 +47,7 @@ namespace IvyFEM
             double intervalN = 17.0;
             uint divC = 20;
             GL.Scale(ScaleX, ScaleY, 1.0);
-            GL.Translate(((asp - 0.05) / ScaleX - 9), ((1 - 0.05) / ScaleY - 10.5 * 1.7), 1.0);
+            GL.Translate(((asp - 0.05) / ScaleX - 9), ((1 - 0.05) / ScaleY - 11.5 * 1.7), 1.0);
             GL.Begin(PrimitiveType.Quads);
             for (int i = 0; i < divC; i++)
             {
@@ -67,13 +67,22 @@ namespace IvyFEM
             GL.Color3(0, 0, 0);
             GL.Translate(0, -0.5, 0);
             uint divN = 10;
+            double maxAbs = Math.Abs(ColorMap.MaxValue) > Math.Abs(ColorMap.MinValue) ?
+                Math.Abs(ColorMap.MaxValue) : Math.Abs(ColorMap.MinValue);
+            int exp = (int)Math.Log10(maxAbs);
+            double pow = Math.Pow(10.0, exp);
             for (int i = 0; i < divN + 1; i++)
             {
                 double val = (ColorMap.MaxValue - ColorMap.MinValue) * i / divN + ColorMap.MinValue;
-                string str = string.Format("{0,5:N1}", val);
+                string str = string.Format("{0,5:N2}", val / pow);
                 OpenGLUtils.DrawString(str, FontSize);
                 GL.Translate(0, +intervalN / divN, 0);
             }
+            {
+                string str = string.Format("[x10{0}{1}]", (exp >= 0 ? "+" : ""), exp);
+                OpenGLUtils.DrawString(str, FontSize);
+            }
+
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();
             GL.MatrixMode(MatrixMode.Modelview);

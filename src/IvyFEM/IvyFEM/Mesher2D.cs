@@ -120,6 +120,32 @@ namespace IvyFEM
             Vec2Ds.Clear();
         }
 
+        public void AddCutMeshLCadId(uint lCadId)
+        {
+            CutMeshLCadIds.Add(lCadId);
+        }
+
+        public bool IsCutMeshLCadId(uint lCadId)
+        {
+            return CutMeshLCadIds.Contains(lCadId);
+        }
+
+        public void RemoveCutMeshLCadId(uint lCadId)
+        {
+            CutMeshLCadIds.Remove(lCadId);
+        }
+
+        public void ClearCutMeshLCadIds()
+        {
+            CutMeshLCadIds.Clear();
+        }
+
+        public IList<uint> GetCutMeshLCadIds()
+        {
+            IList<uint> aIdL = CutMeshLCadIds.ToList();
+            return aIdL;
+        }
+
         public IList<MeshTriArray2D> GetTriArrays()
         {
             return TriArrays;

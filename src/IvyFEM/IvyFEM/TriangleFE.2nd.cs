@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public partial class TriangleFE
     {
-        public double[] Calc2ndN(double[] L)
+        protected double[] Calc2ndN(double[] L)
         {
             double[] N = new double[6];
 
@@ -21,7 +21,7 @@ namespace IvyFEM
             return N;
         }
 
-        public double[][] Calc2ndNu(double[] L)
+        protected double[][] Calc2ndNu(double[] L)
         {
             double[][] Nu = new double[2][];
             double[] a;
@@ -48,7 +48,7 @@ namespace IvyFEM
             return Nu;
         }
 
-        public double[] Calc2ndSN()
+        protected double[] Calc2ndSN()
         {
             double A = GetArea();
             double[] sN = new double[6]
@@ -63,7 +63,7 @@ namespace IvyFEM
             return sN;
         }
 
-        public double[,] Calc2ndSNN()
+        protected double[,] Calc2ndSNN()
         {
             double A = GetArea();
             double[,] sNN = new double[6, 6]
@@ -85,7 +85,7 @@ namespace IvyFEM
             return sNN;
         }
 
-        public double[,][,] Calc2ndSNuNv()
+        protected double[,][,] Calc2ndSNuNv()
         {
             double[,][,] sNuNv = new double[6, 6][,];
 
@@ -94,9 +94,34 @@ namespace IvyFEM
             double[] b;
             double[] c;
             CalcTransMatrix(out a, out b, out c);
+
             // dN/duのL1, L2, L3の係数, 定数項
-            double[,] cx = new double[6, 4];
-            double[,] cy = new double[6, 4];
+            double[,] cx;
+            double[,] cy;
+            CalcDNduCoef(a, b, c, out cx, out cy);
+
+            // sNxNx
+            sNuNv[0, 0] = new double[6, 6];
+            __CalcNuNv(sNuNv[0, 0], A, cx, cx);
+            // sNxNy
+            sNuNv[0, 1] = new double[6, 6];
+            __CalcNuNv(sNuNv[0, 1], A, cx, cy);
+            // sNyNx
+            sNuNv[1, 0] = new double[6, 6];
+            __CalcNuNv(sNuNv[1, 0], A, cy, cx);
+            // sNyNy
+            sNuNv[1, 1] = new double[6, 6];
+            __CalcNuNv(sNuNv[1, 1], A, cy, cy);
+            return sNuNv;
+        }
+
+        protected void CalcDNduCoef(
+            double[]a, double[]b, double[]c,
+            out double[,] cx, out double[,] cy)
+        {
+            // dN/duのL1, L2, L3の係数, 定数項
+            cx = new double[6, 4];
+            cy = new double[6, 4];
             // dN/dx
             for (int i = 0; i < 3; i++)
             {
@@ -118,22 +143,9 @@ namespace IvyFEM
                 cy[i + 3, i] = 4.0 * c[(i + 1) % 3];
             }
 
-            // sNxNx
-            sNuNv[0, 0] = new double[6, 6];
-            __CalcNuNv(sNuNv[0, 0], A, cx, cx);
-            // sNxNy
-            sNuNv[0, 1] = new double[6, 6];
-            __CalcNuNv(sNuNv[0, 1], A, cx, cy);
-            // sNyNx
-            sNuNv[1, 0] = new double[6, 6];
-            __CalcNuNv(sNuNv[1, 0], A, cy, cx);
-            // sNyNy
-            sNuNv[1, 1] = new double[6, 6];
-            __CalcNuNv(sNuNv[1, 1], A, cy, cy);
-            return sNuNv;
         }
 
-        private void __CalcNuNv(double[,] sNuNv, double A, double[,]cu, double[,]cv)
+        protected void __CalcNuNv(double[,] sNuNv, double A, double[,]cu, double[,]cv)
         {
             for (int i = 0; i < 6; i++)
             {
@@ -149,6 +161,54 @@ namespace IvyFEM
                         A * cu[i, 3] * cv[j, 3];
                 }
             }
+        }
+
+        protected double[][,] Calc2ndSNuN()
+        {
+            double[][,] sNuN = new double[6][,];
+
+            double A = GetArea();
+            double[] a;
+            double[] b;
+            double[] c;
+            CalcTransMatrix(out a, out b, out c);
+
+            // dN/duのL1, L2, L3の係数, 定数項
+            double[,] cx;
+            double[,] cy;
+            CalcDNduCoef(a, b, c, out cx, out cy);
+
+            // sNxN
+            double[,] sNxN = new double[6, 6];
+            sNuN[0] = sNxN;
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    sNxN[i, 0] = (A / 30.0) * cx[i, 0] - (A / 60.0) * (cx[i, 1] + cx[i, 2]);
+                    sNxN[i, 1] = (A / 30.0) * cx[i, 1] - (A / 60.0) * (cx[i, 0] + cx[i, 2]);
+                    sNxN[i, 2] = (A / 30.0) * cx[i, 2] - (A / 60.0) * (cx[i, 0] + cx[i, 1]);
+                    sNxN[i, 3] = (A / 15.0) * (2.0 * cx[i, 0] + 2.0 * cx[i, 1] + cx[i, 2] + 5.0 * cx[i, 3]);
+                    sNxN[i, 4] = (A / 15.0) * (cx[i, 0] + 2.0 * cx[i, 1] + 2.0 * cx[i, 2] + 5.0 * cx[i, 3]);
+                    sNxN[i, 5] = (A / 15.0) * (2.0 * cx[i, 0] + cx[i, 1] + 2.0 * cx[i, 2] + 5.0 * cx[i, 3]);
+                }
+
+            }
+            // sNyN
+            double[,] sNyN = new double[6, 6];
+            sNuN[1] = sNyN;
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    sNyN[i, 0] = (A / 30.0) * cy[i, 0] - (A / 60.0) * (cy[i, 1] + cy[i, 2]);
+                    sNyN[i, 1] = (A / 30.0) * cy[i, 1] - (A / 60.0) * (cy[i, 0] + cy[i, 2]);
+                    sNyN[i, 2] = (A / 30.0) * cy[i, 2] - (A / 60.0) * (cy[i, 0] + cy[i, 1]);
+                    sNyN[i, 3] = (A / 15.0) * (2.0 * cy[i, 0] + 2.0 * cy[i, 1] + cy[i, 2] + 5.0 * cy[i, 3]);
+                    sNyN[i, 4] = (A / 15.0) * (cy[i, 0] + 2.0 * cy[i, 1] + 2.0 * cy[i, 2] + 5.0 * cy[i, 3]);
+                    sNyN[i, 5] = (A / 15.0) * (2.0 * cy[i, 0] + cy[i, 1] + 2.0 * cy[i, 2] + 5.0 * cy[i, 3]);
+                }
+
+            }
+            return sNuN;
         }
     }
 }

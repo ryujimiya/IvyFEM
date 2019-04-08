@@ -16,7 +16,7 @@ namespace IvyFEM
 
         // Solve
         // Input
-        public double WaveLength { get; set; }
+        public double Frequency { get; set; }
         // Output
         public System.Numerics.Complex[] Betas { get; private set; }
         public System.Numerics.Complex[][] EzEVecs { get; private set; }
@@ -87,10 +87,10 @@ namespace IvyFEM
             Betas = null;
             EzEVecs = null;
 
-            // 波数
-            double k0 = 2.0 * Math.PI / WaveLength;
             // 角周波数
-            double omega = k0 * Constants.C0;
+            double omega = 2.0 * Math.PI * Frequency;
+            // 波数
+            double k0 = omega / Constants.C0;
 
             int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
             var A = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);

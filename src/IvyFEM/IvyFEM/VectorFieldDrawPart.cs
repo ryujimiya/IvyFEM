@@ -17,6 +17,7 @@ namespace IvyFEM
         public double[] Coords { get; set; } = null;
         public double[] Values { get; set; } = null;
         public VectorFieldDrawerType DrawerType { get; private set; } = VectorFieldDrawerType.NotSet;
+        public double ArrowLen { get; set; } = 0;
 
         public uint Dimension
         {
@@ -54,6 +55,7 @@ namespace IvyFEM
                 src.Values.CopyTo(Values, 0);
             }
             DrawerType = src.DrawerType;
+            ArrowLen = src.ArrowLen;
         }
 
 
@@ -374,8 +376,37 @@ namespace IvyFEM
                         {
                             va[iDof] = Values[iElem * ValueDof + iDof];
                         }
+
+                        GL.Color3(0.0, 0.0, 0.0);
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] + va[0], co[1] + va[1]);
+
+                        double arrowTheta = Math.PI / 12.0;
+                        double arrowLen = ArrowLen;
+                        if (Math.Sqrt(va[0] * va[0] + va[1] * va[1]) >= arrowLen *Math.Cos(arrowTheta) * 1.5)
+                        {
+                            // arrow
+                            double vecTheta = Math.Atan2(va[1], va[0]);
+                            double[] cPt = new double[]
+                            {
+                                co[0] + va[0] - arrowLen * Math.Cos(arrowTheta) * Math.Cos(vecTheta),
+                                co[1] + va[1] - arrowLen * Math.Cos(arrowTheta) * Math.Sin(vecTheta)
+                            };
+                            double[] pt1 = new double[]
+                            {
+                                cPt[0] - arrowLen * Math.Sin(arrowTheta) * Math.Sin(vecTheta),
+                                cPt[1] + arrowLen * Math.Sin(arrowTheta) * Math.Cos(vecTheta)
+                            };
+                            double[] pt2 = new double[]
+                            {
+                                cPt[0] + arrowLen * Math.Sin(arrowTheta) * Math.Sin(vecTheta),
+                                cPt[1] - arrowLen * Math.Sin(arrowTheta) * Math.Cos(vecTheta)
+                            };
+                            GL.Vertex2(co[0] + va[0], co[1] + va[1]);
+                            GL.Vertex2(pt1[0], pt1[1]);
+                            GL.Vertex2(co[0] + va[0], co[1] + va[1]);
+                            GL.Vertex2(pt2[0], pt2[1]);
+                        }
                     }
                 }
                 else if (DrawerType == VectorFieldDrawerType.SymmetricTensor2)

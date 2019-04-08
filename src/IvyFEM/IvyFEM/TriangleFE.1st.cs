@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public partial class TriangleFE
     {
-        public double[] Calc1stN(double[] L)
+        protected double[] Calc1stN(double[] L)
         {
             double[] N = new double[3];
 
@@ -18,7 +18,7 @@ namespace IvyFEM
             return N;
         }
 
-        public double[][] Calc1stNu(double[] L)
+        protected double[][] Calc1stNu(double[] L)
         {
             double[][] Nu = new double[2][];
             double[] a;
@@ -34,7 +34,7 @@ namespace IvyFEM
             return Nu;
         }
 
-        public double[] Calc1stSN()
+        protected double[] Calc1stSN()
         {
             double A = GetArea();
             double[] sN = new double[3]
@@ -46,7 +46,7 @@ namespace IvyFEM
             return sN;
         }
 
-        public double[,] Calc1stSNN()
+        protected double[,] Calc1stSNN()
         {
             double A = GetArea();
             double[,] sNN = new double[3, 3]
@@ -65,7 +65,7 @@ namespace IvyFEM
             return sNN;
         }
 
-        public double[,][,] Calc1stSNuNv()
+        protected double[,][,] Calc1stSNuNv()
         {
             double A = GetArea();
             double[] a;
@@ -115,6 +115,39 @@ namespace IvyFEM
                 }
             }
             return sNuNv;
+        }
+
+        protected double[][,] Calc1stSNuN()
+        {
+            double A = GetArea();
+            double[] a;
+            double[] b;
+            double[] c;
+            CalcTransMatrix(out a, out b, out c);
+
+            double[][,] sNuN = new double[2][,];
+
+            // sNxN
+            sNuN[0] = new double[3, 3];
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    sNuN[0][i, j] = (A / 3.0) * b[i];
+                }
+            }
+
+            // sNyN
+            sNuN[1] = new double[3, 3];
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    sNuN[1][i, j] = (A / 3.0) * c[i];
+                }
+            }
+
+            return sNuN;
         }
     }
 }

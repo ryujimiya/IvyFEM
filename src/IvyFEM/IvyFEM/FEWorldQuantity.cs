@@ -758,37 +758,23 @@ namespace IvyFEM
             }
             // 節点を共有している要素を探す
             IList<TriangleFE> sortedTriFEs = new List<TriangleFE>();
-            IList<TriangleFE> queueTriFE = new List<TriangleFE>();
-            while (triFEs.Count > 0 || queueTriFE.Count > 0)
+            int checkIndex = 0;
+            while (triFEs.Count > 0)
             {
-                TriangleFE checkFE = null;
-                if (queueTriFE.Count == 0 && triFEs.Count > 0)
+                TriangleFE checkFE0 = triFEs[0];
+                sortedTriFEs.Add(checkFE0);
+                triFEs.Remove(checkFE0);
+                checkIndex = sortedTriFEs.Count - 1;
+                while (checkIndex < sortedTriFEs.Count)
                 {
-                    checkFE = triFEs[0];
-                    triFEs.Remove(checkFE);
-                    System.Diagnostics.Debug.Assert(!sortedTriFEs.Contains(checkFE));
-                    sortedTriFEs.Add(checkFE);
-                }
-                else if (queueTriFE.Count > 0)
-                {
-                    checkFE = queueTriFE[0];
-                    queueTriFE.RemoveAt(0);
-                    System.Diagnostics.Debug.Assert(!sortedTriFEs.Contains(checkFE));
-                    sortedTriFEs.Add(checkFE);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.Assert(false);
-                }
-                var includeFEs = GetCoordIncludeTriFEs(checkFE, triFEs, triFECoIds);
-                foreach (TriangleFE includeFE in includeFEs)
-                {
-                    if (!sortedTriFEs.Contains(includeFE) &&
-                        !queueTriFE.Contains(includeFE))
+                    TriangleFE checkFE = sortedTriFEs[checkIndex];
+                    var includeFEs = GetCoordIncludeTriFEs(checkFE, triFEs, triFECoIds);
+                    foreach (TriangleFE includeFE in includeFEs)
                     {
-                        queueTriFE.Add(includeFE);
+                        sortedTriFEs.Add(includeFE);
                         triFEs.Remove(includeFE);
                     }
+                    checkIndex++;
                 }
             }
 
@@ -839,15 +825,12 @@ namespace IvyFEM
             {
                 bool isInclude = false;
                 IList<int> tmpCoIds = triFECoIds[tmpFE];
-                foreach (int tmpCoId in tmpCoIds)
+                foreach (int coId in coIds)
                 {
-                    foreach (int coId in coIds)
+                    if (tmpCoIds.Contains(coId))
                     {
-                        if (tmpCoId == coId)
-                        {
-                            isInclude = true;
-                            break;
-                        }
+                        isInclude = true;
+                        break;
                     }
                 }
                 if (isInclude)
@@ -878,7 +861,12 @@ namespace IvyFEM
             Co2FixedCads.Clear();
             foreach (var fixedCad in FieldFixedCads)
             {
-                IList<int> coIds = this.GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
+                IList<int> coIds = GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
+                if (fixedCad is DistributedFieldFixedCad)
+                {
+                    DistributedFieldFixedCad dist = fixedCad as DistributedFieldFixedCad;
+                    dist.InitCoordIds(coIds);
+                }
                 foreach (int coId in coIds)
                 {
                     IList<FieldFixedCad> fixedCads = null;
@@ -893,6 +881,20 @@ namespace IvyFEM
                     }
                     if (fixedCads.IndexOf(fixedCad) == -1)
                     {
+                        // 同じ変数の拘束条件がすでにあるかチェック
+                        {
+                            var sameFixedCads = (from a in fixedCads
+                                    where a.Dof == fixedCad.Dof
+                                    select a).ToList();
+                            if (sameFixedCads.Count > 0)
+                            {
+                                foreach (FieldFixedCad tmp in sameFixedCads)
+                                {
+                                    fixedCads.Remove(tmp);
+                                }
+                            }
+                        }
+
                         fixedCads.Add(fixedCad);
                     }
                 }

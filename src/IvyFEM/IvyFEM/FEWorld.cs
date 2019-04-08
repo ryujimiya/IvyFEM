@@ -15,6 +15,8 @@ namespace IvyFEM
         private Dictionary<uint, uint> CadEdge2Material = new Dictionary<uint, uint>();
         private Dictionary<uint, uint> CadLoop2Material = new Dictionary<uint, uint>();
 
+        public IList<uint> ABCEIds { get; private set; } = new List<uint>();
+
         public int IncidentPortId { get; set; } = -1;
         public int IncidentModeId { get; set; } = -1;
         public IList<IList<uint>> PortEIdss { get; } = new List<IList<uint>>();
@@ -52,6 +54,7 @@ namespace IvyFEM
             MaterialArray.Clear();
             CadEdge2Material.Clear();
             CadLoop2Material.Clear();
+            ABCEIds.Clear();
             IncidentPortId = -1;
             IncidentModeId = -1;
             foreach (var portEIds in PortEIdss)
@@ -448,6 +451,60 @@ namespace IvyFEM
                         values[coId * dof + iDof] = nodeValues[offsetNode + nodeId * dof + iDof];
                     }
                 }
+            }
+        }
+
+        public void UpdateBubbleFieldValueValuesFromNodeValues(
+            uint valueId, FieldDerivativeType dt, double[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            double[] values = fv.GetDoubleValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+
+            IList<uint> feIds = GetTriangleFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                int[] coIds = triFE.NodeCoordIds;
+                uint elemNodeCnt = triFE.NodeCount;
+                double[] bubbleValue = new double[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    if (nodeId == -1)
+                    {
+                        //for (int iDof = 0; iDof < dof; iDof++)
+                        //{
+                        //    bubbleValue[iDof] += 0;
+                        //}
+                    }
+                    else
+                    {
+                        for (int iDof = 0; iDof < dof; iDof++)
+                        {
+                            bubbleValue[iDof] += nodeValues[offsetNode + nodeId * dof + iDof];
+                        }
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= (double)elemNodeCnt; 
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }                
             }
         }
 

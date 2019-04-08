@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System.IO;
+using System.Drawing;
 
 namespace IvyFEM
 {
@@ -201,6 +202,70 @@ namespace IvyFEM
                 matrix.M33 * pvector.Z + matrix.M34 * pvector.W;
             resultvector.W = matrix.M41 * pvector.X + matrix.M42 * pvector.Y +
                 matrix.M43 * pvector.Z + matrix.M44 * pvector.W;
+        }
+
+        /// <summary>
+        /// マウスで指定したウインドウ座標をOpenGL座標に変換
+        /// </summary>
+        /// <param name="pt"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        public static void ScreenPointToCoord(Point pt, out double ox, out double oy)
+        {
+            int[] viewport = new int[4];
+            GL.GetInteger(GetPName.Viewport, viewport);
+            int winW = viewport[2];
+            int winH = viewport[3];
+
+            //モデルビュー行列、射影行列を格納する配列
+            double[] modelviewMatrix = new double[16];
+            double[] projectionMatrix = new double[16];
+
+            int glY;
+            double depth = 0.887; //デプス値(何でもよい)
+            GL.GetDouble(GetPName.ProjectionMatrix, projectionMatrix);
+            GL.GetDouble(GetPName.ModelviewMatrix, modelviewMatrix);
+            glY = winH - pt.Y;
+
+            double oz;
+            OpenGLUtils.GluUnProject((double)pt.X, (double)glY, depth,
+                modelviewMatrix, projectionMatrix, viewport,
+                out ox, out oy, out oz);
+            //System.Diagnostics.Debug.WriteLine("{0},{1},{2}", ox, oy, oz);
+        }
+
+        /// <summary>
+        /// OpenGL座標をウインドウ座標に変換
+        /// </summary>
+        /// <param name="pt"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        public static Point CoordToScreenPoint(double x, double y)
+        {
+            Point pt = new Point();
+            int[] viewport = new int[4];
+            GL.GetInteger(GetPName.Viewport, viewport);
+            int winW = viewport[2];
+            int winH = viewport[3];
+
+            //モデルビュー行列、射影行列を格納する配列
+            double[] modelviewMatrix = new double[16];
+            double[] projectionMatrix = new double[16];
+
+            double depth = 0.887; //デプス値(何でもよい)
+            GL.GetDouble(GetPName.ProjectionMatrix, projectionMatrix);
+            GL.GetDouble(GetPName.ModelviewMatrix, modelviewMatrix);
+
+            double[] windowCoord = new double[3];
+            OpenGLUtils.GluProject(x, y, depth,
+                modelviewMatrix, projectionMatrix, viewport, windowCoord);
+            double ox = windowCoord[0];
+            double oy = windowCoord[1];
+            double oz = windowCoord[2];
+            //System.Diagnostics.Debug.WriteLine("{0},{1},{2}", ox, oy, oz);
+            pt.X = (int)ox;
+            pt.Y = (int)(winH - oy);
+            return pt;
         }
 
         public static void PickPre(

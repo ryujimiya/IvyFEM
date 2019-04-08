@@ -216,5 +216,27 @@ namespace IvyFEM
             }
             return ret;
         }
+
+        /// <summary>
+        /// S{Nu}{N}Tdx, u = x, y
+        /// </summary>
+        /// <returns></returns>
+        public double[][,] CalcSNuN()
+        {
+            double[][,] ret = null;
+            if (Order == 1)
+            {
+                ret = Calc1stSNuN();
+            }
+            else if (Order == 2)
+            {
+                ret = Calc2ndSNuN();
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+            return ret;
+        }
     }
 }

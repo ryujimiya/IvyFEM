@@ -9,36 +9,36 @@ namespace IvyFEM
     public class Elastic2DDerivedBaseFEM : Elastic2DBaseFEM
     {
         // Linear / Saint Venant
-        public static void SetStressValue(
-            uint displacementValueId, uint stressValueId, uint equivStressValueId, FEWorld world)
+        public void SetStressValue(
+            uint displacementValueId, uint stressValueId, uint equivStressValueId)
         {
-            System.Diagnostics.Debug.Assert(world.IsFieldValueId(displacementValueId));
-            FieldValue uFV = world.GetFieldValue(displacementValueId);
+            System.Diagnostics.Debug.Assert(World.IsFieldValueId(displacementValueId));
+            FieldValue uFV = World.GetFieldValue(displacementValueId);
             uint uQuantityId = uFV.QuantityId;
 
             FieldValue sigmaFV = null;
             if (stressValueId != 0)
             {
-                System.Diagnostics.Debug.Assert(world.IsFieldValueId(stressValueId));
-                sigmaFV = world.GetFieldValue(stressValueId);
+                System.Diagnostics.Debug.Assert(World.IsFieldValueId(stressValueId));
+                sigmaFV = World.GetFieldValue(stressValueId);
                 System.Diagnostics.Debug.Assert(sigmaFV.Type == FieldValueType.SymmetricTensor2);
                 System.Diagnostics.Debug.Assert(sigmaFV.Dof == 3);
             }
             FieldValue eqSigmaFV = null;
             if (equivStressValueId != 0)
             {
-                System.Diagnostics.Debug.Assert(world.IsFieldValueId(equivStressValueId));
-                eqSigmaFV = world.GetFieldValue(equivStressValueId);
+                System.Diagnostics.Debug.Assert(World.IsFieldValueId(equivStressValueId));
+                eqSigmaFV = World.GetFieldValue(equivStressValueId);
                 System.Diagnostics.Debug.Assert(eqSigmaFV.Type == FieldValueType.Scalar);
                 System.Diagnostics.Debug.Assert(eqSigmaFV.Dof == 1);
             }
 
-            IList<uint> feIds = world.GetTriangleFEIds(uQuantityId);
+            IList<uint> feIds = World.GetTriangleFEIds(uQuantityId);
             foreach (uint feId in feIds)
             {
-                TriangleFE triFE = world.GetTriangleFE(uQuantityId, feId);
+                TriangleFE triFE = World.GetTriangleFE(uQuantityId, feId);
                 int[] coIds = triFE.NodeCoordIds;
-                Material ma = world.GetMaterial(triFE.MaterialId);
+                Material ma = World.GetMaterial(triFE.MaterialId);
                 double lambda = 0;
                 double mu = 0;
                 if (ma is LinearElasticMaterial)
