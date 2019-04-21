@@ -36,14 +36,20 @@
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
 　  
-　**使い方**  
+　**依存ライブラリ**  
 　  
-　　IvyFEMライブラリを使ったサンプルアプリケーションIvyFEMProtoAppをご参照ください。  
-　　[IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
+　　OpenTK.GLControlをNuGetでインストールしてください。  
 　  
-　　また、実装概略を次のページにまとめました。  
+　**インストールおよび使い方**  
+　  
+　　インストール、実装概略を次のページにまとめました。  
 　　[.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
 　　[.NET向け有限要素法CAEライブラリIvyFEMでカスタマイズ方程式を実装する](https://qiita.com/ryujimiya2361/items/f003c10cfc222378ad5a)  
+　  
+　**サンプルアプリケーション**  
+　  
+　　IvyFEM.dllを使ったサンプルアプリケーション  
+　　[IvyFEMProtoApp](https://github.com/ryujimiya/IvyFEMProtoApp/)  
 　  
 　**計算例**  
 　　〇メッシュ  
