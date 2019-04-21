@@ -46,13 +46,26 @@
 　　[.NET向け有限要素法CAEライブラリIvyFEMでカスタマイズ方程式を実装する](https://qiita.com/ryujimiya2361/items/f003c10cfc222378ad5a)  
 　  
 　**計算例**  
-![H面導波路](https://pbs.twimg.com/media/DjHvvKfUcAEMU_H.jpg)  
-![弾性体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20181118/20181118141901.jpg)  
-![流体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408220742.jpg)  
-![Poisson](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221503.jpg)  
-![Helmholtz](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221935.jpg)  
-![熱拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222500.jpg)  
-![移流拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222735.jpg)  
-　  
-　  
+　　〇メッシュ  
+　　![メッシュ](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421122831.jpg)  
+　　〇弾性体  
+　　![弾性体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421123314.jpg)  
+　　〇弾性体多点拘束(MPC)  
+　　![弾性体多点拘束(MPC)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421123915.jpg)  
+　　〇直線、円との接触問題  
+　　![直線、円との接触問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421124711.jpg)  
+　　〇弾性体二体接触問題  
+　　![弾性体二体接触問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421125420.jpg)  
+　　〇Poissonの方程式  
+　　![Poisson](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221503.jpg)  
+　　〇Helmholtzの方程式  
+　　![Helmholtz](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221935.jpg)  
+　　〇拡散方程式  
+　　![拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222500.jpg)  
+　　〇移流拡散方程式  
+　　![移流拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222735.jpg)  
+　　〇流体(Navier-Stokesの方程式)  
+　　![流体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408220742.jpg)  
+　　〇H面導波路の伝達問題  
+　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
 　  
