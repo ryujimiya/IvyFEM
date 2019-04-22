@@ -165,24 +165,6 @@ namespace IvyFEM.Lapack
             SuperdiaLength = 0;
         }
 
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "DoubleSymmetricBandMatrix" + CRLF;
-            ret += "ColumnLength = " + ColumnLength + CRLF;
-            ret += "RowLength = " + RowLength + CRLF;
-            for (int col = 0; col < ColumnLength; col++)
-            {
-                for (int row = 0; row < RowLength; row++)
-                {
-                    ret += "[" + row + ", " + col + "] = " + this[row, col] + CRLF;
-                }
-            }
-            return ret;
-        }
-
         private static void GetBufferRowColLength(out int bufferRowLength, out int bufferColLength,
             int rowColLength, int superdiaLength)
         {

@@ -53,7 +53,7 @@ namespace IvyFEM
             MeshingMode = 0;
             ELen = 1;
             ESize = 1000;
-            IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
+            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
             for (uint i = 0; i < lIds.Count; i++)
             {
                 CutMeshLCadIds.Add(lIds[(int)i]);
@@ -68,7 +68,7 @@ namespace IvyFEM
             ELen = eLen;
             ESize = 1000;
 
-            IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
+            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
             for (int i = 0; i < lIds.Count; i++)
             {
                 CutMeshLCadIds.Add(lIds[i]);
@@ -440,7 +440,7 @@ namespace IvyFEM
             {
                 foreach (uint lId in CutMeshLCadIds)
                 {
-                    if (!cad2D.IsElemId(CadElementType.Loop, lId))
+                    if (!cad2D.IsElementId(CadElementType.Loop, lId))
                     {
                         continue;
                     }
@@ -465,7 +465,7 @@ namespace IvyFEM
         private bool Tessellation(CadObject2D cad2D, IList<uint> loopIds)
         {
             {
-                IList<uint> vIds = cad2D.GetElemIds(CadElementType.Vertex);
+                IList<uint> vIds = cad2D.GetElementIds(CadElementType.Vertex);
                 for (uint iV = 0; iV < vIds.Count; iV++)
                 {
                     uint vId = vIds[(int)iV];
@@ -492,10 +492,10 @@ namespace IvyFEM
                     }
                     System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                 }
-                System.Diagnostics.Debug.Assert(Vec2Ds.Count <= cad2D.GetElemIds(CadElementType.Vertex).Count * 10);
+                System.Diagnostics.Debug.Assert(Vec2Ds.Count <= cad2D.GetElementIds(CadElementType.Vertex).Count * 10);
             }
             {
-                IList<uint> eIds = cad2D.GetElemIds(CadElementType.Edge);
+                IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
                 for (uint iE = 0; iE < eIds.Count; iE++)
                 {
                     uint eId = eIds[(int)iE];
@@ -525,7 +525,7 @@ namespace IvyFEM
         {
             uint sVId;
             uint eVId;
-            System.Diagnostics.Debug.Assert(cad2D.IsElemId(CadElementType.Edge, eId));
+            System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
             if (!cad2D.GetEdgeVertexId(out sVId, out eVId, eId))
             {
                 System.Diagnostics.Debug.WriteLine("error edge : " + eId);
@@ -637,15 +637,15 @@ namespace IvyFEM
                 }
                 {
                     // このループで使用される節点のフラグを立てる
-                    ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                    for (;;)
+                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    while (true)
                     {
                         // ループをめぐる
-                        for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                        for (; !loopItr.IsEnd(); loopItr++)
                         {
                             // このループの中のエッジをめぐる
                             {
-                                uint vId = itrEdgeLoop.GetVertexId();
+                                uint vId = loopItr.GetVertexId();
                                 uint locTmp;
                                 uint typeTmp;
                                 if (!FindElemLocTypeFromCadIdType(out locTmp, out typeTmp, vId, CadElementType.Vertex))
@@ -658,7 +658,7 @@ namespace IvyFEM
                             }
                             uint eId;
                             bool isSameDir;
-                            if (!itrEdgeLoop.GetEdgeId(out eId, out isSameDir))
+                            if (!loopItr.GetEdgeId(out eId, out isSameDir))
                             {
                                 continue; // 浮遊点は飛ばす
                             }
@@ -679,7 +679,7 @@ namespace IvyFEM
                                 vec2Pt[(int)bars[(int)ibar].V[1]] = 1;
                             }
                         }
-                        if (!itrEdgeLoop.ShiftChildLoop())
+                        if (!loopItr.ShiftChildLoop())
                         {
                             break;
                         }
@@ -933,15 +933,15 @@ namespace IvyFEM
 
             {
                 // エッジを回復する
-                ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                for (;;)
+                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                while (true)
                 {
                     // 子ループのためのループ
-                    for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                    for (; !loopItr.IsEnd(); loopItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itrEdgeLoop.GetEdgeId(out eId, out isSameDir))
+                        if (!loopItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;  // ループの中の点
                         }
@@ -960,7 +960,7 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(barArrayId != newTriId);
                         for (uint ibar = 0; ibar < bars.Count; ibar++)
                         {
-                            for (;;)
+                            while (true)
                             {
                                 // EdgeをFlipしたら同じ辺について繰り返す				
 
@@ -1073,7 +1073,7 @@ namespace IvyFEM
                             }
                         }
                     }
-                    if (!itrEdgeLoop.ShiftChildLoop())
+                    if (!loopItr.ShiftChildLoop())
                     {
                         break;
                     }
@@ -1090,15 +1090,15 @@ namespace IvyFEM
 
             {
                 // 辺要素から３角形要素への隣接情報を作成
-                ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                for (;;)
+                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                while (true)
                 {   
                     // 子ループのためのループ
-                    for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                    for (; !loopItr.IsEnd(); loopItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itrEdgeLoop.GetEdgeId(out eId, out isSameDir))
+                        if (!loopItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;  // ループの中の点
                         }
@@ -1166,7 +1166,7 @@ namespace IvyFEM
                             }
                         }
                     }
-                    if (!itrEdgeLoop.ShiftChildLoop())
+                    if (!loopItr.ShiftChildLoop())
                     {
                         break;
                     }
@@ -1196,15 +1196,15 @@ namespace IvyFEM
 
             {
                 // 辺との隣接番号の整合性をとる
-                ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                for (;;)
+                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                while (true)
                 {
                     // 子ループのためのループ
-                    for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                    for (; !loopItr.IsEnd(); loopItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itrEdgeLoop.GetEdgeId(out eId, out isSameDir))
+                        if (!loopItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;  // 子ループが点の場合
                         }
@@ -1314,7 +1314,7 @@ namespace IvyFEM
                             }
                         }
                     }
-                    if (!itrEdgeLoop.ShiftChildLoop())
+                    if (!loopItr.ShiftChildLoop())
                     {
                         break;
                     }
@@ -1333,12 +1333,12 @@ namespace IvyFEM
                 // 内側にある三角形をひとつ(iKerTri0)見つける
                 uint iKerTri0 = (uint)tris.Count;
                 {
-                    ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                    for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    for (; !loopItr.IsEnd(); loopItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        itrEdgeLoop.GetEdgeId(out eId, out isSameDir);
+                        loopItr.GetEdgeId(out eId, out isSameDir);
                         uint loc;
                         uint type;
                         if (!FindElemLocTypeFromCadIdType(out loc, out type, eId, CadElementType.Edge))
@@ -1382,7 +1382,7 @@ namespace IvyFEM
                     // 周囲が探索されていない三角形
                     Stack<uint> indStack = new Stack<uint>();
                     indStack.Push(iKerTri0);
-                    for (;;)
+                    while (true)
                     {
                         if (indStack.Count == 0)
                         {
@@ -1438,15 +1438,15 @@ namespace IvyFEM
                 }
                 { 
                     // 辺の隣接情報を更新
-                    ItrLoop itrEdgeLoop = cad2D.GetItrLoop(lId);
-                    for (;;)
+                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    while (true)
                     {
                         // 子ループのためのループ
-                        for (; !itrEdgeLoop.IsEnd(); itrEdgeLoop++)
+                        for (; !loopItr.IsEnd(); loopItr++)
                         {
                             uint eId;
                             bool isSameDir;
-                            if (!itrEdgeLoop.GetEdgeId(out eId, out isSameDir))
+                            if (!loopItr.GetEdgeId(out eId, out isSameDir))
                             {
                                 continue;  // ループの中の点
                             }
@@ -1475,7 +1475,7 @@ namespace IvyFEM
                                 bar.S2[iside] = (uint)iSInTri0;
                             }
                         }
-                        if (!itrEdgeLoop.ShiftChildLoop())
+                        if (!loopItr.ShiftChildLoop())
                         {
                             break;
                         }
@@ -1947,7 +1947,7 @@ namespace IvyFEM
                 typeLoc.IncludeRelations.Clear();
             }
 
-            IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
+            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
             for (uint iLId = 0; iLId < lIds.Count; iLId++)
             {
                 uint lId = lIds[(int)iLId];
@@ -1956,19 +1956,19 @@ namespace IvyFEM
                 {
                     continue;
                 }
-                ItrLoop itrL = cad2D.GetItrLoop(lId);
-                for (;;)
+                LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
+                while (true)
                 {
-                    for (; !itrL.IsEnd(); itrL++)
+                    for (; !lItr.IsEnd(); lItr++)
                     {
-                        uint vCadId = itrL.GetVertexId();
+                        uint vCadId = lItr.GetVertexId();
                         uint meshVId = GetIdFromCadId(vCadId, CadElementType.Vertex);
                         TypeLocs[(int)triId].IncludeRelations.Add(meshVId);
                         System.Diagnostics.Debug.Assert(IsId(meshVId));
 
                         uint eId;
                         bool isSameDir;
-                        if (!itrL.GetEdgeId(out eId, out isSameDir))
+                        if (!lItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;
                         }
@@ -1976,18 +1976,18 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(IsId(barId));
                         TypeLocs[(int)triId].IncludeRelations.Add(barId);
                     }
-                    if (!itrL.ShiftChildLoop())
+                    if (!lItr.ShiftChildLoop())
                     {
                         break;
                     }
                 }
             }
 
-            IList<uint> eIds = cad2D.GetElemIds(CadElementType.Edge);
+            IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
             for (uint iEId = 0; iEId < eIds.Count; iEId++)
             {
                 uint eId = eIds[(int)iEId];
-                System.Diagnostics.Debug.Assert(cad2D.IsElemId(CadElementType.Edge, eId));
+                System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
                 uint barId = GetIdFromCadId(eId, CadElementType.Edge);
                 if (!IsId(barId))
                 {
@@ -2075,12 +2075,12 @@ namespace IvyFEM
                 for (int iLId = 0; iLId < loopIds.Count; iLId++)
                 {
                     uint lId = loopIds[iLId];
-                    ItrLoop itr = cad2D.GetItrLoop(lId);
-                    for (;;)
+                    LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
+                    while (true)
                     {
-                        for (; !itr.IsEnd(); itr++)
+                        for (; !lItr.IsEnd(); lItr++)
                         {
-                            uint vId = itr.GetVertexId();
+                            uint vId = lItr.GetVertexId();
                             if (vtxFlgs.Count <= vId)
                             {
                                 int cnt = vtxFlgs.Count;
@@ -2091,7 +2091,7 @@ namespace IvyFEM
                             }
                             vtxFlgs[(int)vId] = 1;
                         }
-                        if (!itr.ShiftChildLoop())
+                        if (!lItr.ShiftChildLoop())
                         {
                             break;
                         }
@@ -2134,13 +2134,13 @@ namespace IvyFEM
             {
                 // ループに必要な辺を作る
                 uint lId = loopIds[iLId];
-                for (ItrLoop itr = cad2D.GetItrLoop(lId); !itr.IsChildEnd; itr.ShiftChildLoop())
+                for (LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    for (itr.Begin(); !itr.IsEnd(); itr++)
+                    for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itr.GetEdgeId(out eId, out isSameDir))
+                        if (!lItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;
                         }
@@ -2408,7 +2408,7 @@ namespace IvyFEM
             {
                 // trisに節点を追加
                 double ratio = 3.0;
-                for (;;)
+                while (true)
                 {
                     uint nadd = 0;
                     for (uint iTri = 0; iTri < tris.Count; iTri++)

@@ -8,9 +8,9 @@ namespace IvyFEM
 {
     public class BRep
     {
-        public CadObjectArray<UseLoop> UseLoopArray { get; set; } = new CadObjectArray<UseLoop>();
-        public CadObjectArray<HalfEdge> HalfEdgeArray { get; set; } = new CadObjectArray<HalfEdge>();
-        public CadObjectArray<UseVertex> UseVertexArray { get; set; } = new CadObjectArray<UseVertex>();
+        public IdObjectArray<UseLoop> UseLoopArray { get; private set; } = new IdObjectArray<UseLoop>();
+        public IdObjectArray<HalfEdge> HalfEdgeArray { get; private set; } = new IdObjectArray<HalfEdge>();
+        public IdObjectArray<UseVertex> UseVertexArray { get; private set; } = new IdObjectArray<UseVertex>();
 
         public BRep()
         {
@@ -26,42 +26,9 @@ namespace IvyFEM
 
         public void Clear()
         {
-            HalfEdgeArray.Clear();
             UseLoopArray.Clear();
+            HalfEdgeArray.Clear();
             UseVertexArray.Clear();
-        }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "■BRep" + CRLF;
-            ret += "UseLoopArray" + CRLF;
-            var uLIds = UseLoopArray.GetObjectIds();
-            for (int i = 0; i < uLIds.Count; i++)
-            {
-                var uLId = uLIds[i];
-                var uL = UseLoopArray.GetObject(uLId);
-                ret += uL.Dump();
-            }
-            ret += "HalfEdgeArray" + CRLF;
-            var hEIds = HalfEdgeArray.GetObjectIds();
-            for (int i = 0; i < hEIds.Count; i++)
-            {
-                var hEId = hEIds[i];
-                var hE = HalfEdgeArray.GetObject(hEId);
-                ret += hE.Dump();
-            }
-            ret += "UseVertexArray" + CRLF;
-            var uVIds = UseVertexArray.GetObjectIds();
-            for (int i = 0; i < uVIds.Count; i++)
-            {
-                var uVId = uVIds[i];
-                var uV = UseVertexArray.GetObject(uVId);
-                ret += uV.Dump();
-            }
-            return ret;
         }
 
         public bool IsUseLoopId(uint uLId)
@@ -233,7 +200,7 @@ namespace IvyFEM
                 {
                     IList<uint> passedHEdge = new List<uint>();
                     uint hEId = uL.HEId;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(passedHEdge.IndexOf(hEId) == -1);
                         passedHEdge.Add(hEId);
@@ -254,7 +221,7 @@ namespace IvyFEM
                     uint parentULId = uL.ParentULId;
                     uint uLId2 = parentULId;
                     bool flag = false;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId2));
                         UseLoop uL2 = UseLoopArray.GetObject(uLId2);
@@ -275,7 +242,7 @@ namespace IvyFEM
             return 0;
         }
 
-        public IList<uint> FindHalfEdgeEdge(uint eId)
+        public IList<uint> FindHalfEdgeByEdge(uint eId)
         {
             IList<uint> res = new List<uint>();
             IList<uint> hEIds = HalfEdgeArray.GetObjectIds();
@@ -292,7 +259,7 @@ namespace IvyFEM
             return res;
         }
 
-        public IList<uint> FindHalfEdgeVertex(uint vId)
+        public IList<uint> FindHalfEdgeByVertex(uint vId)
         {
             IList<uint> res = new List<uint>();
             IList<uint> uVIds = UseVertexArray.GetObjectIds();
@@ -307,7 +274,7 @@ namespace IvyFEM
                 uint hEId = uV.HEId;
                 uint hEId0 = hEId;
                 res.Add(hEId);
-                for (;;)
+                while (true)
                 {
                     HalfEdge hE = HalfEdgeArray.GetObject(hEId);
                     uint oHEId = hE.OHEId;
@@ -589,7 +556,7 @@ namespace IvyFEM
             if (parentULId != delULId && parentULId != 0)
             {
                 uint uLId = parentULId;
-                for (;;)
+                while (true)
                 {
                     UseLoop uL = UseLoopArray.GetObject(uLId);
                     uint childULId = uL.ChildULId;
@@ -645,7 +612,7 @@ namespace IvyFEM
             if (uLId1 != 0)
             {
                 uint uLId = uLId1;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                     UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -658,77 +625,6 @@ namespace IvyFEM
                     uLId = uL.ChildULId;
                 }
             }
-            return true;
-        }
-
-        /// <summary>
-        /// 点と点を繋げてエッジとループを作る
-        /// </summary>
-        /// <param name="addHEId1"></param>
-        /// <param name="addHEId2"></param>
-        /// <param name="addUVId1"></param>
-        /// <param name="addUVId2"></param>
-        /// <param name="addULId"></param>
-        /// <returns></returns>
-        public bool MEVVL(out uint addHEId1, out uint addHEId2,
-            out uint addUVId1, out uint addUVId2, out uint addULId)
-        {
-            addHEId1 = 0;
-            addHEId2 = 0;
-            addUVId1 = 0;
-            addUVId2 = 0;
-            addULId = 0;
-
-            addULId = UseLoopArray.GetFreeObjectId();
-
-            {
-                IList<uint> freeIds = HalfEdgeArray.GetFreeObjectIds(2);
-                System.Diagnostics.Debug.Assert(freeIds.Count == 2);
-                addHEId1 = freeIds[0];
-                addHEId2 = freeIds[1];
-                System.Diagnostics.Debug.Assert(!HalfEdgeArray.IsObjectId(addHEId1));
-                System.Diagnostics.Debug.Assert(!HalfEdgeArray.IsObjectId(addHEId2));
-                System.Diagnostics.Debug.Assert(addHEId1 != addHEId2);
-            }
-            {
-                IList<uint> freeIds = UseVertexArray.GetFreeObjectIds(2);
-                System.Diagnostics.Debug.Assert(freeIds.Count == 2);
-                addUVId1 = freeIds[0];
-                addUVId2 = freeIds[1];
-                System.Diagnostics.Debug.Assert(!UseVertexArray.IsObjectId(addUVId1));
-                System.Diagnostics.Debug.Assert(!UseVertexArray.IsObjectId(addUVId2));
-                System.Diagnostics.Debug.Assert(addUVId1 != addUVId2);
-            }
-            {
-                uint tmpId = UseLoopArray.AddObject(new UseLoop(addULId, addHEId1, 0, 0));
-                System.Diagnostics.Debug.Assert(tmpId == addULId);
-                System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(addULId));
-            }
-
-            {
-                HalfEdge tmpHE = new HalfEdge(addHEId1, addUVId1, addHEId2, addHEId2, addHEId2, addULId);
-                uint tmpId = HalfEdgeArray.AddObject(tmpHE);
-                System.Diagnostics.Debug.Assert(tmpId == addHEId1);
-                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(addHEId1));
-            }
-            {
-                HalfEdge tmpHE = new HalfEdge(addHEId2, addUVId2, addHEId1, addHEId1, addHEId1, addULId);
-                uint tmpId = HalfEdgeArray.AddObject(tmpHE);
-                System.Diagnostics.Debug.Assert(tmpId == addHEId2);
-                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(addHEId2));
-            }
-            {
-                uint tmpId = UseVertexArray.AddObject(new UseVertex(addUVId1, addHEId1));
-                System.Diagnostics.Debug.Assert(tmpId == addUVId1);
-                System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(addUVId1));
-            }
-            {
-                uint tmpId = UseVertexArray.AddObject(new UseVertex(addUVId2, addHEId2));
-                System.Diagnostics.Debug.Assert(tmpId == addUVId2);
-                System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(addUVId2));
-            }
-
-            System.Diagnostics.Debug.Assert(AssertValidUse() == 0);
             return true;
         }
 
@@ -814,7 +710,7 @@ namespace IvyFEM
                     UseLoop parentUL = UseLoopArray.GetObject(parentULId);
                     System.Diagnostics.Debug.Assert(parentUL.ParentULId == parentULId);
                     uint uLId = uLId1;
-                    for (;;)
+                    while (true)
                     {
                         UseLoop uL = UseLoopArray.GetObject(uLId);
                         if (uL.ChildULId == 0)
@@ -864,7 +760,7 @@ namespace IvyFEM
             }
             { 
                 uint hEId = bHEId2;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
                     HalfEdge hE = HalfEdgeArray.GetObject(hEId);
@@ -1017,7 +913,7 @@ namespace IvyFEM
                 // 途中で-1になるかもしれないからint型
                 int hEId = (int)addHEId2;
 
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId((uint)hEId));
                     HalfEdge edge = HalfEdgeArray.GetObject((uint)hEId);
@@ -1045,7 +941,7 @@ namespace IvyFEM
                 {
                     uLId = uLId1;
                 }
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                     UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -1068,7 +964,7 @@ namespace IvyFEM
                         uL.ParentULId = uLId1;
                     }
                     uint uLId = childULId1;
-                    for (;;)
+                    while (true)
                     {
                         if (uLId == 0)
                         {
@@ -1085,7 +981,7 @@ namespace IvyFEM
                 {
                     System.Diagnostics.Debug.Assert(childULId2 != 0);
                     uint uLId = childULId2;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                         UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -1189,7 +1085,7 @@ namespace IvyFEM
             if (parentULId != 0)
             { 
                 uint uLId = uLId1;
-                for (;;)
+                while (true)
                 {
                     UseLoop uL = UseLoopArray.GetObject(uLId);
                     System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId);
@@ -1338,7 +1234,7 @@ namespace IvyFEM
                 if (parentULId1 != 0)
                 {
                     uint uLId = parentULId1;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                         UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -1399,7 +1295,7 @@ namespace IvyFEM
             uint uVId2;
             uint uLId2;
             uint parentULId2;
-            uint id_ul2c;
+            uint childULId2;
             {
                 System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId2));
                 if (!HalfEdgeArray.IsObjectId(hEId2))
@@ -1415,7 +1311,7 @@ namespace IvyFEM
                 uLId2 = hE.ULId;
                 UseLoop uL = UseLoopArray.GetObject(uLId2);
                 parentULId2 = uL.ParentULId;
-                id_ul2c = uL.ChildULId;
+                childULId2 = uL.ChildULId;
             }
             System.Diagnostics.Debug.Assert(parentULId1 == parentULId2);
 
@@ -1438,12 +1334,12 @@ namespace IvyFEM
             if (parentULId1 != 0)
             {
                 uint uLId = parentULId1;
-                for (;;)
+                while (true)
                 {
                     UseLoop uL = UseLoopArray.GetObject(uLId);
                     if (uL.ChildULId == uLId2)
                     {
-                        uL.ChildULId = id_ul2c;
+                        uL.ChildULId = childULId2;
                         break;
                     }
                     uLId = uL.ChildULId;
@@ -1652,7 +1548,7 @@ namespace IvyFEM
             }
             {
                 uint hEId = fHEId1;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
                     HalfEdge hE = HalfEdgeArray.GetObject(hEId);
@@ -1701,7 +1597,7 @@ namespace IvyFEM
             { 
                 {
                     uint uLId = childULId2;
-                    for (;;)
+                    while (true)
                     {
                         if (uLId == 0)
                         {
@@ -1719,7 +1615,7 @@ namespace IvyFEM
                     UseLoop uL1 = UseLoopArray.GetObject(uLId1);
                     uL1.HEId = fHEId1;
                     uint uLId = uLId1;
-                    for (;;)
+                    while (true)
                     {
                         UseLoop uL = UseLoopArray.GetObject(uLId);
                         System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId1 ||
@@ -1739,7 +1635,7 @@ namespace IvyFEM
                 //System.Diagnostics.Debug.Assert(parentULId1 == uLId1);
                 { 
                     uint uLId = uLId1;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                         UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -1758,7 +1654,7 @@ namespace IvyFEM
                 if (parentULId2 != 0)
                 {
                     uint uLId = parentULId2;
-                    for (;;)
+                    while (true)
                     {
                         System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                         UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -1898,7 +1794,7 @@ namespace IvyFEM
             }
             {
                 uint hEId = addHEId2;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
                     HalfEdge edge = HalfEdgeArray.GetObject(hEId);
@@ -1941,7 +1837,7 @@ namespace IvyFEM
 
             {
                 uint uLId = uLId2;
-                for (;;)
+                while (true)
                 {
                     UseLoop uL = UseLoopArray.GetObject(uLId);
                     System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId2 || (uLId == parentULId2 && uL.ParentULId == 0));
@@ -1955,7 +1851,7 @@ namespace IvyFEM
             }
             {
                 uint uLId = parentULId1;
-                for (;;)
+                while (true)
                 {
                     UseLoop uL = UseLoopArray.GetObject(uLId);
                     System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId1 || (uLId == parentULId1 && uL.ParentULId == 0));
@@ -2027,7 +1923,7 @@ namespace IvyFEM
                 childULId2 = uL2.ChildULId;
             }
             uint uLId = parentULId1;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                 UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -2057,7 +1953,7 @@ namespace IvyFEM
             }
 
             uLId = uLId2;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                 UseLoop uL = UseLoopArray.GetObject(uLId);
@@ -2104,7 +2000,7 @@ namespace IvyFEM
             }
 
             uint uLId = uLId2;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
                 UseLoop uL = UseLoopArray.GetObject(uLId);

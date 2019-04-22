@@ -9,8 +9,6 @@ namespace IvyFEM
     public class Edge2D : IObject
     {
         public CurveType CurveType { get; private set; } = CurveType.CurveLine;
-        private double[] Color = new double[3];
-
         private bool IsLeftSide;
         private double DistanceRatio;
         private IList<double> RelCos = new List<double>();
@@ -20,6 +18,7 @@ namespace IvyFEM
         private OpenTK.Vector2d EPt;
         private BoundingBox2D BB = new BoundingBox2D();
         private IList<OpenTK.Vector2d> Coords = new List<OpenTK.Vector2d>();
+        public double[] Color { get; } = new double[3];
 
         public Edge2D()
         {
@@ -47,6 +46,7 @@ namespace IvyFEM
         public void Copy(IObject src)
         {
             Edge2D srcEdge = src as Edge2D;
+
             CurveType = srcEdge.CurveType;
             IsLeftSide = srcEdge.IsLeftSide;
             DistanceRatio = srcEdge.DistanceRatio;
@@ -57,10 +57,6 @@ namespace IvyFEM
             }
             SVId = srcEdge.SVId;
             EVId = srcEdge.EVId;
-            for (int i = 0; i < 3; i++)
-            {
-                Color[i] = srcEdge.Color[i];
-            }
             SPt = new OpenTK.Vector2d(srcEdge.SPt.X, srcEdge.SPt.Y);
             EPt = new OpenTK.Vector2d(srcEdge.EPt.X, srcEdge.EPt.Y);
             BB.Copy(srcEdge.BB);
@@ -69,42 +65,7 @@ namespace IvyFEM
             {
                 Coords.Add(co);
             }
-        }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "■Edge2D" + CRLF;
-            ret += "Type = " + CurveType + CRLF;
-            ret += "IsLeftSide = " + IsLeftSide + CRLF;
-            ret += "Dist = " + DistanceRatio + CRLF;
-            ret += "RelCos" + CRLF;
-            for (int i = 0; i < RelCos.Count; i++)
-            {
-                var relco = RelCos[i];
-                ret += "RelCo[" + i + "] = " + relco + CRLF;
-            }
-            ret += "SVId = " + SVId + CRLF;
-            ret += "EVId = " + EVId + CRLF;
-            ret += "Color" + CRLF;
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "Color[" + i + "] = " + Color[i] + CRLF;
-            }
-            ret += "SPt = (" + SPt.X + ", " + SPt.Y + ")" + CRLF;
-            ret += "EPt = (" + EPt.X + ", " + EPt.Y + ")" + CRLF;
-            ret += "BB" + CRLF;
-            ret += "Cos" + CRLF;
-            for (int i = 0; i < Coords.Count; i++)
-            {
-                var co = Coords[i];
-                ret += "Cos[" + i + "] = " + co + CRLF;
-            }
-            ret += BB.Dump();
-
-            return ret;
+            srcEdge.Color.CopyTo(Color, 0);
         }
 
         public void SetCurveLine()
@@ -182,7 +143,7 @@ namespace IvyFEM
             return Coords;
         }
 
-        public void SetVertexs(OpenTK.Vector2d sPt, OpenTK.Vector2d ePt)
+        public void SetVertexCoords(OpenTK.Vector2d sPt, OpenTK.Vector2d ePt)
         {
             SPt = sPt;
             EPt = ePt;
@@ -196,12 +157,12 @@ namespace IvyFEM
             }
             if (n > 0)
             {
-                OpenTK.Vector2d gh = EPt - SPt;
-                OpenTK.Vector2d gv = new OpenTK.Vector2d(-gh.Y, gh.X);
+                OpenTK.Vector2d h = EPt - SPt;
+                OpenTK.Vector2d v = new OpenTK.Vector2d(-h.Y, h.X);
                 for (uint i = 0; i < n; i++)
                 {
-                    OpenTK.Vector2d scPt = SPt + gh * RelCos[(int)(i * 2 + 0)] +
-                        gv * RelCos[(int)(i * 2 + 1)];
+                    OpenTK.Vector2d scPt = SPt + h * RelCos[(int)(i * 2 + 0)] +
+                        v * RelCos[(int)(i * 2 + 1)];
                     Coords[(int)i] = scPt;
                 }
             }
@@ -221,22 +182,6 @@ namespace IvyFEM
         public uint GetVertexId(bool isRoot)
         {
             return isRoot ? SVId : EVId;
-        }
-
-        public void GetColor(double[] color)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                color[i] = Color[i];
-            }
-        }
-
-        public void SetColor(double[] color)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                Color[i] = color[i];
-            }
         }
 
         public double Distance(Edge2D e1)
@@ -1243,7 +1188,7 @@ namespace IvyFEM
                     for (uint iPt1 = 0; iPt1 < ptCnt1; iPt1++)
                     {
                         double curRestLen0 = lDiv;
-                        for (;;)
+                        while (true)
                         {
                             System.Diagnostics.Debug.Assert(iCurDiv0 < Coords.Count + 1);
                             System.Diagnostics.Debug.Assert(curRatio0 >= 0 && curRatio0 <= 1);

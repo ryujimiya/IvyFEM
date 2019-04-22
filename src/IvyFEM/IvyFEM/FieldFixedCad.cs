@@ -21,25 +21,25 @@ namespace IvyFEM
 
         // Boundary Condition
         public FieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, uint dof, IList<uint> fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs)
         {
             CadId = cadId;
             CadElemType = cadElemType;
             ValueType = valueType;
-            Dof = dof;
+            Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>(fixedDofIndexs);
         }
 
         // Zero
         public FieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, uint dof)
+            FieldValueType valueType)
         {
             CadId = cadId;
             CadElemType = cadElemType;
             ValueType = valueType;
-            Dof = dof;
+            Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>();
-            for (uint iDof = 0; iDof < dof; iDof++)
+            for (uint iDof = 0; iDof < Dof; iDof++)
             {
                 FixedDofIndexs.Add(iDof);
             }

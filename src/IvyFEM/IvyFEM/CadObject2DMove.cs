@@ -12,7 +12,7 @@ namespace IvyFEM
 
         public bool MoveEdgeCtrl(uint eId, uint iCtrl, OpenTK.Vector2d deltaVec)
         {
-            if (!IsElemId(CadElementType.Edge, eId))
+            if (!IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -42,17 +42,17 @@ namespace IvyFEM
             }
 
             HashSet<uint> setLId = new HashSet<uint>();
-            for (ItrVertex itrv = this.BRep.GetItrVertex(edge.GetVertexId(true)); !itrv.IsEnd(); itrv++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr++)
             {
-                uint tmpLId = itrv.GetLoopId();
+                uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
                 {
                     setLId.Add(tmpLId);
                 }
             }
-            for (ItrVertex itrv = this.BRep.GetItrVertex(edge.GetVertexId(false)); !itrv.IsEnd(); itrv++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr++)
             {
-                uint tmpLId = itrv.GetLoopId();
+                uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
                 {
                     setLId.Add(tmpLId);
@@ -61,7 +61,7 @@ namespace IvyFEM
 
             foreach (uint lId in setLId)
             {
-                if (!this.BRep.IsElemId(CadElementType.Loop, lId))
+                if (!this.BRep.IsElementId(CadElementType.Loop, lId))
                 {
                     continue;
                 }
@@ -77,17 +77,17 @@ namespace IvyFEM
 
         public bool MoveLoop(uint lId, OpenTK.Vector2d vecDelta)
         {
-            if (!IsElemId(CadElementType.Loop, lId))
+            if (!IsElementId(CadElementType.Loop, lId))
             {
                 return false;
             }
             Dictionary<uint, OpenTK.Vector2d> mapOldVec = new Dictionary<uint, OpenTK.Vector2d>();
             HashSet<uint> setLId = new HashSet<uint>();  // check these loop for intersection detection
-            for (ItrLoop itrl = this.BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+            for (LoopEdgeItr lItr = this.BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
             {
-                for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+                for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                 {
-                    uint vId = itrl.GetVertexId();
+                    uint vId = lItr.GetVertexId();
                     if (mapOldVec.ContainsKey(vId))
                     {
                         continue; // this point is already moved
@@ -101,8 +101,8 @@ namespace IvyFEM
                     }
                     uint eId0;
                     bool isSameDir0;
-                    itrl.GetEdgeId(out eId0, out isSameDir0);
-                    if (!IsElemId(CadElementType.Edge, eId0))
+                    lItr.GetEdgeId(out eId0, out isSameDir0);
+                    if (!IsElementId(CadElementType.Edge, eId0))
                     {
                         continue;  // this is point
                     }
@@ -121,7 +121,7 @@ namespace IvyFEM
             }
             foreach (uint lIdl0 in setLId)
             {
-                if (!IsElemId(CadElementType.Loop, lIdl0))
+                if (!IsElementId(CadElementType.Loop, lIdl0))
                 {
                     continue;  // id0 can be 0 if this loop(id_l) have open boundary
                 }
@@ -142,7 +142,7 @@ namespace IvyFEM
 
         public bool MoveEdge(uint eId, OpenTK.Vector2d vecDelta)
         {
-            System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Edge, eId));
+            System.Diagnostics.Debug.Assert(IsElementId(CadElementType.Edge, eId));
             uint sVId = GetEdgeVertexId(eId, true);
             uint eVId = GetEdgeVertexId(eId, false);
 
@@ -173,10 +173,10 @@ namespace IvyFEM
             {
                 // Check Interfarance
                 HashSet<uint> lIds = new HashSet<uint>();
-                for (ItrVertex itrv = this.BRep.GetItrVertex(sVId); !itrv.IsEnd(); itrv++)
+                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(sVId); !vItr.IsEnd(); vItr++)
                 {
-                    uint lId = itrv.GetLoopId();
-                    if (IsElemId(CadElementType.Loop, lId))
+                    uint lId = vItr.GetLoopId();
+                    if (IsElementId(CadElementType.Loop, lId))
                     {
                         if (!lIds.Contains(lId))
                         {
@@ -192,10 +192,10 @@ namespace IvyFEM
                         }
                     }
                 }
-                for (ItrVertex itrv = this.BRep.GetItrVertex(eVId); !itrv.IsEnd(); itrv++)
+                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(eVId); !vItr.IsEnd(); vItr++)
                 {
-                    uint lId = itrv.GetLoopId();
-                    if (IsElemId(CadElementType.Loop, lId))
+                    uint lId = vItr.GetLoopId();
+                    if (IsElementId(CadElementType.Loop, lId))
                     {
                         if (!lIds.Contains(lId))
                         {
@@ -253,12 +253,12 @@ namespace IvyFEM
 
             try
             {
-                ItrVertex itrv = this.BRep.GetItrVertex(vId);
-                if (itrv.CountEdge() == 0)
+                VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(vId);
+                if (vItr.GetEdgeCount() == 0)
                 {
                     // move point inside loop
-                    uint lId = itrv.GetLoopId();
-                    if (IsElemId(CadElementType.Loop, lId))
+                    uint lId = vItr.GetLoopId();
+                    if (IsElementId(CadElementType.Loop, lId))
                     {
                         // ignore vtx(id_v) in the signd distance computation
                         double distance = SignedDistancePointLoop(lId, vec, vId);
@@ -272,10 +272,10 @@ namespace IvyFEM
                 {   
                     // move point adjacent to loop
                     HashSet<uint> lIds = new HashSet<uint>();
-                    for (; !itrv.IsEnd(); itrv++)
+                    for (; !vItr.IsEnd(); vItr++)
                     {
-                        uint lId = itrv.GetLoopId();
-                        if (IsElemId(CadElementType.Loop, lId))
+                        uint lId = vItr.GetLoopId();
+                        if (IsElementId(CadElementType.Loop, lId))
                         {
                             if (!lIds.Contains(lId))
                             {
@@ -323,7 +323,7 @@ namespace IvyFEM
                     ver.Point = pair.Value;
                 }
                 {
-                    IList<uint> loopIds = GetElemIds(CadElementType.Loop);
+                    IList<uint> loopIds = GetElementIds(CadElementType.Loop);
                     foreach (uint lId in loopIds)
                     {
                         if (CheckLoop(lId) != 0)
@@ -351,7 +351,7 @@ namespace IvyFEM
 
         public bool DragArc(uint eId, OpenTK.Vector2d vec)
         {
-            if (!IsElemId(CadElementType.Edge, eId))
+            if (!IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -389,17 +389,17 @@ namespace IvyFEM
             }
 
             HashSet<uint> setLId = new HashSet<uint>();
-            for (ItrVertex itrv = this.BRep.GetItrVertex(edge.GetVertexId(true)); !itrv.IsEnd(); itrv++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr++)
             {
-                uint tmpLId = itrv.GetLoopId();
+                uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
                 {
                     setLId.Add(tmpLId);
                 }
             }
-            for (ItrVertex itrv = this.BRep.GetItrVertex(edge.GetVertexId(false)); !itrv.IsEnd(); itrv++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr++)
             {
-                uint tmpLId = itrv.GetLoopId();
+                uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
                 {
                     setLId.Add(tmpLId);
@@ -408,7 +408,7 @@ namespace IvyFEM
 
             foreach (uint lId in setLId)
             {
-                if (!this.BRep.IsElemId(CadElementType.Loop, lId))
+                if (!this.BRep.IsElementId(CadElementType.Loop, lId))
                 {
                     continue;
                 }
@@ -424,7 +424,7 @@ namespace IvyFEM
 
         public bool PreCompDragPolyline(uint eId, OpenTK.Vector2d pickPos)
         {
-            if (!IsElemId(CadElementType.Edge, eId))
+            if (!IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -440,7 +440,7 @@ namespace IvyFEM
 
         public bool DragPolyline(uint eId, OpenTK.Vector2d dist)
         {
-            if (!IsElemId(CadElementType.Edge, eId))
+            if (!IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -456,7 +456,7 @@ namespace IvyFEM
 
         public bool SmoothingPolylineEdge(uint eId, uint nIter, OpenTK.Vector2d pos, double radius)
         {
-            if (!this.IsElemId(CadElementType.Edge, eId))
+            if (!this.IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -515,7 +515,7 @@ namespace IvyFEM
             // strength of smoothing(0から1)
             double w = 0.8;
 
-            for (uint iitr = 0; iitr < nIter; iitr++)
+            for (uint iiter = 0; iiter < nIter; iiter++)
             {
                 for (int iIndNo = 0; iIndNo < aIndNo.Count; iIndNo++)
                 {

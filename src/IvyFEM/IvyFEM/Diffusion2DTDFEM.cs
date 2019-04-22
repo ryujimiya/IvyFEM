@@ -8,8 +8,6 @@ namespace IvyFEM
 {
     public class Diffusion2DTDFEM : FEM
     {
-        public double ConvRatioToleranceForNewtonRaphson { get; set; }
-            = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 少し収束条件を緩くしている
         public double TimeStep { get; private set; } = 0;
         public double NewmarkBeta { get; private set; } = 1.0 / 4.0;
         public double NewmarkGamma { get; private set; } = 1.0 / 2.0;

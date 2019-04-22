@@ -8,22 +8,34 @@ namespace IvyFEM
 {
     public class FieldValue : IObject
     {
-        public FieldValueType Type { get; set; } = FieldValueType.NoValue;
-        public FieldDerivativeType DerivativeType { get; set; } = 0;
-        public uint QuantityId { get; set; } = 0;
-        public uint Dof { get; set; } = 1;
-        public bool IsBubble { get; set; } = false;
-        public FieldShowType ShowType { get; set; } = FieldShowType.Real;
-        public double[] DoubleValues { get; set; } = null;
-        public double[] DoubleVelocityValues { get; set; } = null;
-        public double[] DoubleAccelerationValues { get; set; } = null;
-        public System.Numerics.Complex[] ComplexValues { get; set; } = null;
-        public System.Numerics.Complex[] ComplexVelocityValues { get; set; } = null;
-        public System.Numerics.Complex[] ComplexAccelerationValues { get; set; } = null;
+        public uint QuantityId { get; protected set; } = 0;
+        public FieldValueType Type { get; protected set; } = FieldValueType.NoValue;
+        public FieldDerivativeType DerivativeType { get; protected set; } = 0;
+        public uint Dof { get; protected set; } = 1;
+        public bool IsBubble { get; protected set; } = false;
+        public FieldShowType ShowType { get; protected set; } = FieldShowType.Real;
+        public double[] DoubleValues { get; protected set; } = null;
+        public double[] DoubleVelocityValues { get; protected set; } = null;
+        public double[] DoubleAccelerationValues { get; protected set; } = null;
+        public System.Numerics.Complex[] ComplexValues { get; protected set; } = null;
+        public System.Numerics.Complex[] ComplexVelocityValues { get; protected set; } = null;
+        public System.Numerics.Complex[] ComplexAccelerationValues { get; protected set; } = null;
 
         public FieldValue()
         {
 
+        }
+
+        public FieldValue(uint quantityId, FieldValueType type, FieldDerivativeType dt,
+            bool isBubble, FieldShowType showType, uint pointCnt)
+        {
+            QuantityId = quantityId;
+            Type = type;
+            Dof = GetDof(Type);
+            DerivativeType = dt;
+            IsBubble = isBubble;
+            ShowType = showType;
+            AllocValues(pointCnt);
         }
 
         public FieldValue(FieldValue src)
@@ -41,6 +53,43 @@ namespace IvyFEM
             IsBubble = srcFV.IsBubble;
             ShowType = srcFV.ShowType;
             CopyValues(srcFV);
+        }
+
+        public static uint GetDof(FieldValueType valueType)
+        {
+            uint dof = 0;
+            switch (valueType)
+            {
+                case FieldValueType.NoValue:
+                    dof = 0;
+                    break;
+                case FieldValueType.Scalar:
+                    dof = 1;
+                    break;
+                case FieldValueType.SymmetricTensor2:
+                    dof = 3;
+                    break;
+                case FieldValueType.Vector2:
+                    dof = 2;
+                    break;
+                case FieldValueType.Vector3:
+                    dof = 3;
+                    break;
+                case FieldValueType.ZScalar:
+                    dof = 1;
+                    break;
+                case FieldValueType.ZVector2:
+                    dof = 2;
+                    break;
+                case FieldValueType.ZVector3:
+                    dof = 3;
+                    break;
+                default:
+                    dof = 0;
+                    System.Diagnostics.Debug.Assert(false);
+                    break;
+            }
+            return dof;
         }
 
         public void CopyValues(FieldValue src)
@@ -84,10 +133,11 @@ namespace IvyFEM
             }
         }
 
-        public void AllocValues(uint dof, uint pointCnt)
+        protected void AllocValues(uint pointCnt)
         {
-            Dof = dof;
-            if (Type == FieldValueType.ZScalar)
+            if (Type == FieldValueType.ZScalar ||
+                Type == FieldValueType.ZVector2 ||
+                Type == FieldValueType.ZVector3)
             {
                 // complex
                 if (DerivativeType.HasFlag(FieldDerivativeType.Value))

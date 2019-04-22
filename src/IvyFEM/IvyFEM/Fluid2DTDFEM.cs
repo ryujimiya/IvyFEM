@@ -92,7 +92,7 @@ namespace IvyFEM
                 double[] g = { ma.GravityX, ma.GravityY };
 
                 double[] vSN = vTriFE.CalcSN();
-                IntegrationPoints ip = TriangleFE.GetIntegrationPoints(TriangleIntegrationPointCount.Point7);
+                IntegrationPoints ip = TriangleFE.GetIntegrationPoints(World.TriIntegrationPointCount);//Point7
                 for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
                 {
                     double[] L = ip.Ls[ipPt];
@@ -153,6 +153,8 @@ namespace IvyFEM
                             double[,] kvv2 = new double[vDof, vDof];
                             kvv2[0, 0] = detJWeight * rho * vN[row] * (
                                 vN[col] * vx[0] + v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 1] = detJWeight * rho * vN[row] * vN[col] * vy[0];
+                            kvv2[1, 0] = detJWeight * rho * vN[row] * vN[col] * vx[1];
                             kvv2[1, 1] = detJWeight * rho * vN[row] * (
                                 vN[col] * vy[1] + v[0] * vNx[col] + v[1] * vNy[col]);
 

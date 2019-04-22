@@ -604,7 +604,7 @@ namespace IvyFEM
             uint iCurTri = iTri0;
             uint iCurTriNo = points[(int)iPt0].Dir;
             bool isWall = false;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
 
@@ -670,7 +670,7 @@ namespace IvyFEM
 
             iCurTri = iTri0;
             iCurTriNo = iTriNo0;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
 
@@ -850,7 +850,7 @@ namespace IvyFEM
             uint iIniTriNo = points[(int)iPt0].Dir;
             uint iCurTri = iIniTri;
             uint iCurTriNo = iIniTriNo;
-            for (;;)
+            while (true)
             {
                 //　時計周りに検索する。
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
@@ -889,7 +889,7 @@ namespace IvyFEM
 
             iCurTriNo = iIniTriNo;
             iCurTri = iIniTri;
-            for (;;)
+            while (true)
             {   
                 //　反時計周りの検索
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
@@ -940,7 +940,7 @@ namespace IvyFEM
             uint iIniTriNo = points[(int)iPt0].Dir;
             uint iCurTri = iIniTri;
             uint iCurTriNo = iIniTriNo;
-            for (;;)
+            while (true)
             {
                 //　反時計周りの検索
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
@@ -994,7 +994,7 @@ namespace IvyFEM
 
             iCurTriNo = iIniTriNo;
             iCurTri = iIniTri;
-            for (;;)
+            while (true)
             {  
                 //　時計周りに検索する。
                 System.Diagnostics.Debug.Assert(tris[(int)iCurTri].V[iCurTriNo] == iPt0);
@@ -1191,7 +1191,7 @@ namespace IvyFEM
                 bool isBound = false;
                 OpenTK.Vector2d vecDelta = points[(int)iPt].Point;
                 uint ntriAround = 1;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(iTri0 < tris.Count);
                     System.Diagnostics.Debug.Assert(iNoElC0 < 3);
@@ -1260,7 +1260,7 @@ namespace IvyFEM
                 bool isBound = false;
                 OpenTK.Vector2d vecDelta = points[(int)iPt].Point;
                 uint ntriAround = 1;
-                for (;;)
+                while (true)
                 { 
                     // 点の周りの要素を一回りする
                     System.Diagnostics.Debug.Assert(iTri0 < tris.Count);

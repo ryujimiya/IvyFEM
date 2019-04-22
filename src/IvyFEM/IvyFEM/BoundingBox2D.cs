@@ -48,20 +48,6 @@ namespace IvyFEM
             IsntEmpty = src.IsntEmpty;
         }
 
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "■BoundingBox2D" + CRLF;
-            ret += "MinX = " + MinX + CRLF;
-            ret += "MaxX = " + MaxX + CRLF;
-            ret += "MinY = " + MinY + CRLF;
-            ret += "MaxY = " + MaxY + CRLF;
-            ret += "IsntEmpty = " + IsntEmpty + CRLF;
-            return ret;
-        }
-
         public static BoundingBox2D operator +(BoundingBox2D bb1, BoundingBox2D bb2)
         {
             BoundingBox2D result;

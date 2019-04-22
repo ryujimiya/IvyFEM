@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class UseLoop : ICadObject
+    public class UseLoop : IIdObject
     {
         public uint Id { get; set; } = 0;
         public uint LId { get; set; } = 0;
@@ -32,7 +32,7 @@ namespace IvyFEM
             Copy(src);
         }
 
-        public void Copy(ICadObject src)
+        public void Copy(IIdObject src)
         {
             UseLoop srcUL = src as UseLoop;
             Id = srcUL.Id;
@@ -40,21 +40,6 @@ namespace IvyFEM
             HEId = srcUL.HEId;
             ChildULId = srcUL.ChildULId;
             ParentULId = srcUL.ParentULId;
-        }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-            ret += "-------------------" + CRLF;
-            ret += "UseLoop" + CRLF;
-            ret += "  Id = " + Id + CRLF;
-            ret += "  LId = " + LId + CRLF;
-            ret += "  HEId = " + HEId + CRLF;
-            ret += "  ChildULId = " + ChildULId + CRLF;
-            ret += "  ParentULId = " + ParentULId + CRLF;
-            ret += "-------------------" + CRLF;
-            return ret;
         }
     }
 }

@@ -37,7 +37,8 @@ namespace IvyFEM
         NotSet,
         Vertex,
         Edge,
-        Loop
+        Loop,
+        Solid
     }
 
     public enum MeshType
@@ -69,7 +70,9 @@ namespace IvyFEM
         Vector2,
         Vector3,
         SymmetricTensor2,
-        ZScalar
+        ZScalar,
+        ZVector2,
+        ZVector3
     }
 
     [Flags]

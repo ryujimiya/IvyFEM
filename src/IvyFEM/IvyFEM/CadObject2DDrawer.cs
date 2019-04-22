@@ -79,7 +79,7 @@ namespace IvyFEM
 
             {
                 // 面をセット
-                IList<uint> lIds = cad2D.GetElemIds(CadElementType.Loop);
+                IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
                 for (int iLId = 0; iLId < lIds.Count; iLId++)
                 {
                     uint lId = lIds[iLId];
@@ -96,8 +96,7 @@ namespace IvyFEM
                         {
                             olddp.MeshId = 1;
                             olddp.Height = height;
-                            double[] color = new double[3];
-                            cad2D.GetLoopColor(lId, color);
+                            double[] color = cad2D.GetLoopColor(lId);
                             for (int iTmp = 0; iTmp < 3; iTmp++)
                             {
                                 olddp.Color[iTmp] = (float)color[iTmp];
@@ -112,8 +111,7 @@ namespace IvyFEM
                         dp.CadId = lId;
                         dp.Type = CadElementType.Loop;
                         dp.Height = height;
-                        double[] color = new double[3];
-                        cad2D.GetLoopColor(lId, color);
+                        double[] color = cad2D.GetLoopColor(lId);
                         for (int iTmp = 0; iTmp < 3; iTmp++)
                         {
                             dp.Color[iTmp] = (float)color[iTmp];
@@ -125,7 +123,7 @@ namespace IvyFEM
 
             {
                 // set edge
-                IList<uint> eIds = cad2D.GetElemIds(CadElementType.Edge);
+                IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
                 for (int iEId = 0; iEId < eIds.Count; iEId++)
                 {
                     uint eId = eIds[iEId];
@@ -178,7 +176,7 @@ namespace IvyFEM
 
             { 
                 // set vertex
-                IList<uint> vIds = cad2D.GetElemIds(CadElementType.Vertex);
+                IList<uint> vIds = cad2D.GetElementIds(CadElementType.Vertex);
                 for (int iVId = 0; iVId < vIds.Count; iVId++)
                 {
                     uint vCadId = vIds[iVId];
@@ -222,7 +220,7 @@ namespace IvyFEM
                 dp.Clear();
                 uint cadId = dp.CadId;
                 CadElementType cadType = dp.Type;
-                if (!cad2D.IsElemId(cadType, cadId))
+                if (!cad2D.IsElementId(cadType, cadId))
                 {
                     continue;
                 }
@@ -240,8 +238,7 @@ namespace IvyFEM
                 if (meshType == MeshType.Tri)
                 {
                     dp.SetTriArray(mesh.GetTriArrays()[loc]);
-                    double[] color = new double[3];
-                    cad2D.GetLoopColor(cadId0, color);
+                    double[] color = cad2D.GetLoopColor(cadId0);
                     for (int iTmp = 0; iTmp < 3; iTmp++)
                     {
                         dp.Color[iTmp] = (float)color[iTmp];
@@ -255,8 +252,7 @@ namespace IvyFEM
                     dp.CurveType = edge.CurveType;
                     dp.CtrlPoints.Clear();
                     // 2019-03-11 エッジの色 FIX
-                    double[] color = new double[3];
-                    edge.GetColor(color);
+                    double[] color = edge.Color;
                     for (int iTmp = 0; iTmp < 3; iTmp++)
                     {
                         dp.Color[iTmp] = (float)color[iTmp];

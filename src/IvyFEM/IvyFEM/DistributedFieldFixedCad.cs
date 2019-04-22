@@ -14,8 +14,8 @@ namespace IvyFEM
             new List<System.Numerics.Complex[]>();
 
         public DistributedFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, uint dof, IList<uint> fixedDofIndexs) :
-            base(cadId, cadElemType, valueType, dof, fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs) :
+            base(cadId, cadElemType, valueType, fixedDofIndexs)
         {
 
         }

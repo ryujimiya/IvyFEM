@@ -12,9 +12,8 @@ namespace IvyFEM
         public System.Numerics.Complex[] ComplexValues { get; protected set; } = null;
 
         public ConstFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, uint dof,
-            IList<uint> fixedDofIndexs, double[] values) :
-            base(cadId, cadElemType, valueType, dof, fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs, double[] values) :
+            base(cadId, cadElemType, valueType, fixedDofIndexs)
         {
             DoubleValues = new double[Dof];
             values.CopyTo(DoubleValues, 0);
@@ -22,9 +21,8 @@ namespace IvyFEM
         }
 
         public ConstFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, uint dof,
-            IList<uint> fixedDofIndexs, System.Numerics.Complex[] values) :
-            base(cadId, cadElemType, valueType, dof, fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs, System.Numerics.Complex[] values) :
+            base(cadId, cadElemType, valueType, fixedDofIndexs)
         {
             DoubleValues = null;
             ComplexValues = new System.Numerics.Complex[Dof];

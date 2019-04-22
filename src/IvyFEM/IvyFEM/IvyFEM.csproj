@@ -85,7 +85,7 @@
     <Compile Include="CadObject2DDrawer.cs" />
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
-    <Compile Include="CadObjectArray.cs" />
+    <Compile Include="IdObjectArray.cs" />
     <Compile Include="CadUtils.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="Camera2D.cs" />
@@ -145,8 +145,8 @@
     <Compile Include="IDrawer.cs" />
     <Compile Include="IFieldDrawer.cs" />
     <Compile Include="IntegrationPoints.cs" />
-    <Compile Include="ItrLoop.cs" />
-    <Compile Include="ItrVertex.cs" />
+    <Compile Include="LoopEdgeItr.cs" />
+    <Compile Include="VertexEdgeItr.cs" />
     <Compile Include="Lapack.ComplexBandMatrix.cs" />
     <Compile Include="Lapack.ComplexHermitianBandMatrix.cs" />
     <Compile Include="Lapack.ComplexMatrix.cs" />

@@ -71,24 +71,6 @@ namespace IvyFEM.Lapack
             ColumnLength = 0;
         }
 
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "DoubleMatrix" + CRLF;
-            ret += "ColumnLength = " + ColumnLength + CRLF;
-            ret += "RowLength = " + RowLength + CRLF;
-            for (int col = 0; col < ColumnLength; col++)
-            {
-                for (int row = 0; row < RowLength; row++)
-                {
-                    ret += "[" + row + ", " + col + "] = " + this[row, col] + CRLF; 
-                }
-            }
-            return ret;
-        }
-
         public double this[int row, int col]
         {
             get

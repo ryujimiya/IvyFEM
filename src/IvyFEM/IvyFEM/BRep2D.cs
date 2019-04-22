@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class ResConnectVertex
+    public class ConnectVertexRes
     {
         public uint VId1 { get; set; } = 0;
         public uint VId2 { get; set; } = 0;
@@ -15,16 +15,16 @@ namespace IvyFEM
         public uint AddLId { get; set; } = 0;
         public bool IsLeftAddL { get; set; } = true;
 
-        public ResConnectVertex()
+        public ConnectVertexRes()
         {
         }
     }
 
     public class BRep2D
     {
-        internal BRep BRep = new BRep();
-        internal Dictionary<uint, uint> Loop2UseLoop = new Dictionary<uint, uint>();
-        internal Dictionary<uint, uint> Edge2HalfEdge = new Dictionary<uint, uint> ();
+        internal BRep BRep { get; private set; } = new BRep();
+        internal Dictionary<uint, uint> Loop2UseLoop { get; private set; } = new Dictionary<uint, uint>();
+        internal Dictionary<uint, uint> Edge2HalfEdge { get; private set; } = new Dictionary<uint, uint>();
 
         public BRep2D()
         {
@@ -34,16 +34,8 @@ namespace IvyFEM
         public void Copy(BRep2D src)
         {
             BRep.Copy(src.BRep);
-            Loop2UseLoop.Clear();
-            foreach (var pair in src.Loop2UseLoop)
-            {
-                Loop2UseLoop.Add(pair.Key, pair.Value);
-            }
-            Edge2HalfEdge.Clear();
-            foreach (var pair in src.Edge2HalfEdge)
-            {
-                Edge2HalfEdge.Add(pair.Key, pair.Value);
-            }
+            Loop2UseLoop = new Dictionary<uint, uint>(src.Loop2UseLoop);
+            Edge2HalfEdge = new Dictionary<uint, uint>(src.Edge2HalfEdge);
         }
 
         public void Clear()
@@ -53,29 +45,7 @@ namespace IvyFEM
             Loop2UseLoop.Clear();
         }
 
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "BRep2D" + CRLF;
-            ret += "BRep" + CRLF;
-            ret += BRep.Dump();
-            ret += "Edge2HalfEdge" + CRLF;
-            foreach (var pair in Edge2HalfEdge)
-            {
-                ret += pair.Key + " --> " + pair.Value + CRLF;
-            }
-            ret += "Loop2UseLoop" + CRLF;
-            foreach (var pair in Loop2UseLoop)
-            {
-                ret += pair.Key + " --> " + pair.Value + CRLF;
-            }
-
-            return ret;
-        }
-
-        public bool IsElemId(CadElementType type, uint id)
+        public bool IsElementId(CadElementType type, uint id)
         {
             if (type == CadElementType.Vertex)
             {
@@ -92,17 +62,17 @@ namespace IvyFEM
             return false;
         }
 
-        public ItrLoop GetItrLoop(uint lId)
+        public LoopEdgeItr GetLoopEdgeItr(uint lId)
         {
-            return new ItrLoop(this, lId);
+            return new LoopEdgeItr(this, lId);
         }
 
-        public ItrVertex GetItrVertex(uint vId)
+        public VertexEdgeItr GetVertexEdgeItr(uint vId)
         {
-            return new ItrVertex(this, vId);
+            return new VertexEdgeItr(this, vId);
         }
 
-        public IList<uint> GetElemIds(CadElementType type)
+        public IList<uint> GetElementIds(CadElementType type)
         {
             if (type == CadElementType.Vertex)
             {
@@ -126,7 +96,7 @@ namespace IvyFEM
             return res;
         }
 
-        internal uint TypeUseLoop(uint uLId)
+        internal uint GetUseLoopType(uint uLId)
         {
             System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
             uint hEId0;
@@ -142,7 +112,7 @@ namespace IvyFEM
                 }
             }
             uint hEId = hEId0;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
                 HalfEdge hE = BRep.GetHalfEdge(hEId);
@@ -172,8 +142,8 @@ namespace IvyFEM
 
             uint nEdgeAroundVtx = 0;
             {
-                ItrVertex itrv = new ItrVertex(this, vId);
-                nEdgeAroundVtx = itrv.CountEdge();
+                VertexEdgeItr vItr = new VertexEdgeItr(this, vId);
+                nEdgeAroundVtx = vItr.GetEdgeCount();
             }
 
             if (nEdgeAroundVtx == 0)
@@ -195,10 +165,10 @@ namespace IvyFEM
                 { 
                     uint uLId1 = hE1.ULId;
                     uint uLId2 = hE2.ULId;
-                    ItrLoop itrL1 = new ItrLoop(this, hEId1, uLId1);
-                    ItrLoop itrL2 = new ItrLoop(this, hEId2, uLId2);
-                    uint nLV1 = itrL1.CountUseLoopVertex();
-                    uint nLV2 = itrL2.CountUseLoopVertex();
+                    LoopEdgeItr lItr1 = new LoopEdgeItr(this, hEId1, uLId1);
+                    LoopEdgeItr lItr2 = new LoopEdgeItr(this, hEId2, uLId2);
+                    uint nLV1 = lItr1.GetUseLoopVertexCount();
+                    uint nLV2 = lItr2.GetUseLoopVertexCount();
                     System.Diagnostics.Debug.Assert(nLV1 > 1 && nLV2 > 1);
                     if (nLV1 == 2 || nLV2 == 2)
                     {
@@ -231,9 +201,9 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(uL.Id == parentULId);
                     System.Diagnostics.Debug.Assert(uL.LId == lId);
                 }
-                System.Diagnostics.Debug.Assert(TypeUseLoop(parentULId) == 2);
+                System.Diagnostics.Debug.Assert(GetUseLoopType(parentULId) == 2);
                 uint uLId = parentULId;
-                for (;;)
+                while (true)
                 {
                     System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
                     UseLoop uL = BRep.GetUseLoop(uLId);
@@ -496,12 +466,12 @@ namespace IvyFEM
             return addVId;
         }
 
-        public IList<KeyValuePair<uint, bool>> GetItrLoopConnectVertex(ItrVertex itrv1, ItrVertex itrv2)
+        public IList<KeyValuePair<uint, bool>> GetEdgesForConnectVertex(VertexEdgeItr vItr1, VertexEdgeItr vItr2)
         {
             IList<KeyValuePair<uint, bool>> eId2Dir = new List<KeyValuePair<uint, bool>>(); ;
 
-            uint uVId1 = itrv1.GetUseVertexId();
-            uint uVId2 = itrv2.GetUseVertexId();
+            uint uVId1 = vItr1.GetUseVertexId();
+            uint uVId2 = vItr2.GetUseVertexId();
             if (!BRep.IsUseVertexId(uVId1))
             {
                 return eId2Dir;
@@ -514,12 +484,12 @@ namespace IvyFEM
             {
                 return eId2Dir;
             }
-            if (itrv1.GetLoopId() != itrv2.GetLoopId())
+            if (vItr1.GetLoopId() != vItr2.GetLoopId())
             {
                 return eId2Dir;
             }
 
-            uint hEId1 = itrv1.GetHalfEdgeId();
+            uint hEId1 = vItr1.GetHalfEdgeId();
             uint uLId1;
             {
                 System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId1));
@@ -527,7 +497,7 @@ namespace IvyFEM
                 uLId1 = hE1.ULId;
                 System.Diagnostics.Debug.Assert(hE1.EId != 0);
             }
-            uint hEId2 = itrv2.GetHalfEdgeId();
+            uint hEId2 = vItr2.GetHalfEdgeId();
             uint uLId2;
             {
                 System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId2));
@@ -541,7 +511,7 @@ namespace IvyFEM
                 return eId2Dir;
             }
             uint hEId = hEId2;
-            for (;;)
+            while (true)
             {
                 HalfEdge hE = BRep.GetHalfEdge(hEId);
                 eId2Dir.Add(new KeyValuePair<uint, bool>(hE.EId, hE.IsSameDir));
@@ -554,12 +524,12 @@ namespace IvyFEM
             return eId2Dir;
         }
 
-        public ResConnectVertex ConnectVertex(ItrVertex itrv1, ItrVertex itrv2, bool isLeftAddL)
+        public ConnectVertexRes ConnectVertex(VertexEdgeItr vItr1, VertexEdgeItr vItr2, bool isLeftAddL)
         {
-            ResConnectVertex res = new ResConnectVertex();
+            ConnectVertexRes res = new ConnectVertexRes();
 
-            uint uVId1 = itrv1.GetUseVertexId();
-            uint uVId2 = itrv2.GetUseVertexId();
+            uint uVId1 = vItr1.GetUseVertexId();
+            uint uVId2 = vItr2.GetUseVertexId();
             if (!BRep.IsUseVertexId(uVId1))
             {
                 return res;
@@ -575,15 +545,15 @@ namespace IvyFEM
             res.VId1 = BRep.GetUseVertex(uVId1).VId;
             res.VId2 = BRep.GetUseVertex(uVId2).VId;
 
-            if (itrv1.GetLoopId() != itrv2.GetLoopId())
+            if (vItr1.GetLoopId() != vItr2.GetLoopId())
             {
                 return res;
             }
-            uint lId = itrv1.GetLoopId();
+            uint lId = vItr1.GetLoopId();
             res.LId = lId;
 
-            uint hEId1 = itrv1.GetHalfEdgeId();
-            uint hEId2 = itrv2.GetHalfEdgeId();
+            uint hEId1 = vItr1.GetHalfEdgeId();
+            uint hEId2 = vItr2.GetHalfEdgeId();
 
             uint uLId1;
             bool isFloat1;
@@ -742,7 +712,7 @@ namespace IvyFEM
             return res;
         }
 
-        public IList<KeyValuePair<uint, bool>> GetItrLoopRemoveEdge(uint eId)
+        public IList<KeyValuePair<uint, bool>> GetEdgesForRemoveEdge(uint eId)
         {
             IList<KeyValuePair<uint, bool>> id2Dir = new List<KeyValuePair<uint, bool>>();
             uint hEId1;
@@ -768,7 +738,7 @@ namespace IvyFEM
             }
 
             uint hEId = hE2.FHEId;
-            for (;;)
+            while (true)
             {
                 System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
                 HalfEdge hE = BRep.GetHalfEdge(hEId);
@@ -850,7 +820,7 @@ namespace IvyFEM
                     uint uLId = uLId1;
                     UseLoop uL = BRep.GetUseLoop(uLId);
                     uLId = uL.ParentULId;
-                    for (;;)
+                    while (true)
                     {
                         if (uLId == 0)
                         {
@@ -866,7 +836,7 @@ namespace IvyFEM
                     uint uLId = uLId2;
                     UseLoop uL = BRep.GetUseLoop(uLId);
                     uLId = uL.ParentULId;
-                    for (;;)
+                    while (true)
                     {
                         if (uLId == 0)
                         {
@@ -925,7 +895,7 @@ namespace IvyFEM
                         }
                         if (isDelCP)
                         {
-                            System.Diagnostics.Debug.Assert(TypeUseLoop(addULId) == 2);
+                            System.Diagnostics.Debug.Assert(GetUseLoopType(addULId) == 2);
                             if (!BRep.SwapUseLoop(addULId, uLId1))
                             {
                                 System.Diagnostics.Debug.Assert(false);
@@ -980,7 +950,7 @@ namespace IvyFEM
             return false;
         }
 
-        public bool SwapItrLoop(ItrLoop itrl, uint toLId)
+        public bool SwapLoopEdgeItr(LoopEdgeItr lItr, uint toLId)
         {
             uint toParentULId;
             {
@@ -988,7 +958,7 @@ namespace IvyFEM
                 UseLoop uL = BRep.GetUseLoop(toParentULId);
                 System.Diagnostics.Debug.Assert(uL.ParentULId == toParentULId);
             }
-            uint fromULId = itrl.GetUseLoopId();
+            uint fromULId = lItr.GetUseLoopId();
             {
                 System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(fromULId));
                 UseLoop uL = BRep.GetUseLoop(fromULId);
@@ -1045,7 +1015,7 @@ namespace IvyFEM
             return true;
         }
 
-        public ItrLoop GetItrLoopSideEdge(uint eId, bool isLeft)
+        public LoopEdgeItr GetLoopEdgeItrSideEdge(uint eId, bool isLeft)
         {
             System.Diagnostics.Debug.Assert(Edge2HalfEdge.ContainsKey(eId));
             uint hEId1 = Edge2HalfEdge[eId];
@@ -1054,13 +1024,13 @@ namespace IvyFEM
             if (isLeft)
             {
                 uint uLId1 = hE1.ULId;
-                return new ItrLoop(this, hEId1, uLId1);
+                return new LoopEdgeItr(this, hEId1, uLId1);
             }
             uint hEId2 = hE1.OHEId;
             System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId2));
             HalfEdge hE2 = BRep.GetHalfEdge(hEId2);
             uint uLId2 = hE2.ULId;
-            return new ItrLoop(this, hEId2, uLId2);
+            return new LoopEdgeItr(this, hEId2, uLId2);
         }
 
         public bool MakeHoleFromLoop(uint lId)

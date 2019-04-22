@@ -22,7 +22,8 @@ namespace IvyFEM
         public IList<IList<uint>> PortEIdss { get; } = new List<IList<uint>>();
         private ObjectArray<FieldValue> FieldValueArray = new ObjectArray<FieldValue>();
 
-        public TriangleIntegrationPointCount TriIntegrationPointCount { get; set; } = TriangleIntegrationPointCount.Point3;
+        public TriangleIntegrationPointCount TriIntegrationPointCount { get; set; } =
+            TriangleIntegrationPointCount.Point7;
         private IList<FEWorldQuantity> Quantitys = new List<FEWorldQuantity>();
 
         public FEWorld()
@@ -204,7 +205,7 @@ namespace IvyFEM
         public uint AddMaterial(Material material)
         {
             uint freeId = MaterialArray.GetFreeObjectId();
-            uint maId = MaterialArray.AddObject(new KeyValuePair<uint, Material>(freeId, material));
+            uint maId = MaterialArray.AddObject(freeId, material);
             System.Diagnostics.Debug.Assert(maId == freeId);
             return maId;
         }
@@ -358,7 +359,7 @@ namespace IvyFEM
         }
 
         public uint AddFieldValue(FieldValueType fieldType, FieldDerivativeType derivativeType,
-            uint quantityId, uint dof, bool isBubble, FieldShowType showType)
+            uint quantityId, bool isBubble, FieldShowType showType)
         {
             uint pointCnt = 0;
             if (isBubble)
@@ -369,16 +370,11 @@ namespace IvyFEM
             {
                 pointCnt = GetCoordCount(quantityId);
             }
-            FieldValue fv = new FieldValue();
-            fv.Type = fieldType;
-            fv.DerivativeType = derivativeType;
-            fv.IsBubble = isBubble;
-            fv.ShowType = showType;
-            fv.QuantityId = quantityId;
-            fv.AllocValues(dof, pointCnt);
+            FieldValue fv = new FieldValue(quantityId, fieldType, derivativeType,
+                isBubble, showType, pointCnt);
 
             uint freeId = FieldValueArray.GetFreeObjectId();
-            uint valueId = FieldValueArray.AddObject(new KeyValuePair<uint, FieldValue>(freeId, fv));
+            uint valueId = FieldValueArray.AddObject(freeId, fv);
             System.Diagnostics.Debug.Assert(valueId == freeId);
             return valueId;
         }

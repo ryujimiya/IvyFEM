@@ -40,30 +40,5 @@ namespace IvyFEM
             }
             FEId = src.FEId;
         }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "Tri2D" + CRLF;
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "V[" + i + "] = " + V[i] + CRLF;
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "G2[" + i + "] = " + G2[i] + CRLF;
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "S2[" + i + "] = " + S2[i] + CRLF;
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "R2[" + i + "] = " + R2[i] + CRLF;
-            }
-            return ret;
-        }
     }
 }

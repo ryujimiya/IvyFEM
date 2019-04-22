@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class UseVertex : ICadObject
+    public class UseVertex : IIdObject
     {
         public uint Id { get; set; } = 0;
         public uint HEId { get; set; } = 0;
@@ -29,26 +29,12 @@ namespace IvyFEM
             Copy(src);
         }
 
-        public void Copy(ICadObject src)
+        public void Copy(IIdObject src)
         {
             UseVertex srcUV = src as UseVertex;
             Id = srcUV.Id;
             HEId = srcUV.HEId;
             VId = srcUV.VId;
         }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-            ret += "-------------------" + CRLF;
-            ret += "UseVertex" + CRLF;
-            ret += "  Id = " + Id + CRLF;
-            ret += "  HEId = " + HEId + CRLF;
-            ret += "  VId = " + VId + CRLF;
-            ret += "-------------------" + CRLF;
-            return ret;
-        }
-
     }
 }

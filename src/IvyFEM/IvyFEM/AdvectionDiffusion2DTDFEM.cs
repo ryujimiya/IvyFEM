@@ -125,7 +125,7 @@ namespace IvyFEM
                 }
 
                 double[] sN = triFE.CalcSN();
-                IntegrationPoints ip = TriangleFE.GetIntegrationPoints(TriangleIntegrationPointCount.Point7);
+                IntegrationPoints ip = TriangleFE.GetIntegrationPoints(World.TriIntegrationPointCount);//Point7
                 for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
                 {
                     double[] L = ip.Ls[ipPt];

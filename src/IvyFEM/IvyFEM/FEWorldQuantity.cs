@@ -502,7 +502,7 @@ namespace IvyFEM
                     fe.MeshElemId = iElem;
                     // 仮登録
                     uint freeId = TriangleFEArray.GetFreeObjectId();
-                    uint feId = TriangleFEArray.AddObject(new KeyValuePair<uint, TriangleFE>(freeId, fe));
+                    uint feId = TriangleFEArray.AddObject(freeId, fe);
                     System.Diagnostics.Debug.Assert(feId == freeId);
                 }
             }
@@ -599,7 +599,7 @@ namespace IvyFEM
                     fe.MeshId = meshId;
                     fe.MeshElemId = iElem;
                     uint freeId = LineFEArray.GetFreeObjectId();
-                    uint feId = LineFEArray.AddObject(new KeyValuePair<uint, LineFE>(freeId, fe));
+                    uint feId = LineFEArray.AddObject(freeId, fe);
                     System.Diagnostics.Debug.Assert(feId == freeId);
 
                     string key = string.Format(meshId + "_" + iElem);
@@ -692,7 +692,6 @@ namespace IvyFEM
         private void NumberTriangleElementsAndNodes(FEWorld world, IList<int> zeroCoordIds)
         {
             Mesher2D mesh = world.Mesh;
-            Dictionary<TriangleFE, IList<int>> triFECoIds = new Dictionary<TriangleFE, IList<int>>();
             IList<TriangleFE> triFEs = new List<TriangleFE>();
             // 要素を退避(ソートされていない)
             {
@@ -728,6 +727,7 @@ namespace IvyFEM
                 }
             }
             // 共有とみなす節点を生成
+            Dictionary<TriangleFE, IList<int>> triFECoIds = new Dictionary<TriangleFE, IList<int>>();
             foreach (TriangleFE fe in triFEs)
             {
                 // 要素の節点
@@ -796,7 +796,7 @@ namespace IvyFEM
                 }
 
                 uint freeId = TriangleFEArray.GetFreeObjectId();
-                uint feId = TriangleFEArray.AddObject(new KeyValuePair<uint, TriangleFE>(freeId, fe));
+                uint feId = TriangleFEArray.AddObject(freeId, fe);
                 System.Diagnostics.Debug.Assert(feId == freeId);
 
                 uint meshId = fe.MeshId;
@@ -883,9 +883,23 @@ namespace IvyFEM
                     {
                         // 同じ変数の拘束条件がすでにあるかチェック
                         {
-                            var sameFixedCads = (from a in fixedCads
-                                    where a.Dof == fixedCad.Dof
-                                    select a).ToList();
+                            IList<FieldFixedCad> sameFixedCads = new List<FieldFixedCad>();
+                            foreach (FieldFixedCad tmp in fixedCads)
+                            {
+                                bool isSameTarget = false;
+                                foreach (uint iDof in tmp.FixedDofIndexs)
+                                {
+                                    if (fixedCad.FixedDofIndexs.Contains(iDof))
+                                    {
+                                        isSameTarget = true;
+                                        break;
+                                    }
+                                }
+                                if (isSameTarget)
+                                {
+                                    sameFixedCads.Add(tmp);
+                                }
+                            }
                             if (sameFixedCads.Count > 0)
                             {
                                 foreach (FieldFixedCad tmp in sameFixedCads)

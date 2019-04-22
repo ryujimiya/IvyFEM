@@ -25,8 +25,8 @@ namespace IvyFEM
             {
                 uint cadId = pair.Key;
                 CadElementType cadElemType = pair.Value;
-                uint dof = 1; // Lagrangeの未定乗数は常に1自由度
-                var fixedCad = new FieldFixedCad(cadId, cadElemType, FieldValueType.Scalar, dof);
+                // Lagrangeの未定乗数は常に1自由度
+                var fixedCad = new FieldFixedCad(cadId, cadElemType, FieldValueType.Scalar);
                 FixedCads.Add(fixedCad);
             }
         }

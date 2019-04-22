@@ -10,7 +10,7 @@ namespace IvyFEM
     {
         /// <summary>
         /// 係数 α
-        ///   α(∇^2(φ) = F
+        ///   α(∇^2(φ) = -F
         /// </summary>
         public double Alpha { get => Values[0]; set => Values[0] = value; }
         /// <summary>

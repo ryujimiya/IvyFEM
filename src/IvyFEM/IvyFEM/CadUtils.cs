@@ -13,16 +13,6 @@ namespace IvyFEM
         /// </summary>
         public const double MinTriArea = 1.0e-10;
 
-        public static string Dump(OpenTK.Vector2d v)
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "Vector2d" + CRLF;
-            ret += "(" + v.X + ", " + v.Y + ")" + CRLF;
-            return ret;
-        }
-
         public static OpenTK.Vector2d Normalize(OpenTK.Vector2d v)
         {
             double len = v.Length;

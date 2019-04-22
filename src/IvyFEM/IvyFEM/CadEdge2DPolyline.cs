@@ -86,7 +86,7 @@ namespace IvyFEM
             ClearMemory();
             IList<double> relCoPolys = new List<double>();
             {
-                System.Diagnostics.Debug.Assert(cad2D.IsElemId(CadElementType.Edge, eId));
+                System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
                 Edge2D e = cad2D.GetEdge(eId);
                 relCoPolys = e.GetCurveRelPoint();
             }

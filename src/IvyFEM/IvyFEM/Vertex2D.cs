@@ -13,7 +13,11 @@ namespace IvyFEM
 
         public Vertex2D()
         {
-
+            Point = new OpenTK.Vector2d();
+            for (int i = 0; i < 3; i++)
+            {
+                Color[i] = 0.0;
+            }
         }
 
         public Vertex2D(OpenTK.Vector2d point)
@@ -33,26 +37,9 @@ namespace IvyFEM
         public void Copy(IObject src)
         {
             Vertex2D srcVertex = src as Vertex2D;
+
             Point = new OpenTK.Vector2d(srcVertex.Point.X, srcVertex.Point.Y);
-            for (int i = 0; i < 3; i++)
-            {
-                Color[i] = srcVertex.Color[i];
-            }
-
-        }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "■Vertex2D" + CRLF;
-            ret += "Point = (" + Point.X + ", " + Point.Y + ")" + CRLF;
-            for (int i = 0; i < 3; i++)
-            {
-                ret += "Color[" + i + "] = " + Color[i] + CRLF;
-            }
-            return ret;
+            srcVertex.Color.CopyTo(Color, 0);
         }
     }
 

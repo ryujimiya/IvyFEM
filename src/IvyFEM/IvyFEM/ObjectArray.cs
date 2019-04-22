@@ -60,11 +60,11 @@ namespace IvyFEM
             return Objects[index];
         }
 
-        public uint AddObject(KeyValuePair<uint, T> idObj)
+        public uint AddObject(uint id, T obj)
         {
-            uint id1 = AddId(idObj.Key);
+            uint id1 = AddId(id);
             System.Diagnostics.Debug.Assert(IsObjectId(id1));
-            Objects.Add(idObj.Value);
+            Objects.Add(obj);
             System.Diagnostics.Debug.Assert(Index2Ids.Count == Objects.Count);
             return id1;
         }
@@ -116,7 +116,7 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(Id2Indexs.Count != 1);
             if (Id2Indexs.Count == 0)
             {
-                for (;;)
+                while (true)
                 {
                     res[(int)isize] = isize + 1;
                     isize++;

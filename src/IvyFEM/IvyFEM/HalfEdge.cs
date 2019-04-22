@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class HalfEdge : ICadObject
+    public class HalfEdge : IIdObject
     {
         public uint Id { get; set; } = 0;
         public uint UVId { get; set; } = 0;
@@ -39,7 +39,7 @@ namespace IvyFEM
             Copy(src);
         }
 
-        public void Copy(ICadObject src)
+        public void Copy(IIdObject src)
         {
             HalfEdge srcHE = src as HalfEdge;
             Id = srcHE.Id;
@@ -51,24 +51,5 @@ namespace IvyFEM
             EId = srcHE.EId;
             IsSameDir = srcHE.IsSameDir;
         }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-            ret += "-------------------" + CRLF;
-            ret += "HalfEdge" + CRLF;
-            ret += "  Id = " + Id + CRLF;
-            ret += "  UVId = " + UVId + CRLF;
-            ret += "  FHEId = " + FHEId + CRLF;
-            ret += "  BHEId = " + BHEId + CRLF;
-            ret += "  OHEId = " + OHEId + CRLF;
-            ret += "  ULId = " + ULId + CRLF;
-            ret += "  EId = " + EId + CRLF;
-            ret += "-------------------" + CRLF;
-            return ret;
-        }
-
     }
-
 }

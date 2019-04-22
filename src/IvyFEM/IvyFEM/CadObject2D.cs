@@ -6,34 +6,24 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class ResAddVertex
+    public class AddVertexRes
     {
         public uint AddVId { get; set; } = 0;
         public uint AddEId { get; set; } = 0;
-
-        public string Dump()
-        {
-            string CRLF = System.Environment.NewLine;
-            string ret = "";
-
-            ret += "AddVId = " + AddVId + CRLF;
-            ret += "AddEId = " + AddEId + CRLF;
-            return ret;
-        }
     }
 
-    public class ResAddPolygon
+    public class AddPolygonRes
     {
         public uint AddLId { get; set; } = 0;
         public IList<uint> VIds { get; } = new List<uint>();
         public IList<uint> EIds { get; } = new List<uint>();
 
-        public ResAddPolygon()
+        public AddPolygonRes()
         {
 
         }
 
-        public ResAddPolygon(ResAddPolygon src)
+        public AddPolygonRes(AddPolygonRes src)
         {
             this.AddLId = src.AddLId;
             this.VIds.Clear();
@@ -46,26 +36,6 @@ namespace IvyFEM
             {
                 this.EIds.Add(id);
             }
-        }
-
-        public string Dump()
-        {
-            string CRLF = System.Environment.NewLine;
-            string ret = "";
-
-            ret += "AddId = " + AddLId + CRLF;
-            ret += "VIds:" + CRLF;
-            for (int i = 0; i < VIds.Count; i++)
-            {
-                ret += "    VIds[" + i + "] = " + VIds[i] + CRLF;
-            }
-            ret += "EIds:" + CRLF;
-            for (int i = 0; i < EIds.Count; i++)
-            {
-                ret += "    EIds[" + i + "] = " + EIds[i] + CRLF;
-            }
-
-            return ret;
         }
     }
 
@@ -87,11 +57,6 @@ namespace IvyFEM
             Copy(src);
         }
 
-        ~CadObject2D()
-        {
-            Clear();
-        }
-
         public void Clear()
         {
             LoopArray.Clear();
@@ -100,55 +65,13 @@ namespace IvyFEM
             BRep.Clear();
         }
 
-        public string Dump()
+        public AddVertexRes AddVertex(CadElementType type, uint id, OpenTK.Vector2d vec)
         {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "■CadObject2D" + CRLF;
-            ret += "LoopArray" + CRLF;
-            var lIds = LoopArray.GetObjectIds();
-            for (int i = 0; i < lIds.Count; i++)
-            {
-                var lId = lIds[i];
-                ret += "-------------------------" + CRLF;
-                ret += "lId = " + lId + CRLF;
-                var l = LoopArray.GetObject(lId);
-                ret += l.Dump();
-            }
-            ret += "EdgeArray" + CRLF;
-            var eIds = EdgeArray.GetObjectIds();
-            for (int i = 0; i < eIds.Count; i++)
-            {
-                var eId = eIds[i];
-                ret += "-------------------------" + CRLF;
-                ret += "eId = " + eId + CRLF;
-                var e = EdgeArray.GetObject(eId);
-                ret += e.Dump();
-            }
-            ret += "VertexArray" + CRLF;
-            var vIds = VertexArray.GetObjectIds();
-            for (int i = 0; i < vIds.Count; i++)
-            {
-                var vId = vIds[i];
-                ret += "-------------------------" + CRLF;
-                ret += "vId = " + vId + CRLF;
-                var v = VertexArray.GetObject(vId);
-                ret += v.Dump();
-            }
-            ret += "BRep" + CRLF;
-            ret += BRep.Dump();
-
-            return ret;
-        }
-
-        public ResAddVertex AddVertex(CadElementType type, uint id, OpenTK.Vector2d vec)
-        {
-            ResAddVertex res = new ResAddVertex();
+            AddVertexRes res = new AddVertexRes();
             if (type == CadElementType.NotSet || id == 0)
             {
                 uint addVId = BRep.AddVertexToLoop(0);
-                uint tmpId = VertexArray.AddObject(new KeyValuePair<uint, Vertex2D>(addVId, new Vertex2D(vec)));
+                uint tmpId = VertexArray.AddObject(addVId, new Vertex2D(vec));
                 System.Diagnostics.Debug.Assert(tmpId == addVId);
                 res.AddVId = addVId;
                 return res;
@@ -166,7 +89,7 @@ namespace IvyFEM
                     if (dist < this.MinClearance) { return res; }
                 }
                 uint addVId = BRep.AddVertexToLoop(lId);
-                uint tmpId = VertexArray.AddObject(new KeyValuePair<uint, Vertex2D>(addVId, new Vertex2D(vec)));
+                uint tmpId = VertexArray.AddObject(addVId, new Vertex2D(vec));
                 System.Diagnostics.Debug.Assert(tmpId == (int)addVId);
                 System.Diagnostics.Debug.Assert(AssertValid() == 0);
                 res.AddVId = addVId;
@@ -190,23 +113,21 @@ namespace IvyFEM
                 uint addVId = BRep.AddVertexToEdge(eId);
                 uint addEId;
                 {
-                    ItrVertex itrv = BRep.GetItrVertex(addVId);
+                    VertexEdgeItr vItr = BRep.GetVertexEdgeItr(addVId);
                     bool isSameDir0;
                     bool isSameDir1;
                     uint bEId;
                     uint aEId;
-                    itrv.GetBehindEdgeId(out bEId, out isSameDir0);
-                    itrv.GetAheadEdgeId(out aEId, out isSameDir1);
+                    vItr.GetBehindEdgeId(out bEId, out isSameDir0);
+                    vItr.GetAheadEdgeId(out aEId, out isSameDir1);
                     addEId = (bEId == eId) ? aEId : bEId;
                 }
                 {
-                    uint tmpId = VertexArray.AddObject(new KeyValuePair<uint, Vertex2D>(addVId,
-                        new Vertex2D(addVec)));
+                    uint tmpId = VertexArray.AddObject(addVId, new Vertex2D(addVec));
                     System.Diagnostics.Debug.Assert(tmpId == addVId);
                 }
                 {
-                    uint tmpId = EdgeArray.AddObject(new KeyValuePair<uint, Edge2D>(addEId,
-                        new Edge2D(addVId, oldEdge.GetVertexId(false))));
+                    uint tmpId = EdgeArray.AddObject(addEId, new Edge2D(addVId, oldEdge.GetVertexId(false)));
                     System.Diagnostics.Debug.Assert(tmpId == addEId);
                 }
                 {
@@ -497,9 +418,9 @@ namespace IvyFEM
         }
         */
 
-        public ResAddPolygon AddPolygon(IList<OpenTK.Vector2d> points, uint lId = 0)
+        public AddPolygonRes AddPolygon(IList<OpenTK.Vector2d> points, uint lId = 0)
         {
-            ResAddPolygon res = new ResAddPolygon();
+            AddPolygonRes res = new AddPolygonRes();
 
             int ptCnt = points.Count;
             if (ptCnt < 3)
@@ -516,12 +437,12 @@ namespace IvyFEM
                     for (uint i = 0; i < n - 1; i++)
                     {
                         Edge2D e = new Edge2D(i, i + 1);
-                        e.SetVertexs(points[(int)i], points[(int)i + 1]);
+                        e.SetVertexCoords(points[(int)i], points[(int)i + 1]);
                         edges.Add(e);
                     }
                     {
                         Edge2D e = new Edge2D(n - 1, 0);
-                        e.SetVertexs(points[(int)n - 1], points[0]);
+                        e.SetVertexCoords(points[(int)n - 1], points[0]);
                         edges.Add(e);
                     }
                     if (CadUtils.CheckEdgeIntersection(edges) != 0)
@@ -584,13 +505,13 @@ namespace IvyFEM
             }
 
             //　失敗したとき
-            return new ResAddPolygon();
+            return new AddPolygonRes();
 
         }
 
-        public ResAddPolygon AddCircle(OpenTK.Vector2d cPt, double r, uint lId)
+        public AddPolygonRes AddCircle(OpenTK.Vector2d cPt, double r, uint lId)
         {
-            ResAddPolygon res = new ResAddPolygon();
+            AddPolygonRes res = new AddPolygonRes();
             OpenTK.Vector2d v1 = new OpenTK.Vector2d(cPt.X, cPt.Y + r);
             OpenTK.Vector2d v2 = new OpenTK.Vector2d(cPt.X - r, cPt.Y);
             OpenTK.Vector2d v3 = new OpenTK.Vector2d(cPt.X, cPt.Y - r);
@@ -624,7 +545,7 @@ namespace IvyFEM
             return res;
         }
 
-        public bool IsElemId(CadElementType type, uint id)
+        public bool IsElementId(CadElementType type, uint id)
         {
             if (type == CadElementType.NotSet)
             {
@@ -649,7 +570,7 @@ namespace IvyFEM
             return false;
         }
 
-        public IList<uint> GetElemIds(CadElementType type)
+        public IList<uint> GetElementIds(CadElementType type)
         {
             if (type == CadElementType.Vertex)
             {
@@ -671,7 +592,7 @@ namespace IvyFEM
 
         public Vertex2D GetVertex(uint vId)
         {
-            if (!BRep.IsElemId(CadElementType.Vertex, vId))
+            if (!BRep.IsElementId(CadElementType.Vertex, vId))
             {
                 return null;
             }
@@ -690,27 +611,25 @@ namespace IvyFEM
             return v.Point;
         }
 
-        public bool GetVertexColor(uint vId, double[] color)
+        public double[] GetVertexColor(uint vId)
         {
-            if (!BRep.IsElemId(CadElementType.Vertex, vId))
+            double[] color = new double[3];
+            if (!BRep.IsElementId(CadElementType.Vertex, vId))
             {
-                return false;
+                return color;
             }
             if (!VertexArray.IsObjectId(vId))
             {
-                return false;
+                return color;
             }
             Vertex2D v = VertexArray.GetObject(vId);
-            for (int i = 0; i < 3; i++)
-            {
-                color[i] = v.Color[i];
-            }
-            return true;
+            v.Color.CopyTo(color, 0);
+            return color;
         }
 
         public bool SetVertexColor(uint vId, double[] color)
         {
-            if (!BRep.IsElemId(CadElementType.Vertex, vId))
+            if (!BRep.IsElementId(CadElementType.Vertex, vId))
             {
                 return false;
             }
@@ -719,48 +638,46 @@ namespace IvyFEM
                 return false;
             }
             Vertex2D v = VertexArray.GetObject(vId);
-            for (int i = 0; i < 3; i++)
-            {
-                v.Color[i] = color[i];
-            }
+            color.CopyTo(v.Color, 0);
             return true;
         }
 
         public Edge2D GetEdge(uint eId)
         {
-            System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Edge, eId));
+            System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Edge, eId));
             System.Diagnostics.Debug.Assert(EdgeArray.IsObjectId(eId));
             Edge2D e = EdgeArray.GetObject(eId);
             uint sVId;
             uint eVId;
             BRep.GetEdgeVertexIds(eId, out sVId, out eVId);
             e.SetVertexIds(sVId, eVId);
-            System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Vertex, sVId));
-            System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Vertex, eVId));
+            System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Vertex, sVId));
+            System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Vertex, eVId));
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(sVId));
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(eVId));
-            e.SetVertexs(GetVertexCoord(sVId), GetVertexCoord(eVId));
+            e.SetVertexCoords(GetVertexCoord(sVId), GetVertexCoord(eVId));
             return e;
         }
 
-        public bool GetEdgeColor(uint eId, double[] color)
+        public double[] GetEdgeColor(uint eId)
         {
-            if (!BRep.IsElemId(CadElementType.Edge, eId))
+            double[] color = new double[3];
+            if (!BRep.IsElementId(CadElementType.Edge, eId))
             {
-                return false;
+                return color;
             }
             if (!EdgeArray.IsObjectId(eId))
             {
-                return false;
+                return color;
             }
             Edge2D e = EdgeArray.GetObject(eId);
-            e.GetColor(color);
-            return true;
+            e.Color.CopyTo(color, 0);
+            return color;
         }
 
         public bool SetEdgeColor(uint eId, double[] color)
         {
-            if (!BRep.IsElemId(CadElementType.Edge, eId))
+            if (!BRep.IsElementId(CadElementType.Edge, eId))
             {
                 return false;
             }
@@ -769,19 +686,19 @@ namespace IvyFEM
                 return false;
             }
             Edge2D e = EdgeArray.GetObject(eId);
-            e.SetColor(color);
+            color.CopyTo(e.Color, 0);
             return true;
         }
 
         public bool GetEdgeVertexId(out uint sVId, out uint eVId, uint eId)
         {
-            System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Edge, eId));
+            System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Edge, eId));
             return BRep.GetEdgeVertexIds(eId, out sVId, out eVId);
         }
 
         public uint GetEdgeVertexId(uint eId, bool isS)
         {
-            System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Edge, eId));
+            System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Edge, eId));
             return BRep.GetEdgeVertexId(eId, isS);
         }
 
@@ -832,8 +749,8 @@ namespace IvyFEM
                 uint rLId;
                 GetEdgeLoopId(out lLId, out rLId, id);
 
-                bool bl = IsElemId(CadElementType.Loop, lLId);
-                bool br = IsElemId(CadElementType.Loop, rLId);
+                bool bl = IsElementId(CadElementType.Loop, lLId);
+                bool br = IsElementId(CadElementType.Loop, rLId);
                 if (!bl && !br) { return 0; }
                 if (bl && !br) { return GetLayer(CadElementType.Loop, lLId); }
                 if (!bl && br) { return GetLayer(CadElementType.Loop, rLId); }
@@ -845,10 +762,10 @@ namespace IvyFEM
             {
                 int layer = 0;
                 bool iflg = true;
-                for (ItrVertex itrv = BRep.GetItrVertex(id); !itrv.IsEnd(); itrv++)
+                for (VertexEdgeItr vItr = BRep.GetVertexEdgeItr(id); !vItr.IsEnd(); vItr++)
                 {
-                    uint lId0 = itrv.GetLoopId();
-                    if (!IsElemId(CadElementType.Loop, lId0))
+                    uint lId0 = vItr.GetLoopId();
+                    if (!IsElementId(CadElementType.Loop, lId0))
                     {
                         continue;
                     }
@@ -870,7 +787,7 @@ namespace IvyFEM
 
         public void GetLayerMinMax(out int minLayer, out int maxLayer)
         {
-            IList<uint> lIds = GetElemIds(CadElementType.Loop);
+            IList<uint> lIds = GetElementIds(CadElementType.Loop);
             if (lIds.Count == 0)
             {
                 minLayer = 0;
@@ -893,18 +810,16 @@ namespace IvyFEM
             }
         }
 
-        public bool GetLoopColor(uint lId, double[] color)
+        public double[] GetLoopColor(uint lId)
         {
+            double[] color = new double[3];
             if (!LoopArray.IsObjectId(lId))
             {
-                return false;
+                return color;
             }
             Loop2D l = LoopArray.GetObject(lId);
-            for (int i = 0; i < 3; i++)
-            {
-                color[i] = l.Color[i];
-            }
-            return true;
+            l.Color.CopyTo(color, 0);
+            return color;
         }
 
         public bool SetLoopColor(uint lId, double[] color)
@@ -914,10 +829,7 @@ namespace IvyFEM
                 return false;
             }
             Loop2D l = LoopArray.GetObject(lId);
-            for (int i = 0; i < 3; i++)
-            {
-                l.Color[i] = color[i];
-            }
+            color.CopyTo(l.Color, 0);
             return true;
         }
 
@@ -960,7 +872,7 @@ namespace IvyFEM
                 return 6;
             }
             {
-                IList<uint> lIds = BRep.GetElemIds(CadElementType.Loop);
+                IList<uint> lIds = BRep.GetElementIds(CadElementType.Loop);
                 for (uint i = 0; i < lIds.Count; i++)
                 {
                     if (!LoopArray.IsObjectId(lIds[(int)i]))
@@ -971,7 +883,7 @@ namespace IvyFEM
                 }
             }
             {
-                IList<uint> eIds = BRep.GetElemIds(CadElementType.Edge);
+                IList<uint> eIds = BRep.GetElementIds(CadElementType.Edge);
                 for (uint i = 0; i < eIds.Count; i++)
                 {
                     if (!EdgeArray.IsObjectId(eIds[(int)i]))
@@ -981,7 +893,7 @@ namespace IvyFEM
                 }
             }
             {
-                IList<uint> vIds = BRep.GetElemIds(CadElementType.Vertex);
+                IList<uint> vIds = BRep.GetElementIds(CadElementType.Vertex);
                 for (uint i = 0; i < vIds.Count; i++)
                 {
                     if (!VertexArray.IsObjectId(vIds[(int)i]))
@@ -993,19 +905,19 @@ namespace IvyFEM
             return 0;
         }
 
-        private bool CheckIsPointInsideItrLoop(ItrLoop itrl, OpenTK.Vector2d point)
+        private bool CheckIsPointInsideLoopEdgeItr(LoopEdgeItr lItr, OpenTK.Vector2d point)
         {
-            // 29 is handy prim number
+            // 29 is handy prime number
             for (uint i = 1; i < 29; i++)
             {
                 uint crossCounter = 0;
                 bool iflg = true;
                 OpenTK.Vector2d dir = new OpenTK.Vector2d(Math.Sin(6.28 * i / 29.0), Math.Cos(6.28 * i / 29.0));
-                for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+                for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                 {
                     uint eId;
                     bool isSameDir;
-                    itrl.GetEdgeId(out eId, out isSameDir);
+                    lItr.GetEdgeId(out eId, out isSameDir);
                     if (eId == 0)
                     {
                         return false;
@@ -1030,20 +942,20 @@ namespace IvyFEM
             return false;
         }
 
-        private uint CheckInOutItrLoopPointItrLoop(ItrLoop itrl1, ItrLoop itrl2)
+        private uint CheckLoopEdgeItrPointInOutLoopEdgeItr(LoopEdgeItr lItr1, LoopEdgeItr lItr2)
         {
             uint outCount = 0;
             uint inCount = 0;
-            for (itrl1.Begin(); !itrl1.IsEnd(); itrl1++)
+            for (lItr1.Begin(); !lItr1.IsEnd(); lItr1++)
             {
-                uint vId = itrl1.GetVertexId();
+                uint vId = lItr1.GetVertexId();
                 Vertex2D v = VertexArray.GetObject(vId);
-                double dist = DistancePointItrLoop(itrl2, v.Point);
+                double dist = DistancePointLoopEdgeItr(lItr2, v.Point);
                 if (Math.Abs(dist) < MinClearance)
                 {
                     return 1;
                 } 
-                if (CheckIsPointInsideItrLoop(itrl2, v.Point))
+                if (CheckIsPointInsideLoopEdgeItr(lItr2, v.Point))
                 {
                     if (outCount != 0)
                     {
@@ -1073,18 +985,18 @@ namespace IvyFEM
         public bool CheckIsPointInsideLoop(uint lId1, OpenTK.Vector2d point)
         {
             System.Diagnostics.Debug.Assert(LoopArray.IsObjectId(lId1));
-            for (ItrLoop itrl = BRep.GetItrLoop(lId1); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+            for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId1); !lItr.IsChildEnd; lItr.ShiftChildLoop())
             {
-                if (itrl.IsParent())
+                if (lItr.IsParent())
                 {
-                    if (!CheckIsPointInsideItrLoop(itrl, point))
+                    if (!CheckIsPointInsideLoopEdgeItr(lItr, point))
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    if (CheckIsPointInsideItrLoop(itrl, point))
+                    if (CheckIsPointInsideLoopEdgeItr(lItr, point))
                     {
                         return false;
                     }
@@ -1097,29 +1009,29 @@ namespace IvyFEM
         {
             System.Diagnostics.Debug.Assert(LoopArray.IsObjectId(lId));
             double area = 0.0;
-            for (ItrLoop itrl = BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+            for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
             {
-                area += GetItrLoopArea(itrl);
+                area += GetLoopEdgeItrArea(lItr);
             }
             return area;
         }
 
-        private double GetItrLoopArea(ItrLoop itrl)
+        private double GetLoopEdgeItrArea(LoopEdgeItr lItr)
         {
             double area = 0.0;
-            for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+            for (lItr.Begin(); !lItr.IsEnd(); lItr++)
             {
                 uint eId;
                 bool isSameDir;
-                itrl.GetEdgeId(out eId, out isSameDir);
-                if (!IsElemId(CadElementType.Edge, eId))
+                lItr.GetEdgeId(out eId, out isSameDir);
+                if (!IsElementId(CadElementType.Edge, eId))
                 {
                     return 0;
                 }
-                System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Edge, eId));
+                System.Diagnostics.Debug.Assert(IsElementId(CadElementType.Edge, eId));
                 Edge2D e = GetEdge(eId);
-                System.Diagnostics.Debug.Assert(e.GetVertexId(isSameDir) == itrl.GetVertexId());
-                System.Diagnostics.Debug.Assert(e.GetVertexId(!isSameDir) == itrl.GetAheadVertexId());
+                System.Diagnostics.Debug.Assert(e.GetVertexId(isSameDir) == lItr.GetVertexId());
+                System.Diagnostics.Debug.Assert(e.GetVertexId(!isSameDir) == lItr.GetAheadVertexId());
                 double earea = CadUtils.TriArea(
                     e.GetVertex(true), e.GetVertex(false), new OpenTK.Vector2d(0, 0)) + e.EdgeArea();
                 if (isSameDir)
@@ -1134,18 +1046,18 @@ namespace IvyFEM
             return area;
         }
 
-        private double DistancePointItrLoop(ItrLoop itrl, OpenTK.Vector2d point)
+        private double DistancePointLoopEdgeItr(LoopEdgeItr lItr, OpenTK.Vector2d point)
         {
             double minDist = -1;
-            for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+            for (lItr.Begin(); !lItr.IsEnd(); lItr++)
             {
                 uint eId;
                 bool isSameDir;
-                itrl.GetEdgeId(out eId, out isSameDir);
+                lItr.GetEdgeId(out eId, out isSameDir);
                 if (eId == 0)
                 {
-                    uint vId0 = itrl.GetVertexId();
-                    System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Vertex, vId0));
+                    uint vId0 = lItr.GetVertexId();
+                    System.Diagnostics.Debug.Assert(IsElementId(CadElementType.Vertex, vId0));
                     OpenTK.Vector2d p1 = GetVertexCoord(vId0);
                     return OpenTK.Vector2d.Distance(point, p1);
                 }
@@ -1165,33 +1077,33 @@ namespace IvyFEM
         {
             double minSd = 0;
             System.Diagnostics.Debug.Assert(LoopArray.IsObjectId(lId1));
-            for (ItrLoop itrl = BRep.GetItrLoop(lId1); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+            for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId1); !lItr.IsChildEnd; lItr.ShiftChildLoop())
             {
-                if (itrl.IsParent())
+                if (lItr.IsParent())
                 {
-                    minSd = DistancePointItrLoop(itrl, point);
+                    minSd = DistancePointLoopEdgeItr(lItr, point);
                     System.Diagnostics.Debug.Assert(minSd >= 0);
-                    if (!CheckIsPointInsideItrLoop(itrl, point))
+                    if (!CheckIsPointInsideLoopEdgeItr(lItr, point))
                     {
                         minSd = -minSd;
                     }
                 }
                 else
                 {
-                    if (itrl.GetVertexId() == itrl.GetAheadVertexId())
+                    if (lItr.GetVertexId() == lItr.GetAheadVertexId())
                     {
-                        uint vId = itrl.GetVertexId();
+                        uint vId = lItr.GetVertexId();
                         if (vId == ignoreVId)
                         {
                             continue;
                         }
                     }
-                    double sd0 = DistancePointItrLoop(itrl, point);
+                    double sd0 = DistancePointLoopEdgeItr(lItr, point);
                     if (sd0 < 0)
                     {
                         continue;
                     }
-                    if (CheckIsPointInsideItrLoop(itrl, point))
+                    if (CheckIsPointInsideLoopEdgeItr(lItr, point))
                     {
                         sd0 = -sd0;
                     }
@@ -1204,17 +1116,17 @@ namespace IvyFEM
             return minSd;
         }
 
-        public ResConnectVertex ConnectVertexLine(uint vId1, uint vId2)
+        public ConnectVertexRes ConnectVertexLine(uint vId1, uint vId2)
         {
             Edge2D e = new Edge2D(vId1, vId2);
             return ConnectVertex(e);
         }
 
-        public ResConnectVertex ConnectVertex(Edge2D edge)
+        public ConnectVertexRes ConnectVertex(Edge2D edge)
         {
             uint vId1 = edge.GetVertexId(true);
             uint vId2 = edge.GetVertexId(false);
-            ResConnectVertex res = new ResConnectVertex();
+            ConnectVertexRes res = new ConnectVertexRes();
             res.VId1 = vId1;
             res.VId2 = vId2;
             ////  
@@ -1245,46 +1157,46 @@ namespace IvyFEM
                     }
                     uint sVId = e.GetVertexId(true);
                     uint eVId = e.GetVertexId(false);
-                    if ((sVId - vId1) * (sVId - vId2) != 0)
+                    if (sVId != vId1 && sVId != vId2)
                     {
                         continue;
                     }
-                    if ((eVId - vId1) * (eVId - vId2) != 0)
+                    if (eVId != vId1 && eVId != vId2)
                     {
                         continue;
                     }
                     return res;
                 }
             }
-            edge.SetVertexs(VertexArray.GetObject(vId1).Point, VertexArray.GetObject(vId2).Point);
+            edge.SetVertexCoords(VertexArray.GetObject(vId1).Point, VertexArray.GetObject(vId2).Point);
             if (edge.IsCrossEdgeSelf())
             {
                 return res;
             }
 
             {
-                ItrVertex itrv1 = FindCornerHalfLine(vId1, edge.GetTangentEdge(true));
-                ItrVertex itrv2 = FindCornerHalfLine(vId2, edge.GetTangentEdge(false));
-                if (itrv1.GetLoopId() != itrv2.GetLoopId())
+                VertexEdgeItr vItr1 = FindCornerHalfLine(vId1, edge.GetTangentEdge(true));
+                VertexEdgeItr vItr2 = FindCornerHalfLine(vId2, edge.GetTangentEdge(false));
+                if (vItr1.GetLoopId() != vItr2.GetLoopId())
                 {
                     return res;
                 }
-                uint lId = itrv1.GetLoopId();
+                uint lId = vItr1.GetLoopId();
                 if (CheckEdgeAgainstLoopIntersection(edge, lId))
                 {
                     return res;
                 }
                 bool isLeftAddL = false;
-                if (itrv1.IsSameUseLoop(itrv2) && (!itrv1.IsParent() || lId == 0))
+                if (vItr1.IsSameUseLoop(vItr2) && (!vItr1.IsParent() || lId == 0))
                 {
-                    IList<KeyValuePair<uint, bool>> eId2Dir = BRep.GetItrLoopConnectVertex(itrv1, itrv2);
+                    IList<KeyValuePair<uint, bool>> eId2Dir = BRep.GetEdgesForConnectVertex(vItr1, vItr2);
                     System.Diagnostics.Debug.Assert(eId2Dir.Count != 0);
                     double area = CadUtils.TriArea(
                         edge.GetVertex(true), edge.GetVertex(false), new OpenTK.Vector2d(0, 0)) + edge.EdgeArea();
                     for (uint i = 0; i < eId2Dir.Count; i++)
                     {
                         uint eId = eId2Dir[(int)i].Key;
-                        System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Edge, eId));
+                        System.Diagnostics.Debug.Assert(IsElementId(CadElementType.Edge, eId));
                         Edge2D e = GetEdge(eId);
                         double earea = e.EdgeArea() +
                             CadUtils.TriArea(e.GetVertex(true), e.GetVertex(false), new OpenTK.Vector2d(0, 0));
@@ -1299,10 +1211,10 @@ namespace IvyFEM
                     }
                     isLeftAddL = (area > 0);
                 }
-                res = BRep.ConnectVertex(itrv1, itrv2, isLeftAddL);
+                res = BRep.ConnectVertex(vItr1, vItr2, isLeftAddL);
             }
             {
-                uint tmpId = EdgeArray.AddObject(new KeyValuePair<uint, Edge2D>(res.AddEId, edge));
+                uint tmpId = EdgeArray.AddObject(res.AddEId, edge);
                 System.Diagnostics.Debug.Assert(tmpId == (int)res.AddEId);
             }
 
@@ -1320,7 +1232,7 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(((res.IsLeftAddL) ? lLId : rLId) == res.AddLId);
             }
 
-            if (!BRep.IsElemId(CadElementType.Loop, res.LId))
+            if (!BRep.IsElementId(CadElementType.Loop, res.LId))
             {
                 if (CheckLoopIntersection(res.AddLId))
                 {
@@ -1330,28 +1242,28 @@ namespace IvyFEM
                 }
             }
 
-            if (BRep.IsElemId(CadElementType.Loop, res.LId) && BRep.IsElemId(CadElementType.Loop, res.AddLId))
+            if (BRep.IsElementId(CadElementType.Loop, res.LId) && BRep.IsElementId(CadElementType.Loop, res.AddLId))
             {
-                for (;;)
+                while (true)
                 {
                     bool iflg = true;
-                    ItrLoop itrlAddInner = BRep.GetItrLoopSideEdge(res.AddEId, res.IsLeftAddL);
-                    ItrLoop itrlAddOuter = BRep.GetItrLoopSideEdge(res.AddEId, !res.IsLeftAddL);
-                    for (ItrLoop itrlC = BRep.GetItrLoop(res.LId); !itrlC.IsChildEnd; itrlC.ShiftChildLoop())
+                    LoopEdgeItr lItrAddInner = BRep.GetLoopEdgeItrSideEdge(res.AddEId, res.IsLeftAddL);
+                    LoopEdgeItr lItrAddOuter = BRep.GetLoopEdgeItrSideEdge(res.AddEId, !res.IsLeftAddL);
+                    for (LoopEdgeItr cLItr = BRep.GetLoopEdgeItr(res.LId); !cLItr.IsChildEnd; cLItr.ShiftChildLoop())
                     {
-                        if (itrlC.IsParent())
+                        if (cLItr.IsParent())
                         {
                             continue;
                         }
-                        if (itrlC.IsSameUseLoop(itrlAddOuter))
+                        if (cLItr.IsSameUseLoop(lItrAddOuter))
                         {
                             continue;
                         }
-                        uint ires = CheckInOutItrLoopPointItrLoop(itrlC, itrlAddInner);
+                        uint ires = CheckLoopEdgeItrPointInOutLoopEdgeItr(cLItr, lItrAddInner);
                         System.Diagnostics.Debug.Assert(ires == 0 || ires == 2);
                         if (ires == 0)
                         {
-                            BRep.SwapItrLoop(itrlC, res.AddLId);
+                            BRep.SwapLoopEdgeItr(cLItr, res.AddLId);
                             iflg = false;
                             break;
                         }
@@ -1368,33 +1280,33 @@ namespace IvyFEM
                 Loop2D addLoop = LoopArray.GetObject(res.LId);
                 // 2019-03-20 BUGFIX
                 addLoop = new Loop2D(addLoop);
-                LoopArray.AddObject(new KeyValuePair<uint, Loop2D>(res.AddLId, addLoop));
+                LoopArray.AddObject(res.AddLId, addLoop);
             }
             else
             {
-                LoopArray.AddObject(new KeyValuePair<uint, Loop2D>(res.AddLId, new Loop2D()));
+                LoopArray.AddObject(res.AddLId, new Loop2D());
             }
 
             System.Diagnostics.Debug.Assert(AssertValid() == 0);
             return res;
         }
 
-        private ItrVertex FindCornerHalfLine(uint vId, OpenTK.Vector2d dir1) 
+        private VertexEdgeItr FindCornerHalfLine(uint vId, OpenTK.Vector2d dir1) 
         {
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(vId));
             OpenTK.Vector2d dir = dir1;
             dir = CadUtils.Normalize(dir);
             OpenTK.Vector2d zeroVec = new OpenTK.Vector2d(0, 0);
-            ItrVertex itrv = BRep.GetItrVertex(vId);
-            if (itrv.CountEdge() < 2)
+            VertexEdgeItr vItr = BRep.GetVertexEdgeItr(vId);
+            if (vItr.GetEdgeCount() < 2)
             {
-                return itrv;
+                return vItr;
             }
-            for (; !itrv.IsEnd(); itrv++)
+            for (; !vItr.IsEnd(); vItr++)
             {
                 uint eId0;
                 bool isSameDir0;
-                itrv.GetBehindEdgeId(out eId0, out isSameDir0);
+                vItr.GetBehindEdgeId(out eId0, out isSameDir0);
                 System.Diagnostics.Debug.Assert(EdgeArray.IsObjectId(eId0));
                 Edge2D e0 = GetEdge(eId0);
                 System.Diagnostics.Debug.Assert(e0.GetVertexId(isSameDir0) == vId);
@@ -1402,7 +1314,7 @@ namespace IvyFEM
 
                 uint eId1;
                 bool isSameDir1;
-                itrv.GetAheadEdgeId(out eId1, out isSameDir1);
+                vItr.GetAheadEdgeId(out eId1, out isSameDir1);
                 System.Diagnostics.Debug.Assert(EdgeArray.IsObjectId(eId1));
                 Edge2D e1 = GetEdge(eId1);
                 System.Diagnostics.Debug.Assert(e1.GetVertexId(isSameDir1) == vId);
@@ -1416,42 +1328,42 @@ namespace IvyFEM
                 {
                     if (area1 > 0.0 && area2 > 0.0)
                     {
-                        return itrv;
+                        return vItr;
                     }
                 }
                 else
                 {
                     if (area1 > 0.0 || area2 > 0.0)
                     {
-                        return itrv;
+                        return vItr;
                     }
                 }
             }
-            return itrv;
+            return vItr;
         }
 
         public bool RemoveElement(CadElementType type, uint id)
         {
-            if (!IsElemId(type, id))
+            if (!IsElementId(type, id))
             {
                 return false;
             }
             if (type == CadElementType.Edge)
             {
-                ItrLoop itrlL = BRep.GetItrLoopSideEdge(id, true);
-                ItrLoop itrlR = BRep.GetItrLoopSideEdge(id, false);
-                uint lLId = itrlL.GetLoopId();
-                uint rLId = itrlR.GetLoopId();
+                LoopEdgeItr lItrL = BRep.GetLoopEdgeItrSideEdge(id, true);
+                LoopEdgeItr lItrR = BRep.GetLoopEdgeItrSideEdge(id, false);
+                uint lLId = lItrL.GetLoopId();
+                uint rLId = lItrR.GetLoopId();
                 uint vId1;
                 uint vId2;
                 BRep.GetEdgeVertexIds(id, out vId1, out vId2);
-                ItrVertex itrv1 = BRep.GetItrVertex(vId1);
-                ItrVertex itrv2 = BRep.GetItrVertex(vId2);
+                VertexEdgeItr vItr1 = BRep.GetVertexEdgeItr(vId1);
+                VertexEdgeItr vItr2 = BRep.GetVertexEdgeItr(vId2);
                 bool isDelCP = false;
-                if (itrlL.IsSameUseLoop(itrlR) && itrlL.IsParent() && itrlL.GetLoopId() != 0 &&
-                    itrv1.CountEdge() > 1 && itrv2.CountEdge() > 1)
+                if (lItrL.IsSameUseLoop(lItrR) && lItrL.IsParent() && lItrL.GetLoopId() != 0 &&
+                    vItr1.GetEdgeCount() > 1 && vItr2.GetEdgeCount() > 1)
                 {
-                    IList<KeyValuePair<uint, bool>> eId2Dir = BRep.GetItrLoopRemoveEdge(id);
+                    IList<KeyValuePair<uint, bool>> eId2Dir = BRep.GetEdgesForRemoveEdge(id);
                     System.Diagnostics.Debug.Assert(eId2Dir.Count != 0);
                     {
                         int iE = 0;
@@ -1483,7 +1395,7 @@ namespace IvyFEM
                         for (int iE = 0; iE < eId2Dir.Count; iE++)
                         {
                             uint eId = eId2Dir[iE].Key;
-                            System.Diagnostics.Debug.Assert(IsElemId(CadElementType.Edge, eId));
+                            System.Diagnostics.Debug.Assert(IsElementId(CadElementType.Edge, eId));
                             Edge2D e = GetEdge(eId);
                             double earea = e.EdgeArea() + 
                                 CadUtils.TriArea(e.GetVertex(true), e.GetVertex(false), new OpenTK.Vector2d(0, 0));
@@ -1508,11 +1420,11 @@ namespace IvyFEM
                     return false;
                 }
                 EdgeArray.DeleteObject(id);
-                if (!BRep.IsElemId(CadElementType.Loop, lLId))
+                if (!BRep.IsElementId(CadElementType.Loop, lLId))
                 {
                     LoopArray.DeleteObject(lLId);
                 }
-                if (!BRep.IsElemId(CadElementType.Loop, rLId))
+                if (!BRep.IsElementId(CadElementType.Loop, rLId))
                 {
                     LoopArray.DeleteObject(rLId);
                 }
@@ -1521,15 +1433,15 @@ namespace IvyFEM
             }
             else if (type == CadElementType.Vertex)
             {
-                ItrVertex itrv = BRep.GetItrVertex(id);
-                if (itrv.CountEdge() == 2)
+                VertexEdgeItr vItr = BRep.GetVertexEdgeItr(id);
+                if (vItr.GetEdgeCount() == 2)
                 {
                     uint eId1;
                     uint eId2;
                     bool isSameDir1;
                     bool isSameDir2;
-                    itrv.GetAheadEdgeId(out eId1, out isSameDir1);
-                    itrv.GetBehindEdgeId(out eId2, out isSameDir2);
+                    vItr.GetAheadEdgeId(out eId1, out isSameDir1);
+                    vItr.GetBehindEdgeId(out eId2, out isSameDir2);
                     Edge2D tmpEdge = GetEdge(eId1);
                     {
                         uint vId2 = BRep.GetEdgeVertexId(eId2, !isSameDir2);
@@ -1539,19 +1451,19 @@ namespace IvyFEM
                         if (isSameDir1)
                         {
                             tmpEdge.SetVertexIds(vId2, tmpEdge.GetVertexId(false));
-                            tmpEdge.SetVertexs(GetVertexCoord(vId2), tmpEdge.GetVertex(false));
+                            tmpEdge.SetVertexCoords(GetVertexCoord(vId2), tmpEdge.GetVertex(false));
                         }
                         else
                         {
                             tmpEdge.SetVertexIds(tmpEdge.GetVertexId(true), vId2);
-                            tmpEdge.SetVertexs(tmpEdge.GetVertex(true), GetVertexCoord(vId2));
+                            tmpEdge.SetVertexCoords(tmpEdge.GetVertex(true), GetVertexCoord(vId2));
                         }
                     }
                     {
                         uint iPt0 = tmpEdge.GetVertexId(true);
                         uint iPt1 = tmpEdge.GetVertexId(false);
                         BoundingBox2D iBB = tmpEdge.GetBoundingBox();
-                        IList<uint> eIds = BRep.GetElemIds(CadElementType.Edge);
+                        IList<uint> eIds = BRep.GetElementIds(CadElementType.Edge);
                         for (int ijE = 0; ijE < eIds.Count; ijE++)
                         {
                             uint jEId = eIds[ijE];
@@ -1624,8 +1536,8 @@ namespace IvyFEM
                     {
                         return false;
                     }
-                    System.Diagnostics.Debug.Assert(BRep.IsElemId(CadElementType.Edge, eId1));
-                    System.Diagnostics.Debug.Assert(!BRep.IsElemId(CadElementType.Edge, eId2));
+                    System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Edge, eId1));
+                    System.Diagnostics.Debug.Assert(!BRep.IsElementId(CadElementType.Edge, eId2));
                     EdgeArray.DeleteObject(eId2);
                     Edge2D e1 = GetEdge(eId1);
                     e1.Copy(tmpEdge);
@@ -1633,7 +1545,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(AssertValid() == 0);
                     return true;
                 }
-                else if (itrv.CountEdge() == 0)
+                else if (vItr.GetEdgeCount() == 0)
                 {
                     if (!BRep.RemoveVertex(id)) { return false; }
                     VertexArray.DeleteObject(id);
@@ -1653,22 +1565,22 @@ namespace IvyFEM
                 }
             }
             {
-                for (ItrLoop itrl = BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+                for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    if (itrl.IsParent())
+                    if (lItr.IsParent())
                     {
-                        if (itrl.GetType() != 2)
+                        if (lItr.GetUseLoopType() != 2)
                         {
                             return 2;
                         }
-                        if (GetItrLoopArea(itrl) < 0)
+                        if (GetLoopEdgeItrArea(lItr) < 0)
                         {
                             return 2;
                         }
                     }
-                    else if (itrl.GetType() == 2)
+                    else if (lItr.GetUseLoopType() == 2)
                     {
-                        if (GetItrLoopArea(itrl) > 0)
+                        if (GetLoopEdgeItrArea(lItr) > 0)
                         {
                             return 2;
                         }
@@ -1676,37 +1588,37 @@ namespace IvyFEM
                 }
             }
             {
-                ItrLoop pItrl = BRep.GetItrLoop(lId);
-                for (ItrLoop cItrl = BRep.GetItrLoop(lId); !cItrl.IsChildEnd; cItrl.ShiftChildLoop())
+                LoopEdgeItr pLItr = BRep.GetLoopEdgeItr(lId);
+                for (LoopEdgeItr cLItr = BRep.GetLoopEdgeItr(lId); !cLItr.IsChildEnd; cLItr.ShiftChildLoop())
                 {
-                    if (cItrl.IsParent())
+                    if (cLItr.IsParent())
                     {
                         continue;
                     }
-                    if (CheckInOutItrLoopPointItrLoop(cItrl, pItrl) != 0)
+                    if (CheckLoopEdgeItrPointInOutLoopEdgeItr(cLItr, pLItr) != 0)
                     {
                         return 3;
                     }
                 }
             }
             {
-                for (ItrLoop itrl1 = BRep.GetItrLoop(lId); !itrl1.IsChildEnd; itrl1.ShiftChildLoop())
+                for (LoopEdgeItr lItr1 = BRep.GetLoopEdgeItr(lId); !lItr1.IsChildEnd; lItr1.ShiftChildLoop())
                 {
-                    if (itrl1.IsParent())
+                    if (lItr1.IsParent())
                     {
                         continue;
                     }
-                    for (ItrLoop itrl2 = BRep.GetItrLoop(lId); !itrl2.IsChildEnd; itrl2.ShiftChildLoop())
+                    for (LoopEdgeItr lItr2 = BRep.GetLoopEdgeItr(lId); !lItr2.IsChildEnd; lItr2.ShiftChildLoop())
                     {
-                        if (itrl2.IsParent())
+                        if (lItr2.IsParent())
                         {
                             continue;
                         }
-                        if (itrl1.IsSameUseLoop(itrl2))
+                        if (lItr1.IsSameUseLoop(lItr2))
                         {
                             continue;
                         }
-                        if (CheckInOutItrLoopPointItrLoop(itrl1, itrl2) != 2)
+                        if (CheckLoopEdgeItrPointInOutLoopEdgeItr(lItr1, lItr2) != 2)
                         {
                             return 4;
                         }
@@ -1715,19 +1627,19 @@ namespace IvyFEM
             }
             {
                 OpenTK.Vector2d zeroVec = new OpenTK.Vector2d(0, 0);
-                for (ItrLoop itrl = BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+                for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+                    for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                     {
                         uint vmId;
                         uint vfId;
                         OpenTK.Vector2d dir;
                         {
-                            vmId = itrl.GetVertexId();
-                            vfId = itrl.GetAheadVertexId();
+                            vmId = lItr.GetVertexId();
+                            vfId = lItr.GetAheadVertexId();
                             uint eId0;
                             bool isSameDir0;
-                            itrl.GetEdgeId(out eId0, out isSameDir0);
+                            lItr.GetEdgeId(out eId0, out isSameDir0);
                             if (!EdgeArray.IsObjectId(eId0))
                             {
                                 continue;
@@ -1737,7 +1649,7 @@ namespace IvyFEM
                             System.Diagnostics.Debug.Assert(e0.GetVertexId(isSameDir0) == vmId);
                             System.Diagnostics.Debug.Assert(e0.GetVertexId(!isSameDir0) == vfId);
                         }
-                        for (ItrVertex vItr = BRep.GetItrVertex(vmId); !vItr.IsEnd(); vItr++)
+                        for (VertexEdgeItr vItr = BRep.GetVertexEdgeItr(vmId); !vItr.IsEnd(); vItr++)
                         {   // 点周りの辺をめぐる
                             uint eId0;
                             bool isSameDir0;
@@ -1785,19 +1697,19 @@ namespace IvyFEM
         private bool CheckLoopIntersection(uint lId)
         {
             IList<uint> eIds = new List<uint>();
-            if (BRep.IsElemId(CadElementType.Loop, lId))
+            if (BRep.IsElementId(CadElementType.Loop, lId))
             {
-                for (ItrLoop itrl = BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+                for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+                    for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itrl.GetEdgeId(out eId, out isSameDir))
+                        if (!lItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;
                         }
-                        if (itrl.IsEdgeBothSideSameLoop() && !isSameDir)
+                        if (lItr.IsEdgeBothSideSameLoop() && !isSameDir)
                         {
                             continue;
                         }
@@ -1807,7 +1719,7 @@ namespace IvyFEM
             }
             else
             {
-                eIds = GetElemIds(CadElementType.Edge);
+                eIds = GetElementIds(CadElementType.Edge);
             }
 
             int eIdCnt = eIds.Count;
@@ -1890,19 +1802,19 @@ namespace IvyFEM
         private bool CheckEdgeAgainstLoopIntersection(Edge2D edge, uint lId)
         {
             IList<uint> edgeIds = new List<uint>();
-            if (BRep.IsElemId(CadElementType.Loop, lId))
+            if (BRep.IsElementId(CadElementType.Loop, lId))
             {
-                for (ItrLoop itrl = BRep.GetItrLoop(lId); !itrl.IsChildEnd; itrl.ShiftChildLoop())
+                for (LoopEdgeItr lItr = BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    for (itrl.Begin(); !itrl.IsEnd(); itrl++)
+                    for (lItr.Begin(); !lItr.IsEnd(); lItr++)
                     {
                         uint eId;
                         bool isSameDir;
-                        if (!itrl.GetEdgeId(out eId, out isSameDir))
+                        if (!lItr.GetEdgeId(out eId, out isSameDir))
                         {
                             continue;
                         }
-                        if (itrl.IsEdgeBothSideSameLoop() && !isSameDir)
+                        if (lItr.IsEdgeBothSideSameLoop() && !isSameDir)
                         {
                             continue;
                         }
@@ -1912,7 +1824,7 @@ namespace IvyFEM
             }
             else
             {
-                edgeIds = GetElemIds(CadElementType.Edge);
+                edgeIds = GetElementIds(CadElementType.Edge);
             }
 
             uint edgeIdCnt = (uint)edgeIds.Count;
@@ -1988,14 +1900,14 @@ namespace IvyFEM
             return false;
         }
 
-        public ItrLoop GetItrLoop(uint lId)
+        public LoopEdgeItr GetLoopEdgeItr(uint lId)
         {
-            return new ItrLoop(BRep, lId);
+            return new LoopEdgeItr(BRep, lId);
         }
 
-        public ItrVertex GetItrVertex(uint vId)
+        public VertexEdgeItr GetVertexEdgeItr(uint vId)
         {
-            return new ItrVertex(BRep, vId);
+            return new VertexEdgeItr(BRep, vId);
         }
 
         public bool Serialize(Serializer arch)
@@ -2059,8 +1971,7 @@ namespace IvyFEM
 
                     Vertex2D v = new Vertex2D(new OpenTK.Vector2d(x, y));
                     c.CopyTo(v.Color, 0); // added by ryujimiya
-                    uint tmpId = VertexArray.AddObject(
-                        new KeyValuePair<uint, Vertex2D>((uint)id, v));
+                    uint tmpId = VertexArray.AddObject((uint)id, v);
                     System.Diagnostics.Debug.Assert(tmpId == id);
                 }
                 for (int ie = 0; ie < ne; ie++)
@@ -2141,11 +2052,10 @@ namespace IvyFEM
                     {
                         // TODO:
                     }
-                    e.SetColor(c); // added by ryujimiya
+                    c.CopyTo(e.Color, 0); // added by ryujimiya
 
-                    uint tmp_id = EdgeArray.AddObject(
-                        new KeyValuePair<uint, Edge2D>((uint)id, e));
-                    System.Diagnostics.Debug.Assert(tmp_id == id);
+                    uint tmpId = EdgeArray.AddObject((uint)id, e);
+                    System.Diagnostics.Debug.Assert(tmpId == id);
                 }
 
                 for (int il = 0; il < nl; il++)
@@ -2171,8 +2081,7 @@ namespace IvyFEM
                     l.Layer = (uint)layer;
                     c.CopyTo(l.Color, 0);
 
-                    uint tmpId = LoopArray.AddObject(
-                        new KeyValuePair<uint, Loop2D>((uint)id, l));
+                    uint tmpId = LoopArray.AddObject((uint)id, l);
                     System.Diagnostics.Debug.Assert(tmpId == id);
                 }
 
@@ -2265,9 +2174,7 @@ namespace IvyFEM
                         }
                         // added by ryujimiya
                         {
-                            double[] c = new double[3];
-                            e.GetColor(c);
-                            line = string.Format("{0} {1} {2}", c[0], c[1], c[2]);
+                            line = string.Format("{0} {1} {2}", e.Color[0], e.Color[1], e.Color[2]);
                             arch.WriteLine(line);
                         }
                         // endof added
@@ -2313,8 +2220,7 @@ namespace IvyFEM
                     Vertex2D srcV = src.VertexArray.GetObject(srcId);
                     uint id = srcId;
                     Vertex2D v = new Vertex2D(srcV);
-                    uint tmpId = VertexArray.AddObject(
-                        new KeyValuePair<uint, Vertex2D>(id, v));
+                    uint tmpId = VertexArray.AddObject(id, v);
                     System.Diagnostics.Debug.Assert(tmpId == id);
                 }
             }
@@ -2326,9 +2232,8 @@ namespace IvyFEM
                     Edge2D srcE = src.EdgeArray.GetObject(srcId);
                     uint id = srcId;
                     Edge2D e = new Edge2D(srcE);
-                    uint tmp_id = EdgeArray.AddObject(
-                        new KeyValuePair<uint, Edge2D>((uint)id, e));
-                    System.Diagnostics.Debug.Assert(tmp_id == id);
+                    uint tmpId = EdgeArray.AddObject(id, e);
+                    System.Diagnostics.Debug.Assert(tmpId == id);
                 }
             }
             // Loop
@@ -2339,9 +2244,8 @@ namespace IvyFEM
                     Loop2D srcL = src.LoopArray.GetObject(srcId);
                     uint id = srcId;
                     Loop2D e = new Loop2D(srcL);
-                    uint tmp_id = LoopArray.AddObject(
-                        new KeyValuePair<uint, Loop2D>((uint)id, e));
-                    System.Diagnostics.Debug.Assert(tmp_id == id);
+                    uint tmpId = LoopArray.AddObject(id, e);
+                    System.Diagnostics.Debug.Assert(tmpId == id);
                 }
             }
 

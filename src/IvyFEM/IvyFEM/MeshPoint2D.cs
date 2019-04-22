@@ -30,18 +30,6 @@ namespace IvyFEM
             Elem = src.Elem;
             Dir = src.Dir;
         }
-
-        public string Dump()
-        {
-            string ret = "";
-            string CRLF = System.Environment.NewLine;
-
-            ret += "Point2D" + CRLF;
-            ret += "Point = (" + Point.X + ", " + Point.Y + ")" + CRLF;
-            ret += "Elem = " + Elem + CRLF;
-            ret += "Dir = " + Dir + CRLF;
-            return ret;
-        }
     }
 
 }
