@@ -358,8 +358,8 @@ namespace IvyFEM
             // ポート上の線要素の節点ナンバリング
             NumberPortNodes(world, zeroCoordIds);
 
-            // 三角形要素の要素順番と節点ナンバリング
-            NumberTriangleElementsAndNodes(world, zeroCoordIds);
+            // 三角形要素の節点ナンバリング
+            NumberTriangleNodes(world, zeroCoordIds);
 
             // 接触解析のMaster/Slave線要素を準備する
             SetupContactMasterSlaveLineElements(world);
@@ -688,100 +688,17 @@ namespace IvyFEM
             }
         }
 
-        // 三角形要素の要素順番と節点ナンバリング
-        private void NumberTriangleElementsAndNodes(FEWorld world, IList<int> zeroCoordIds)
+        // 三角形要素の節点ナンバリング
+        private void NumberTriangleNodes(FEWorld world, IList<int> zeroCoordIds)
         {
             Mesher2D mesh = world.Mesh;
-            IList<TriangleFE> triFEs = new List<TriangleFE>();
-            // 要素を退避(ソートされていない)
-            {
-                IList<uint> feIds = TriangleFEArray.GetObjectIds();
-                foreach (uint feId in feIds)
-                {
-                    TriangleFE triFE = TriangleFEArray.GetObject(feId);
-                    triFEs.Add(triFE);
-                }
-                TriangleFEArray.Clear();
-            }
-
-
-            // ポート上の節点を探す
-            IList<IList<int>> portCoIdss = new List<IList<int>>();
-            uint portCnt = world.GetPortCount();
-            for (uint portId = 0; portId < portCnt; portId++)
-            {
-                var portCoIds = new List<int>();
-                portCoIdss.Add(portCoIds);
-                IList<uint> feIds = GetPortLineFEIds(portId);
-                foreach (uint feId in feIds)
-                {
-                    LineFE lineFE = GetLineFE(feId);
-                    int[] vertexCoIds = lineFE.VertexCoordIds;
-                    foreach (int coId in vertexCoIds)
-                    {
-                        if (!portCoIds.Contains(coId))
-                        {
-                            portCoIds.Add(coId);
-                        }
-                    }
-                }
-            }
-            // 共有とみなす節点を生成
-            Dictionary<TriangleFE, IList<int>> triFECoIds = new Dictionary<TriangleFE, IList<int>>();
-            foreach (TriangleFE fe in triFEs)
-            {
-                // 要素の節点
-                IList<int> coIds = fe.VertexCoordIds.ToList();
-
-                //（EMWaveguideの場合、ポート上の節点は隣りあわせの要素以外でも関係がある)
-                bool isInclude = false;
-                for (int portId = 0; portId < portCnt; portId++)
-                {
-                    var portCoIds = portCoIdss[portId];
-                    foreach (int portCoId in portCoIds)
-                    {
-                        if (coIds.Contains(portCoId))
-                        {
-                            isInclude = true;
-                            break;
-                        }
-                    }
-                    if (isInclude)
-                    {
-                        foreach (int portCoId in portCoIds)
-                        {
-                            coIds.Add(portCoId);
-                        }
-                    }
-                }
-                triFECoIds.Add(fe, coIds);
-            }
-            // 節点を共有している要素を探す
-            IList<TriangleFE> sortedTriFEs = new List<TriangleFE>();
-            int checkIndex = 0;
-            while (triFEs.Count > 0)
-            {
-                TriangleFE checkFE0 = triFEs[0];
-                sortedTriFEs.Add(checkFE0);
-                triFEs.Remove(checkFE0);
-                checkIndex = sortedTriFEs.Count - 1;
-                while (checkIndex < sortedTriFEs.Count)
-                {
-                    TriangleFE checkFE = sortedTriFEs[checkIndex];
-                    var includeFEs = GetCoordIncludeTriFEs(checkFE, triFEs, triFECoIds);
-                    foreach (TriangleFE includeFE in includeFEs)
-                    {
-                        sortedTriFEs.Add(includeFE);
-                        triFEs.Remove(includeFE);
-                    }
-                    checkIndex++;
-                }
-            }
 
             // ナンバリング
             int nodeId = 0;
-            foreach (TriangleFE fe in sortedTriFEs)
+            IList<uint> feIds = TriangleFEArray.GetObjectIds();
+            foreach (uint feId in feIds)
             {
+                TriangleFE fe = TriangleFEArray.GetObject(feId);
                 int elemPtCnt = fe.NodeCoordIds.Length;
                 int[] coIds = fe.NodeCoordIds;
                 for (int iPt = 0; iPt < elemPtCnt; iPt++)
@@ -794,10 +711,6 @@ namespace IvyFEM
                         nodeId++;
                     }
                 }
-
-                uint freeId = TriangleFEArray.GetFreeObjectId();
-                uint feId = TriangleFEArray.AddObject(freeId, fe);
-                System.Diagnostics.Debug.Assert(feId == freeId);
 
                 uint meshId = fe.MeshId;
                 int iElem = fe.MeshElemId;
@@ -814,31 +727,6 @@ namespace IvyFEM
                 string key = string.Format(meshId + "_" + iElem);
                 Mesh2TriangleFE.Add(key, feId);
             }
-        }
-
-        private IList<TriangleFE> GetCoordIncludeTriFEs(TriangleFE fe, IList<TriangleFE> triFEs,
-            Dictionary<TriangleFE, IList<int>> triFECoIds)
-        {
-            IList<int> coIds = triFECoIds[fe];
-            IList<TriangleFE> includeTriFEs = new List<TriangleFE>();
-            foreach (TriangleFE tmpFE in triFEs)
-            {
-                bool isInclude = false;
-                IList<int> tmpCoIds = triFECoIds[tmpFE];
-                foreach (int coId in coIds)
-                {
-                    if (tmpCoIds.Contains(coId))
-                    {
-                        isInclude = true;
-                        break;
-                    }
-                }
-                if (isInclude)
-                {
-                    includeTriFEs.Add(tmpFE);
-                }
-            }
-            return includeTriFEs;
         }
 
         private IList<int> GetZeroCoordIds(FEWorld world)

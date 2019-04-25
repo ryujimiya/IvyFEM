@@ -152,6 +152,29 @@ namespace IvyFEM
         }
 
         /// <summary>
+        /// d^2 N/(dudv)
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[,][] CalcNuv(double[] L)
+        {
+            double[,][] ret = null;
+            if (Order == 1)
+            {
+                ret = Calc1stNuv(L);
+            }
+            else if (Order == 2)
+            {
+                ret = Calc2ndNuv(L);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+            return ret;
+        }
+
+        /// <summary>
         /// SNdx
         /// </summary>
         /// <returns></returns>

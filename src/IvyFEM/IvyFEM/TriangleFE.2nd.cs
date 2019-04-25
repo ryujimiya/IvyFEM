@@ -48,6 +48,57 @@ namespace IvyFEM
             return Nu;
         }
 
+        protected double[,][] Calc2ndNuv(double[] L)
+        {
+            double[,][] Nuv = new double[2, 2][];
+            double[] a;
+            double[] b;
+            double[] c;
+            CalcTransMatrix(out a, out b, out c);
+
+            // d^2N/dx^2
+            double[] Nxx = new double[6];
+            Nuv[0, 0] = Nxx;
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Nxx[i] = b[i] * 4.0 * b[i];
+                    Nxx[i + 3] = 4.0 * (b[i] * b[(i + 1) % 3] + b[(i + 1) % 3] * b[i]);
+                }
+            }
+            // d^2N/dxdy
+            double[] Nxy = new double[6];
+            Nuv[0, 1] = Nxy;
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Nxy[i] = c[i] * 4.0 * b[i];
+                    Nxy[i + 3] = 4.0 * (c[i] * b[(i + 1) % 3] + c[(i + 1) % 3] * b[i]);
+                }
+            }
+            // d^2N/dydx
+            double[] Nyx = new double[6];
+            Nuv[1, 0] = Nyx;
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Nyx[i] = b[i] * 4.0 * c[i];
+                    Nyx[i + 3] = 4.0 * (b[i] * c[(i + 1) % 3] + b[(i + 1) % 3] * c[i]);
+                }
+            }
+            // d^2N/dy^2
+            double[] Nyy = new double[6];
+            Nuv[1, 1] = Nyy;
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    Nyy[i] = c[i] * 4.0 * c[i];
+                    Nyy[i + 3] = 4.0 * (c[i] * c[(i + 1) % 3] + c[(i + 1) % 3] * c[i]);
+                }
+            }
+            return Nuv;
+        }
+
         protected double[] Calc2ndSN()
         {
             double A = GetArea();

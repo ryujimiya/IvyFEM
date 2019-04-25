@@ -34,6 +34,23 @@ namespace IvyFEM
             return Nu;
         }
 
+        protected double[,][] Calc1stNuv(double[] L)
+        {
+            double[,][] Nuv = new double[2, 2][];
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    double[] value = new double[3];
+                    Nuv[i, j] = value;
+                    value[0] = 0;
+                    value[1] = 0;
+                    value[2] = 0;
+                }
+            }
+            return Nuv;
+        }
+
         protected double[] Calc1stSN()
         {
             double A = GetArea();

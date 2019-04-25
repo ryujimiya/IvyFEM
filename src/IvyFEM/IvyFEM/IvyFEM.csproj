@@ -85,6 +85,8 @@
     <Compile Include="CadObject2DDrawer.cs" />
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
+    <Compile Include="Fluid2DFEM.StandardGalerkin.cs" />
+    <Compile Include="Fluid2DTDFEM.StandardGalerkin.cs" />
     <Compile Include="IdObjectArray.cs" />
     <Compile Include="CadUtils.cs" />
     <Compile Include="Camera.cs" />
