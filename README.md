@@ -30,8 +30,7 @@
 　  
 　**バイナリ（2019-04-26更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.7  
-　　※開発途中なのでDebug版しかありません。  
+　　IvyFEM.dll version 0.0.0.8  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

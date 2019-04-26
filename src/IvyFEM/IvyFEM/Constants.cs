@@ -12,7 +12,7 @@ namespace IvyFEM
         public const double Mu0 = 4.0e-7 * Math.PI;
         public const double Ep0 = 8.85418782e-12;//1.0 / (Mu0 * C0 * C0);
 
-        public const double PrecisionLowerLimit = 1.0e-12;
+        public const double PrecisionLowerLimit = 1.0e-16;
     }
 
     public enum RotMode

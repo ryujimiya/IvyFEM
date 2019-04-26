@@ -116,24 +116,24 @@ namespace IvyFEM
                             double[] acc = FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
 
                             double[,] kvv1 = new double[vDof, vDof];
-                            kvv1[0, 0] = detJWeight * (vNx[row] * vNx[col] +
+                            kvv1[0, 0] = detJWeight * mu * (vNx[row] * vNx[col] +
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
-                            kvv1[0, 1] = detJWeight * vNy[row] * vNx[col];
-                            kvv1[1, 0] = detJWeight * vNx[row] * vNy[col];
-                            kvv1[1, 1] = detJWeight * (vNy[row] * vNy[col] +
+                            kvv1[0, 1] = detJWeight * mu * vNy[row] * vNx[col];
+                            kvv1[1, 0] = detJWeight * mu * vNx[row] * vNy[col];
+                            kvv1[1, 1] = detJWeight * mu * (vNy[row] * vNy[col] +
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
 
                             double[,] kvv2 = new double[vDof, vDof];
-                            kvv2[0, 0] = detJWeight * (1.0 / mu) * rho * vN[row] * (
+                            kvv2[0, 0] = detJWeight * rho * vN[row] * (
                                 vN[col] * vx[0] + v[0] * vNx[col] + v[1] * vNy[col]);
-                            kvv2[0, 1] = detJWeight * (1.0 / mu) * rho * vN[row] * vN[col] * vy[0];
-                            kvv2[1, 0] = detJWeight * (1.0 / mu) * rho * vN[row] * vN[col] * vx[1];
-                            kvv2[1, 1] = detJWeight * (1.0 / mu) * rho * vN[row] * (
+                            kvv2[0, 1] = detJWeight * rho * vN[row] * vN[col] * vy[0];
+                            kvv2[1, 0] = detJWeight * rho * vN[row] * vN[col] * vx[1];
+                            kvv2[1, 1] = detJWeight * rho * vN[row] * (
                                 vN[col] * vy[1] + v[0] * vNx[col] + v[1] * vNy[col]);
 
                             double[,] m = new double[vDof, vDof];
-                            m[0, 0] = detJWeight * (1.0 / mu) * rho * vN[row] * vN[col];
-                            m[1, 1] = detJWeight * (1.0 / mu) * rho * vN[row] * vN[col];
+                            m[0, 0] = detJWeight * rho * vN[row] * vN[col];
+                            m[1, 1] = detJWeight * rho * vN[row] * vN[col];
 
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
@@ -171,8 +171,8 @@ namespace IvyFEM
                             }
 
                             double[,] kvp = new double[vDof, pDof];
-                            kvp[0, 0] = -detJWeight * (1.0 / mu) * vNx[row] * pN[col];
-                            kvp[1, 0] = -detJWeight * (1.0 / mu) * vNy[row] * pN[col];
+                            kvp[0, 0] = -detJWeight * vNx[row] * pN[col];
+                            kvp[1, 0] = -detJWeight * vNy[row] * pN[col];
 
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
@@ -192,7 +192,7 @@ namespace IvyFEM
                     }
                     for (int rowDof = 0; rowDof < vDof; rowDof++)
                     {
-                        B[rowNodeId * vDof + rowDof] += (1.0 / mu) * rho * g[rowDof] * vSN[row];
+                        B[rowNodeId * vDof + rowDof] += rho * g[rowDof] * vSN[row];
                     }
                 }
             }
