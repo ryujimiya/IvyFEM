@@ -11,6 +11,11 @@ namespace IvyFEM
         public double ConvRatioToleranceForNewtonRaphson { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
+        /// <summary>
+        /// 方程式のタイプ
+        /// </summary>
+        public FluidEquationType EquationType { get; set; } = FluidEquationType.StandardGalerkinNavierStokes;
+
         // output
         public double[] U { get; private set; } = null;
 
@@ -21,8 +26,19 @@ namespace IvyFEM
 
         private void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
-            CalcStandardGalerkinAB(A, B);
-            //CalcSUPGAB(A, B);
+            switch (EquationType)
+            {
+                case FluidEquationType.StandardGalerkinNavierStokes:
+                    CalcStandardGalerkinAB(A, B);
+                    break;
+                case FluidEquationType.SUPGNavierStokes:
+                    System.Diagnostics.Debug.Assert(false);
+                    //CalcSUPGAB(A, B);
+                    break;
+                default:
+                    System.Diagnostics.Debug.Assert(false);
+                    break;
+            }
         }
 
         public override void Solve()
@@ -33,7 +49,6 @@ namespace IvyFEM
             double convRatio = ConvRatioToleranceForNewtonRaphson;
             double tolerance = convRatio;
             const int maxIter = IvyFEM.Linear.Constants.MaxIter;
-            const int minIter = 2;
             int iter = 0;
 
             uint vQuantityId = 0;
@@ -69,8 +84,8 @@ namespace IvyFEM
                 else
                 {
                     convRatio = Math.Sqrt(sqNorm * sqInvNorm0);
-                    // 1回目で収束してしまうのを防ぐ
-                    if (iter >= minIter && sqNorm * sqInvNorm0 < tolerance * tolerance)
+                    System.Diagnostics.Debug.WriteLine("cur convRatio =" + convRatio);
+                    if (sqNorm * sqInvNorm0 < tolerance * tolerance)
                     {
                         break;
                     }

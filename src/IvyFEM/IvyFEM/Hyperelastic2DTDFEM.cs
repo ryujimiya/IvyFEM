@@ -11,9 +11,9 @@ namespace IvyFEM
         public double TimeStep { get; private set; } = 0;
         public double NewmarkBeta { get; private set; } = 1.0 / 4.0;
         public double NewmarkGamma { get; private set; } = 1.0 / 2.0;
-        public uint UValueId { get; set; } = 0;
-        public uint PrevUValueId { get; set; } = 0;
-        public uint LValueId { get; set; } = 0;
+        public uint UValueId { get; private set; } = 0;
+        public uint PrevUValueId { get; private set; } = 0;
+        public uint LValueId { get; private set; } = 0;
 
         public Hyperelastic2DTDFEM(FEWorld world,
             double timeStep,

@@ -17,7 +17,6 @@ namespace IvyFEM
         public double[] Coords { get; set; } = null;
         public double[] Values { get; set; } = null;
         public VectorFieldDrawerType DrawerType { get; private set; } = VectorFieldDrawerType.NotSet;
-        public double ArrowLen { get; set; } = 0;
 
         public uint Dimension
         {
@@ -55,7 +54,6 @@ namespace IvyFEM
                 src.Values.CopyTo(Values, 0);
             }
             DrawerType = src.DrawerType;
-            ArrowLen = src.ArrowLen;
         }
 
 
@@ -381,8 +379,9 @@ namespace IvyFEM
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] + va[0], co[1] + va[1]);
 
+                        double vaLen = Math.Sqrt(va[0] * va[0] + va[1] * va[1]);
                         double arrowTheta = Math.PI / 12.0;
-                        double arrowLen = ArrowLen;
+                        double arrowLen = vaLen * 0.2;
                         if (Math.Sqrt(va[0] * va[0] + va[1] * va[1]) >= arrowLen *Math.Cos(arrowTheta) * 1.5)
                         {
                             // arrow

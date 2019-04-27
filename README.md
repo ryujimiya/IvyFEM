@@ -28,9 +28,9 @@
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
 　  
-　**バイナリ（2019-04-26更新）**  
+　**バイナリ（2019-04-27更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.8  
+　　IvyFEM.dll version 0.0.0.9  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

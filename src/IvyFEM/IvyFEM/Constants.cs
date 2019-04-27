@@ -122,4 +122,10 @@ namespace IvyFEM
         LessEq,
         GreaterEq
     }
+
+    public enum FluidEquationType
+    {
+        StandardGalerkinNavierStokes,
+        SUPGNavierStokes
+    }
 }

@@ -181,6 +181,24 @@ namespace IvyFEM
                             }
                         }
                     }
+
+                    for (int row = 0; row < vElemNodeCnt; row++)
+                    {
+                        int rowNodeId = vNodes[row];
+                        if (rowNodeId == -1)
+                        {
+                            continue;
+                        }
+                        double[] q2 = new double[vDof];
+                        for (int rowDof = 0; rowDof < vDof; rowDof++)
+                        {
+                            q2[rowDof] = detJWeight * rho * vN[row] * (v[0] * vx[rowDof] + v[1] * vy[rowDof]);
+                        }
+                        for (int rowDof = 0; rowDof < vDof; rowDof++)
+                        {
+                            B[rowNodeId * vDof + rowDof] += -q2[rowDof];
+                        }
+                    }
                 }
 
                 for (int row = 0; row < vElemNodeCnt; row++)

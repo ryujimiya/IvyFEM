@@ -68,22 +68,6 @@ namespace IvyFEM
             Update(world);
         }
 
-        private void SetArrowLen()
-        {
-            int len = 8;
-            double x0;
-            double y0;
-            OpenGLUtils.ScreenPointToCoord(new System.Drawing.Point(0, 0), out x0, out y0);
-            double x;
-            double y;
-            OpenGLUtils.ScreenPointToCoord(new System.Drawing.Point(len, 0), out x, out y);
-            double arrowLen = Math.Abs(x - x0);
-            foreach (var dp in DrawParts)
-            {
-                dp.ArrowLen = arrowLen;
-            }
-        }
-
         public void Update(FEWorld world)
         {
             for (int idp = 0; idp < DrawParts.Count; idp++)
@@ -98,8 +82,6 @@ namespace IvyFEM
             bool isTexture = GL.IsEnabled(EnableCap.Texture2D);
             //GL.Enable(EnableCap.DepthTest);
             GL.Disable(EnableCap.Texture2D);
-
-            SetArrowLen();
 
             int minLayer;
             int maxLayer;
