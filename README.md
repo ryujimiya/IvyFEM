@@ -70,7 +70,7 @@
 　　〇移流拡散方程式  
 　　![移流拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222735.jpg)  
 　　〇流体(Navier-Stokesの方程式)  
-　　![流体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408220742.jpg)  
+　　![流体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190428/20190428094803.jpg)  
 　　〇H面導波路の伝達問題  
 　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
 　  
