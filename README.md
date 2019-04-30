@@ -18,10 +18,11 @@
 　　　　　　　　　　Saint Venant Kirchhoff  
 　　　　　　　　　　Mooney-Rivlin (非圧縮、微圧縮)  
 　　　　　　　　　　Ogden (非圧縮、微圧縮)  
-　　　　　　　　　　多点拘束(Multipoint Constraint, MPC)(直線)  
+　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
 　　　　　　　　　　弾性体二体接触  
-　　　　流体力学　：Navier-Stokesの方程式(標準、 SUPG安定化)  
+　　　　流体力学　：Navier-Stokesの方程式  
+　　　　　　　　　　(標準、 SUPG [Streamline Upwind Petrov-Galerkin]安定化)  
 　　　　電磁気学　：H面導波管の伝達問題  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
