@@ -125,7 +125,9 @@ namespace IvyFEM
 
     public enum FluidEquationType
     {
-        StandardGalerkinNavierStokes,
-        SUPGNavierStokes
+        Stokes,
+        StdGNavierStokes,
+        SUPGNavierStokes,
+        //GLSNavierStokes
     }
 }

@@ -24,5 +24,15 @@ namespace IvyFEM
                 Values[i] = 1.0;
             }
         }
+
+        public DielectricMaterial(DielectricMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

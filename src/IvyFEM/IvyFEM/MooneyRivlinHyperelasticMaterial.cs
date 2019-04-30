@@ -31,5 +31,15 @@ namespace IvyFEM
             C1 = 0.0;
             C2 = 0.0;
         }
+
+        public MooneyRivlinHyperelasticMaterial(MooneyRivlinHyperelasticMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

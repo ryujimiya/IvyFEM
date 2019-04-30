@@ -10,7 +10,7 @@ namespace IvyFEM
     {
         public bool IsCompressible { get => IntValues[0] == 1; set => IntValues[0] = (value ? 1 : 0); }
         public int Order { get => IntValues[1]; private set => IntValues[1] = value; }
-        public int AlphaOffset => 4;
+        private const int AlphaOffset = 4;
         public double MassDensity { get => Values[0]; set => Values[0] = value; }
         public double GravityX { get => Values[1]; set => Values[1] = value; }
         public double GravityY { get => Values[2]; set => Values[2] = value; }
@@ -60,6 +60,16 @@ namespace IvyFEM
             GravityY = 0.0;
             IsCompressible = false;
             D1 = 1.0;
+        }
+
+        public OgdenHyperelasticMaterial(OgdenHyperelasticMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
         }
 
         public void SetAlphaMu(int order, double[] alphas, double[] mus)

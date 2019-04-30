@@ -21,16 +21,16 @@
 　　　　　　　　　　多点拘束(Multipoint Constraint, MPC)(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
 　　　　　　　　　　弾性体二体接触  
-　　　　流体力学　：Navier-Stokesの方程式  
+　　　　流体力学　：Navier-Stokesの方程式(標準、 SUPG安定化)  
 　　　　電磁気学　：H面導波管の伝達問題  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
 　  
-　**バイナリ（2019-04-27更新）**  
+　**バイナリ（2019-04-30更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.9  
+　　IvyFEM.dll version 0.0.0.10  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -70,7 +70,14 @@
 　　〇移流拡散方程式  
 　　![移流拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222735.jpg)  
 　　〇流体(Navier-Stokesの方程式)  
-　　![流体](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190428/20190428094803.jpg)  
+　　![Standard Galerkin](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190428/20190428094803.jpg)  
+　　![SUPG1](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430193941.jpg)  
+　　![SUPG2](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430193957.jpg)  
+　　![SUPG3](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194019.jpg)  
+　　![SUPG4](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194032.jpg)  
+　　![SUPG5](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194029.jpg)  
+　　![SUPG6](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194025.jpg)  
+　　![SUPG7](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194022.jpg)  
 　　〇H面導波路の伝達問題  
 　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
 　  

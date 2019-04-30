@@ -27,5 +27,15 @@ namespace IvyFEM
                 Values[i] = 0.0;
             }
         }
+
+        public PoissonMaterial(PoissonMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

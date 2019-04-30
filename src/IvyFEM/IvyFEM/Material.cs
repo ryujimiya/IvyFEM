@@ -21,7 +21,7 @@ namespace IvyFEM
             Copy(src);
         }
 
-        public void Copy(IObject src)
+        public virtual void Copy(IObject src)
         {
             Material srcMa = src as Material;
             Values = null;

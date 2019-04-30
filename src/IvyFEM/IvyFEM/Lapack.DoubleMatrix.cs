@@ -214,6 +214,23 @@ namespace IvyFEM.Lapack
             return c;
         }
 
+        public static double DoubleDot(DoubleMatrix A, DoubleMatrix B)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == B.ColumnLength);
+            System.Diagnostics.Debug.Assert(A.ColumnLength == B.RowLength);
+            int nRow = A.RowLength;
+            int nCol = A.ColumnLength;
+            double ret = 0;
+            for (int row = 0; row < nRow; row++)
+            {
+                for (int col = 0; col < nCol; col++)
+                {
+                    ret += A[row, col] * B[col, row];
+                }
+            }
+            return ret;
+        }
+
         public bool IsSymmetric()
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);

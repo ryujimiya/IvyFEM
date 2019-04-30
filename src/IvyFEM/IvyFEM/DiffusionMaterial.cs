@@ -34,5 +34,15 @@ namespace IvyFEM
                 Values[i] = 0.0;
             }
         }
+
+        public DiffusionMaterial(DiffusionMaterial src) :  base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

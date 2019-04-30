@@ -132,6 +132,7 @@ namespace IvyFEM
                     else
                     {
                         convRatio = Math.Sqrt(sqNorm * sqInvNorm0);
+                        System.Diagnostics.Debug.WriteLine("cur convRatio =" + convRatio);
                         if (sqNorm * sqInvNorm0 < tolerance * tolerance)
                         {
                             break;

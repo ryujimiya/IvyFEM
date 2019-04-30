@@ -26,6 +26,16 @@ namespace IvyFEM
             LameMu = 1.0;
         }
 
+        public ElasticLameBaseMaterial(ElasticLameBaseMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
+
         public void SetYoungPoisson(double young, double poisson)
         {
             LameLambda = young * poisson / ((1.0 + poisson) * (1 - 2.0 * poisson));

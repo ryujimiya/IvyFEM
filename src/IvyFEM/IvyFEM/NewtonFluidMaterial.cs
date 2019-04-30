@@ -23,5 +23,15 @@ namespace IvyFEM
             GravityY = 0.0;
             Mu = 1.0;
         }
+
+        public NewtonFluidMaterial(NewtonFluidMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

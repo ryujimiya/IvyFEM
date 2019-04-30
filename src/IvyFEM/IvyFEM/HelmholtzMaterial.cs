@@ -30,5 +30,15 @@ namespace IvyFEM
                 Values[i] = 0.0;
             }
         }
+
+        public HelmholtzMaterial(HelmholtzMaterial src) : base(src)
+        {
+
+        }
+
+        public override void Copy(IObject src)
+        {
+            base.Copy(src);
+        }
     }
 }

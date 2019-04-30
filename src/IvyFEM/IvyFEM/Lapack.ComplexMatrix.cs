@@ -226,6 +226,23 @@ namespace IvyFEM.Lapack
             return c;
         }
 
+        public static System.Numerics.Complex DoubleDot(ComplexMatrix A, ComplexMatrix B)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == B.ColumnLength);
+            System.Diagnostics.Debug.Assert(A.ColumnLength == B.RowLength);
+            int nRow = A.RowLength;
+            int nCol = A.ColumnLength;
+            System.Numerics.Complex ret = 0;
+            for (int row = 0; row < nRow; row++)
+            {
+                for (int col = 0; col < nCol; col++)
+                {
+                    ret += A[row, col] * System.Numerics.Complex.Conjugate(B[col, row]);
+                }
+            }
+            return ret;
+        }
+
         public bool IsHermitian()
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
