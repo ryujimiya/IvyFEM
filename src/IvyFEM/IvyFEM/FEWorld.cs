@@ -15,11 +15,6 @@ namespace IvyFEM
         private Dictionary<uint, uint> CadEdge2Material = new Dictionary<uint, uint>();
         private Dictionary<uint, uint> CadLoop2Material = new Dictionary<uint, uint>();
 
-        public IList<uint> ABCEIds { get; private set; } = new List<uint>();
-
-        public int IncidentPortId { get; set; } = -1;
-        public int IncidentModeId { get; set; } = -1;
-        public IList<IList<uint>> PortEIdss { get; } = new List<IList<uint>>();
         private ObjectArray<FieldValue> FieldValueArray = new ObjectArray<FieldValue>();
 
         public TriangleIntegrationPointCount TriIntegrationPointCount { get; set; } =
@@ -55,14 +50,6 @@ namespace IvyFEM
             MaterialArray.Clear();
             CadEdge2Material.Clear();
             CadLoop2Material.Clear();
-            ABCEIds.Clear();
-            IncidentPortId = -1;
-            IncidentModeId = -1;
-            foreach (var portEIds in PortEIdss)
-            {
-                portEIds.Clear();
-            }
-            PortEIdss.Clear();
             FieldValueArray.Clear();
 
             ClearElements();
@@ -166,9 +153,34 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].Node2Coord(nodeId);
         }
 
-        public uint GetPortCount()
+        public void SetIncidentPortId(uint quantityId, int incidentPortId)
         {
-            return (uint)PortEIdss.Count;
+            Quantitys[(int)quantityId].IncidentPortId = incidentPortId;
+        }
+
+        public int GetIncidentPortId(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].IncidentPortId;
+        }
+
+        public void SetIncidentModeId(uint quantityId, int incidentModeId)
+        {
+            Quantitys[(int)quantityId].IncidentModeId = incidentModeId;
+        }
+
+        public int GetIncidentModeId(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].IncidentModeId;
+        }
+
+        public IList<PortCondition> GetPortConditions(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].PortConditions;
+        }
+
+        public uint GetPortCount(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].GetPortCount();
         }
 
         public uint GetPortNodeCount(uint quantityId, uint portId)
@@ -288,6 +300,16 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].GetTriangleFEIdFromMesh(meshId, iElem);
         }
 
+        public IList<uint> GetTriangleFEIdsFromCoord(uint quantityId, int coId)
+        {
+            return Quantitys[(int)quantityId].GetTriangleFEIdsFromCoord(coId);
+        }
+
+        public IList<uint> GetTriangleFEIdsFromEdgeCoord(uint quantityId, int coId1, int coId2)
+        {
+            return Quantitys[(int)quantityId].GetTriangleFEIdsFromEdgeCoord(coId1, coId2);
+        }
+        
         public IList<uint> GetLineFEIds(uint quantityId)
         {
             return Quantitys[(int)quantityId].GetLineFEIds();
@@ -501,6 +523,68 @@ namespace IvyFEM
                 {
                     values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
                 }                
+            }
+        }
+
+        public void UpdateFieldValueValuesFromCoordValues(
+            uint valueId, FieldDerivativeType dt, double[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            //uint quantityId = fv.QuantityId;
+            //uint dof = fv.Dof;
+            double[] values = fv.GetDoubleValues(dt);
+            System.Diagnostics.Debug.Assert(values.Length == coordValues.Length);
+            coordValues.CopyTo(values, 0);
+        }
+
+        public void UpdateFieldValueValuesFromCoordValues(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            //uint quantityId = fv.QuantityId;
+            //uint dof = fv.Dof;
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            System.Diagnostics.Debug.Assert(values.Length == coordValues.Length);
+            coordValues.CopyTo(values, 0);
+        }
+
+        public void UpdateBubbleFieldValueValuesFromCoordValues(
+            uint valueId, FieldDerivativeType dt, double[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            double[] values = fv.GetDoubleValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            System.Diagnostics.Debug.Assert(coCnt * dof == coordValues.Length);
+
+            IList<uint> feIds = GetTriangleFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                int[] coIds = triFE.NodeCoordIds;
+                uint elemNodeCnt = triFE.NodeCount;
+                double[] bubbleValue = new double[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        bubbleValue[iDof] += coordValues[coId * dof + iDof];
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= (double)elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
             }
         }
 

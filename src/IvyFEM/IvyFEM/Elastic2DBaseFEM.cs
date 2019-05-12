@@ -9,10 +9,8 @@ namespace IvyFEM
     public delegate void CalcElementDoubleAB(
         uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
 
-    abstract public partial class Elastic2DBaseFEM : FEM
+    public abstract partial class Elastic2DBaseFEM : FEM
     {
-        protected int[] NodeCounts { get; set; } = null;
-        protected int[] Dofs { get; set; } = null;
         public double ConvRatioToleranceForNewtonRaphson { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
         // Calc Matrix
@@ -22,50 +20,14 @@ namespace IvyFEM
         // Output
         public double[] U { get; protected set; }
 
-        protected void SetupNodeCount()
+        protected int GetOffset(uint quantityId)
         {
-            int quantityCnt = World.GetQuantityCount();
-            Dofs = new int[quantityCnt];
-            NodeCounts = new int[quantityCnt];
-            for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
-            {
-                Dofs[quantityId] = (int)World.GetDof(quantityId);
-                NodeCounts[quantityId] = (int)World.GetNodeCount(quantityId);
-            }
-        }
-
-        protected int GetNodeCount()
-        {
-            if (Dofs == null)
-            {
-                return 0;
-            }
-            if (NodeCounts == null)
-            {
-                return 0;
-            }
             int cnt = 0;
-            for (int i = 0; i < Dofs.Length; i++)
+            for (uint tmpId = 0; tmpId < quantityId; tmpId++)
             {
-                cnt += NodeCounts[i] * Dofs[i];
-            }
-            return cnt;
-        }
-
-        protected int GetOffset(uint quantityIdIndex)
-        {
-            if (Dofs == null)
-            {
-                return 0;
-            }
-            if (NodeCounts == null)
-            {
-                return 0;
-            }
-            int cnt = 0;
-            for (int i = 0; i < quantityIdIndex; i++)
-            {
-                cnt += NodeCounts[i] * Dofs[i];
+                int quantityDof = (int)World.GetDof(tmpId);
+                int quantityNodeCnt = (int)World.GetNodeCount(tmpId);
+                cnt += quantityDof * quantityNodeCnt;
             }
             return cnt;
         }
@@ -87,9 +49,14 @@ namespace IvyFEM
 
         public override void Solve()
         {
-            SetupNodeCount();
-
-            int nodeCnt = GetNodeCount();
+            int quantityCnt = World.GetQuantityCount();
+            int nodeCnt = 0;
+            for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+            {
+                int quantityDof = (int)World.GetDof(quantityId);
+                int quantityNodeCnt = (int)World.GetNodeCount(quantityId);
+                nodeCnt += quantityDof * quantityNodeCnt;
+            }
 
             if (MustUseNewtonRaphson())
             {
@@ -112,7 +79,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
-                    DoubleSetFixedCadsCondtion(A, B, NodeCounts, Dofs);
+                    DoubleSetFixedCadsCondtion(A, B);
                     System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
@@ -161,7 +128,7 @@ namespace IvyFEM
                 System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
-                DoubleSetFixedCadsCondtion(A, B, NodeCounts, Dofs);
+                DoubleSetFixedCadsCondtion(A, B);
                 System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;

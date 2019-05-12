@@ -6,23 +6,13 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public partial class Fluid2DTDFEM : FEM
+    public partial class Fluid2DTDFEM : Fluid2DBaseFEM
     {
-        public double ConvRatioToleranceForNewtonRaphson { get; set; }
-            = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 少し収束条件を緩くしている
         public double TimeStep { get; private set; } = 0;
         public double NewmarkBeta { get; private set; } = 1.0 / 4.0;
         public double NewmarkGamma { get; private set; } = 1.0 / 2.0;
         public uint ValueId { get; private set; } = 0;
         public uint PrevValueId { get; private set; } = 0;
-
-        /// <summary>
-        /// 方程式のタイプ
-        /// </summary>
-        public FluidEquationType EquationType { get; set; } = FluidEquationType.StdGNavierStokes;
-
-        // output
-        public double[] U { get; private set; } = null;
 
         public Fluid2DTDFEM(FEWorld world,
             double timeStep,
@@ -45,7 +35,7 @@ namespace IvyFEM
                 NewmarkBeta, NewmarkGamma);
         }
 
-        private void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        protected override void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             switch (EquationType)
             {
@@ -59,95 +49,45 @@ namespace IvyFEM
                     //CalcSUPGNavierStokesAB(A, B);
                     CalcSUPGNavierStokesByPicardAB(A, B);
                     break;
+                case FluidEquationType.StdGVorticity:
+                    CalcStdGVorticityAB(A, B);
+                    //CalcStdGVorticityByPicardAB(A, B); //DEBUG
+                    break;
+                case FluidEquationType.SUPGVorticity:
+                    //CalcSUPGVorticityAB(A, B); // 発散する
+                    CalcSUPGVorticityByPicardAB(A, B);
+                    break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
             }
         }
 
-        private bool MustUseNewtonRaphson()
+        protected override void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        {
+            if (EquationType == FluidEquationType.StdGVorticity ||
+                EquationType == FluidEquationType.SUPGVorticity)
+            {
+                SetVorticityNeumannBC(A, B);
+            }
+        }
+
+        protected override void PostSolve()
+        {
+            if (EquationType == FluidEquationType.StdGVorticity ||
+                EquationType == FluidEquationType.SUPGVorticity)
+            {
+                VorticityPostSolve();
+            }
+        }
+
+        protected override bool MustUseNewtonRaphson()
         {
             if (EquationType == FluidEquationType.Stokes)
             {
                 return false;
             }
             return true;
-        }
-
-        public override void Solve()
-        {
-            uint vQuantityId = 0;
-            int vDof = 2;
-            uint pQuantityId = 1;
-            int pDof = 1;
-            int vNodeCnt = (int)World.GetNodeCount(vQuantityId);
-            int pNodeCnt = (int)World.GetNodeCount(pQuantityId);
-            int nodeCnt = vNodeCnt * vDof + pNodeCnt * pDof;
-
-            if (MustUseNewtonRaphson())
-            {
-                // Newton Raphson
-                double sqNorm = 0;
-                double sqInvNorm0 = 0;
-                double convRatio = ConvRatioToleranceForNewtonRaphson;
-                double tolerance = convRatio;
-                const int maxIter = IvyFEM.Linear.Constants.MaxIter;
-                int iter = 0;
-
-                U = new double[nodeCnt];
-
-                for (iter = 0; iter < maxIter; iter++)
-                {
-                    var A = new IvyFEM.Linear.DoubleSparseMatrix(nodeCnt, nodeCnt);
-                    var B = new double[nodeCnt];
-
-                    CalcAB(A, B);
-
-                    DoubleSetFixedCadsCondtion(A, B, new int[] { vNodeCnt, pNodeCnt }, new int[] { vDof, pDof });
-
-                    double[] AU = A * U;
-                    double[] R = IvyFEM.Lapack.Functions.daxpy(-1.0, B, AU);
-                    sqNorm = IvyFEM.Lapack.Functions.ddot(R, R);
-                    if (iter == 0)
-                    {
-                        if (sqNorm < IvyFEM.Constants.PrecisionLowerLimit)
-                        {
-                            convRatio = 0;
-                            break;
-                        }
-                        sqInvNorm0 = 1.0 / sqNorm;
-                    }
-                    else
-                    {
-                        convRatio = Math.Sqrt(sqNorm * sqInvNorm0);
-                        System.Diagnostics.Debug.WriteLine("cur convRatio =" + convRatio);
-                        if (sqNorm * sqInvNorm0 < tolerance * tolerance)
-                        {
-                            break;
-                        }
-                    }
-
-                    //---------------------------------------------------
-                    double[] X;
-                    Solver.DoubleSolve(out X, A, B);
-                    U = X;
-                    //---------------------------------------------------
-                }
-                System.Diagnostics.Debug.WriteLine("Newton Raphson iter = " + iter + " norm = " + convRatio);
-                System.Diagnostics.Debug.Assert(iter < maxIter);
-            }
-            else
-            {
-                var A = new IvyFEM.Linear.DoubleSparseMatrix(nodeCnt, nodeCnt);
-                var B = new double[nodeCnt];
-
-                CalcAB(A, B);
-
-                DoubleSetFixedCadsCondtion(A, B, new int[] { vNodeCnt, pNodeCnt }, new int[] { vDof, pDof });
-                double[] X;
-                Solver.DoubleSolve(out X, A, B);
-                U = X;
-            }
         }
     }
 }

@@ -60,6 +60,8 @@ namespace IvyFEM.Linear
         NoPreconCOCG,
         COCG,
         ICCOCG,
-        NoPreconBiCGSTAB
+        NoPreconBiCGSTAB,
+        BiCGSTAB,
+        BiCGSTABWithPivoting
     }
 }

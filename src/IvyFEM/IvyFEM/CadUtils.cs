@@ -19,6 +19,76 @@ namespace IvyFEM
             return v / len;
         }
 
+        public static double GetDistance(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        {
+            double d = OpenTK.Vector2d.Distance(v1, v2);
+            return d;
+        }
+
+        public static OpenTK.Vector2d GetDirection(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        {
+            OpenTK.Vector2d dir = v2 - v1;
+            dir = Normalize(dir);
+            return dir;
+        }
+
+        // Note:
+        // 時計回りのベクトルを接線ベクトルとする
+        public static OpenTK.Vector2d GetTangent(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        {
+            OpenTK.Vector2d tan = v1 - v2;
+            tan = Normalize(tan);
+            return tan;
+        }
+
+        public static OpenTK.Vector2d GetNormal(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        {
+            var tan = v1 - v2;
+            tan = Normalize(tan);
+            // n = e3 x t
+            OpenTK.Vector2d normal = new OpenTK.Vector2d(-tan.Y, tan.X);
+            return normal;
+        }
+
+        public static double[] Normalize2D(double[] v)
+        {
+            double len = Math.Sqrt(v[0] * v[0] + v[1] * v[1]);
+            double[] ret = { v[0] / len, v[1] / len };
+            return ret;
+        }
+
+        public static double GetDistance2D(double[] v1, double[] v2)
+        {
+            double[] vec = { v2[0] - v1[0], v2[1] - v1[1] };
+            double d = Math.Sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
+            return d;
+        }
+
+        public static double[] GetDirection2D(double[] v1, double[] v2)
+        {
+            double[] dir = { v2[0] - v1[0], v2[1] - v1[1] };
+            dir = Normalize2D(dir);
+            return dir;
+        }
+
+        // Note:
+        // 時計回りのベクトルを接線ベクトルとする
+        public static double[] GetTangent2D(double[] v1, double[] v2)
+        {
+            double[] tan = { v1[0] - v2[0], v1[1] - v2[1] };
+            tan = Normalize2D(tan);
+            return tan;
+        }
+
+        public static double[] GetNormal2D(double[] v1, double[] v2)
+        {
+            double[] tan = { v1[0] - v2[0], v1[1] - v2[1] };
+            tan = Normalize2D(tan);
+            // n = e3 x t
+            double[] normal = new double[] { -tan[1], tan[0] };
+            return normal;
+        }
+
         public static OpenTK.Vector2d GetProjectedPointOnCircle(OpenTK.Vector2d c, double r, OpenTK.Vector2d v)
         {
             OpenTK.Vector2d cv = v - c;

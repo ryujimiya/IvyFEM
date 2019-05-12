@@ -153,7 +153,7 @@ namespace IvyFEM
                         IvyFEM.Lapack.DoubleMatrix GMatT = new Lapack.DoubleMatrix(GMat);
                         GMatT.Transpose();
                         double GMatDoubleDot = IvyFEM.Lapack.DoubleMatrix.DoubleDot(GMat, GMatT);
-                        sqinvtaum3 = nu * nu * GMatDoubleDot;
+                        sqinvtaum3 = 30.0 * nu * nu * GMatDoubleDot;
                     }
                     double sqinvtaum = sqinvtaum1 + sqinvtaum2 + sqinvtaum3;
                     taum = 1.0 / Math.Sqrt(sqinvtaum);

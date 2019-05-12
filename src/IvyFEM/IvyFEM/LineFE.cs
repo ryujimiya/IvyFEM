@@ -86,13 +86,34 @@ namespace IvyFEM
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             co1 = AddDisplacement(0, co1);
             co2 = AddDisplacement(1, co2);
+            /*
             OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
             OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
             var t = v2 - v1;
             t = CadUtils.Normalize(t);
             // n = t x e3
             double[] normal = { t.Y, -t.X};
+            */
+            double[] normal = IvyFEM.CadUtils.GetNormal2D(co1, co2);
             return normal;
+        }
+
+        public double[] GetNodeL(int nodeId)
+        {
+            double[] ret = null;
+            if (Order == 1)
+            {
+                ret = Get1stNodeL(nodeId);
+            }
+            else if (Order == 2)
+            {
+                ret = Get2ndNodeL(nodeId);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+            return ret;
         }
 
         public void CalcTransMatrix(out double[] a, out double[] b)
@@ -174,6 +195,28 @@ namespace IvyFEM
             else if (Order == 2)
             {
                 ret = Calc2ndNu(L);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// S{N}Tdx
+        /// </summary>
+        /// <returns></returns>
+        public double[] CalcSN()
+        {
+            double[] ret = null;
+            if (Order == 1)
+            {
+                ret = Calc1stSN();
+            }
+            else if (Order == 2)
+            {
+                ret = Calc2ndSN();
             }
             else
             {

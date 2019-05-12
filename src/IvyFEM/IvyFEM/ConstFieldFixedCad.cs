@@ -12,21 +12,33 @@ namespace IvyFEM
         public System.Numerics.Complex[] ComplexValues { get; protected set; } = null;
 
         public ConstFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, IList<uint> fixedDofIndexs, double[] values) :
+            FieldValueType valueType, IList<uint> fixedDofIndexs, IList<double> fixedValues) :
             base(cadId, cadElemType, valueType, fixedDofIndexs)
         {
+            System.Diagnostics.Debug.Assert(FixedDofIndexs.Count == fixedValues.Count);
             DoubleValues = new double[Dof];
-            values.CopyTo(DoubleValues, 0);
+            for (int i = 0; i < FixedDofIndexs.Count; i++)
+            {
+                uint iDof = FixedDofIndexs[i];
+                double value = fixedValues[i];
+                DoubleValues[iDof] = value;
+            }
             ComplexValues = null;
         }
 
         public ConstFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, IList<uint> fixedDofIndexs, System.Numerics.Complex[] values) :
+            FieldValueType valueType, IList<uint> fixedDofIndexs, IList<System.Numerics.Complex> fixedValues) :
             base(cadId, cadElemType, valueType, fixedDofIndexs)
         {
+            System.Diagnostics.Debug.Assert(fixedDofIndexs.Count == fixedValues.Count);
             DoubleValues = null;
             ComplexValues = new System.Numerics.Complex[Dof];
-            values.CopyTo(ComplexValues, 0);
+            for (int i = 0; i < FixedDofIndexs.Count; i++)
+            {
+                uint iDof = FixedDofIndexs[i];
+                System.Numerics.Complex value = fixedValues[i];
+                ComplexValues[iDof] = value;
+            }
         }
 
         public ConstFieldFixedCad(ConstFieldFixedCad src)

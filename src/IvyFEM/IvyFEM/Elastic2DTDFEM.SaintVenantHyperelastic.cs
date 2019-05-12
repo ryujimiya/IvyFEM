@@ -12,8 +12,9 @@ namespace IvyFEM
             uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint quantityId = 0;
-            int nodeCnt = NodeCounts[quantityId];
-            int dof = Dofs[quantityId];
+            System.Diagnostics.Debug.Assert(World.GetDof(quantityId) == 2);
+            int dof = 2;
+            int nodeCnt = (int)World.GetNodeCount(quantityId);
 
             double dt = TimeStep;
             double beta = NewmarkBeta;

@@ -79,6 +79,22 @@ namespace IvyFEM.Native
             int n, int AIndexsLength, int[] APtrs, int[] AIndexs, double[] AValues, double[] B,
             double convRatioTolerance);
 
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern bool DoubleSolvePreconditionedBiCGSTAB(double[] X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, double[] AValues, double[] B,
+            int LUIndexsLength, int[] LUPtrs, int[] LUIndexs, double[] LUValues,
+            double convRatioTolerance);
+
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern bool DoubleSolveBiCGSTAB(double[] X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, double[] AValues, double[] B, int fillinLevel,
+            double convRatioTolerance);
+
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern bool DoubleSolveBiCGSTABWithPivoting(double[] X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, double[] AValues, double[] B, int fillinLevel,
+            double convRatioTolerance);
+
         ///////////////////////////////////////////////////////////////////
         // ComplexLinear
 
@@ -155,6 +171,26 @@ namespace IvyFEM.Native
         public static extern unsafe bool ComplexSolveNoPreconBiCGSTAB(System.Numerics.Complex* X,
             int n, int AIndexsLength, int[] APtrs, int[] AIndexs, System.Numerics.Complex* AValues,
             System.Numerics.Complex* B,
+            double convRatioTolerance);
+
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern unsafe bool ComplexSolvePreconditionedBiCGSTAB(
+            System.Numerics.Complex* X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, System.Numerics.Complex* AValues,
+            System.Numerics.Complex* B,
+            int LUIndexsLength, int[] LUPtrs, int[] LUIndexs, System.Numerics.Complex* LUValues,
+            double convRatioTolerance);
+
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern unsafe bool ComplexSolveBiCGSTAB(System.Numerics.Complex* X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, System.Numerics.Complex* AValues,
+            System.Numerics.Complex* B, int fillinLevel,
+            double convRatioTolerance);
+
+        [DllImport("IvyFEM.Native.dll")]
+        public static extern unsafe bool ComplexSolveBiCGSTABWithPivoting(System.Numerics.Complex* X,
+            int n, int AIndexsLength, int[] APtrs, int[] AIndexs, System.Numerics.Complex* AValues,
+            System.Numerics.Complex* B, int fillinLevel,
             double convRatioTolerance);
     }
 }

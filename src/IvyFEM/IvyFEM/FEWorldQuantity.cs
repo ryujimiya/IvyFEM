@@ -20,7 +20,10 @@ namespace IvyFEM
         public IList<uint> ContactSlaveEIds { get; set; } = new List<uint>();
         public IList<uint> ContactMasterEIds { get; set; } = new List<uint>();
         private Dictionary<int, IList<MultipointConstraint>> Co2MultipointConstraints =
-            new Dictionary<int, IList<MultipointConstraint>>(); 
+            new Dictionary<int, IList<MultipointConstraint>>();
+        public int IncidentPortId { get; set; } = -1;
+        public int IncidentModeId { get; set; } = -1;
+        public IList<PortCondition> PortConditions { get; private set; } =new List<PortCondition>();
         private IList<Dictionary<int, int>> PortCo2Nodes = new List<Dictionary<int, int>>();
         private IList<Dictionary<int, int>> PortNode2Cos = new List<Dictionary<int, int>>();
         private IList<IList<uint>> PortLineFEIdss = new List<IList<uint>>();
@@ -28,6 +31,8 @@ namespace IvyFEM
         private Dictionary<int, int> Node2Co = new Dictionary<int, int>();
         private Dictionary<string, uint> Mesh2LineFE = new Dictionary<string, uint>();
         private Dictionary<string, uint> Mesh2TriangleFE = new Dictionary<string, uint>();
+        private Dictionary<int, IList<uint>> Co2TriangleFE = new Dictionary<int, IList<uint>>();
+        private Dictionary<string, IList<uint>> EdgeCos2TriangleFE = new Dictionary<string, IList<uint>>();
         private IList<uint> ContactSlaveLineFEIds = new List<uint>();
         private IList<uint> ContactMasterLineFEIds = new List<uint>();
         private ObjectArray<LineFE> LineFEArray = new ObjectArray<LineFE>();
@@ -39,6 +44,15 @@ namespace IvyFEM
             Dimension = dimension;
             Dof = dof;
             FEOrder = feOrder;
+        }
+
+        public void Clear()
+        {
+            IncidentPortId = -1;
+            IncidentModeId = -1;
+            PortConditions.Clear();
+
+            ClearElements();
         }
 
         public void ClearElements()
@@ -60,6 +74,8 @@ namespace IvyFEM
             Node2Co.Clear();
             Mesh2LineFE.Clear();
             Mesh2TriangleFE.Clear();
+            Co2TriangleFE.Clear();
+            EdgeCos2TriangleFE.Clear();
             ContactSlaveLineFEIds.Clear();
             ContactMasterLineFEIds.Clear();
             LineFEArray.Clear();
@@ -130,6 +146,11 @@ namespace IvyFEM
                 return -1;
             }
             return Node2Co[nodeId];
+        }
+
+        public uint GetPortCount()
+        {
+            return (uint)PortConditions.Count;
         }
 
         public uint GetPortNodeCount(uint portId)
@@ -281,6 +302,36 @@ namespace IvyFEM
             return 0;
         }
 
+        public IList<uint> GetTriangleFEIdsFromCoord(int coId)
+        {
+            IList<uint> feIds = new List<uint>();
+            if (Co2TriangleFE.ContainsKey(coId))
+            {
+                feIds = Co2TriangleFE[coId];
+            }
+            return feIds;
+        }
+
+        public IList<uint> GetTriangleFEIdsFromEdgeCoord(int coId1, int coId2)
+        {
+            IList<uint> feIds = new List<uint>();
+            int v1 = coId1;
+            int v2 = coId2;
+            if (v1 > v2)
+            {
+                int tmp = v1;
+                v1 = v2;
+                v2 = tmp;
+            }
+            string edgeKey = v1 + "_" + v2;
+
+            if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+            {
+                feIds = EdgeCos2TriangleFE[edgeKey];
+            }
+            return feIds;
+        }
+
         public IList<uint> GetLineFEIds()
         {
             return LineFEArray.GetObjectIds();
@@ -366,6 +417,9 @@ namespace IvyFEM
 
             // 節点→座標のマップ作成
             MakeNode2CoFromCo2Node();
+
+            // 頂点→三角形要素のマップと辺→三角形要素のマップ作成
+            MakeCo2AndEdgeCos2TriangleFE();
         }
 
         // 座標、三角形要素と線要素を生成する
@@ -614,8 +668,11 @@ namespace IvyFEM
             Mesher2D mesh = world.Mesh;
 
             // ポート上の線要素の抽出と節点ナンバリング
-            foreach (var portEIds in world.PortEIdss)
+            uint portCnt = GetPortCount();
+            for (int portId = 0; portId < portCnt; portId++)
             {
+                PortCondition portCondition = PortConditions[portId];
+                IList<uint> portEIds = portCondition.EIds;
                 var lineFEIds = new List<uint>();
                 PortLineFEIdss.Add(lineFEIds);
 
@@ -726,6 +783,62 @@ namespace IvyFEM
 
                 string key = string.Format(meshId + "_" + iElem);
                 Mesh2TriangleFE.Add(key, feId);
+            }
+        }
+
+        private void MakeCo2AndEdgeCos2TriangleFE()
+        {
+            Co2TriangleFE.Clear();
+            IList<uint> feIds = GetTriangleFEIds();
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(feId);
+                // 節点→要素
+                {
+                    int[] coIds = triFE.NodeCoordIds;
+                    for (int i = 0; i < coIds.Length; i++)
+                    {
+                        int coId = coIds[i];
+                        IList<uint> targetIds = null;
+                        if (Co2TriangleFE.ContainsKey(coId))
+                        {
+                            targetIds = Co2TriangleFE[coId];
+                        }
+                        else
+                        {
+                            targetIds = new List<uint>();
+                            Co2TriangleFE[coId] = targetIds;
+                        }
+                        targetIds.Add(feId);
+                    }
+                }
+                // 辺(頂点1-頂点2)→要素
+                {
+                    int[] coIds = triFE.VertexCoordIds;
+                    for (int i = 0; i < coIds.Length; i++)
+                    {
+                        int v1 = coIds[i];
+                        int v2 = coIds[(i + 1) % coIds.Length];
+                        if (v1 > v2)
+                        {
+                            int tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                        }
+                        string edgeKey = v1 + "_" + v2;
+                        IList<uint> targetIds = null;
+                        if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+                        {
+                            targetIds = EdgeCos2TriangleFE[edgeKey];
+                        }
+                        else
+                        {
+                            targetIds = new List<uint>();
+                            EdgeCos2TriangleFE[edgeKey] = targetIds;
+                        }
+                        targetIds.Add(feId);
+                    }
+                }
             }
         }
 

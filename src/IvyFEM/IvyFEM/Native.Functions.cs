@@ -216,6 +216,42 @@ namespace IvyFEM.Native
             return success;
         }
 
+        public static bool DoubleSolvePreconditionedBiCGSTAB(out double[] X,
+            int n, int[] APtrs, int[] AIndexs, double[] AValues, double[] B,
+            int[] LUPtrs, int[] LUIndexs, double[] LUValues,
+            double convRatioTolerance)
+        {
+            X = new double[n];
+            bool success = IvyFEM.Native.ImportedFunctions.DoubleSolvePreconditionedBiCGSTAB(
+                X,
+                n, AIndexs.Length, APtrs, AIndexs, AValues, B,
+                LUIndexs.Length, LUPtrs, LUIndexs, LUValues,
+                convRatioTolerance);
+            return success;
+        }
+
+        public static bool DoubleSolveBiCGSTAB(out double[] X,
+            int n, int[] APtrs, int[] AIndexs, double[] AValues, double[] B, int fillinLevel,
+            double convRatioTolerance)
+        {
+            X = new double[n];
+            bool success = IvyFEM.Native.ImportedFunctions.DoubleSolveBiCGSTAB(
+                X, n, AIndexs.Length, APtrs, AIndexs, AValues, B, fillinLevel,
+                convRatioTolerance);
+            return success;
+        }
+
+        public static bool DoubleSolveBiCGSTABWithPivoting(out double[] X,
+            int n, int[] APtrs, int[] AIndexs, double[] AValues, double[] B, int fillinLevel,
+            double convRatioTolerance)
+        {
+            X = new double[n];
+            bool success = IvyFEM.Native.ImportedFunctions.DoubleSolveBiCGSTABWithPivoting(
+                X, n, AIndexs.Length, APtrs, AIndexs, AValues, B, fillinLevel,
+                convRatioTolerance);
+            return success;
+        }
+
         ///////////////////////////////////////////////////////////////////////
         // complex
 
@@ -494,5 +530,75 @@ namespace IvyFEM.Native
             }
             return success;
         }
+
+        public static bool ComplexSolvePreconditionedBiCGSTAB(
+            out System.Numerics.Complex[] X,
+            int n, int[] APtrs, int[] AIndexs, System.Numerics.Complex[] AValues,
+            System.Numerics.Complex[] B,
+            int[] LUPtrs, int[] LUIndexs, System.Numerics.Complex[] LUValues,
+            double convRatioTolerance)
+        {
+            X = new System.Numerics.Complex[n];
+            bool success = false;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* XP = &X[0])
+                fixed (System.Numerics.Complex* AValuesP = &AValues[0])
+                fixed (System.Numerics.Complex* BP = &B[0])
+                fixed (System.Numerics.Complex* LUValuesP = &LUValues[0])
+                {
+                    success = IvyFEM.Native.ImportedFunctions.ComplexSolvePreconditionedBiCGSTAB(
+                        XP,
+                        n, AIndexs.Length, APtrs, AIndexs, AValuesP,
+                        BP,
+                        LUIndexs.Length, LUPtrs, LUIndexs, LUValuesP,
+                        convRatioTolerance);
+                }
+            }
+            return success;
+        }
+
+        public static bool ComplexSolveBiCGSTAB(out System.Numerics.Complex[] X,
+            int n, int[] APtrs, int[] AIndexs, System.Numerics.Complex[] AValues,
+            System.Numerics.Complex[] B, int fillinLevel,
+            double convRatioTolerance)
+        {
+            X = new System.Numerics.Complex[n];
+            bool success = false;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* XP = &X[0])
+                fixed (System.Numerics.Complex* AValuesP = &AValues[0])
+                fixed (System.Numerics.Complex* BP = &B[0])
+                {
+                    success = IvyFEM.Native.ImportedFunctions.ComplexSolveBiCGSTAB(
+                        XP, n, AIndexs.Length, APtrs, AIndexs, AValuesP, BP, fillinLevel,
+                        convRatioTolerance);
+                }
+            }
+            return success;
+        }
+
+        public static bool ComplexSolveBiCGSTABWithPivoting(out System.Numerics.Complex[] X,
+            int n, int[] APtrs, int[] AIndexs, System.Numerics.Complex[] AValues,
+            System.Numerics.Complex[] B, int fillinLevel,
+            double convRatioTolerance)
+        {
+            X = new System.Numerics.Complex[n];
+            bool success = false;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* XP = &X[0])
+                fixed (System.Numerics.Complex* AValuesP = &AValues[0])
+                fixed (System.Numerics.Complex* BP = &B[0])
+                {
+                    success = IvyFEM.Native.ImportedFunctions.ComplexSolveBiCGSTABWithPivoting(
+                        XP, n, AIndexs.Length, APtrs, AIndexs, AValuesP, BP, fillinLevel,
+                        convRatioTolerance);
+                }
+            }
+            return success;
+        }
+
     }
 }

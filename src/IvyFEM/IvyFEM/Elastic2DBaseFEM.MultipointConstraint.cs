@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    abstract public partial class Elastic2DBaseFEM
+    public abstract partial class Elastic2DBaseFEM
     {
         protected void CalcMultipointConstraintAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
@@ -27,11 +27,12 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(World.GetCoordCount(uQuantityId) ==
                 World.GetCoordCount(cQuantityId));
             int coCnt = (int)World.GetCoordCount(cQuantityId);
-            int uNodeCnt = NodeCounts[uQuantityId];
-            int cNodeCnt = NodeCounts[cQuantityId];
-            int uDof = Dofs[uQuantityId];
-            int cDof = Dofs[cQuantityId];
-            System.Diagnostics.Debug.Assert(cDof == 1);
+            System.Diagnostics.Debug.Assert(World.GetDof(uQuantityId) == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(cQuantityId) == 1);
+            int uDof = 2;
+            int cDof = 1;
+            int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
+            int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
             int offset = GetOffset(cQuantityId);
 
             for (int coId = 0; coId < coCnt; coId++)

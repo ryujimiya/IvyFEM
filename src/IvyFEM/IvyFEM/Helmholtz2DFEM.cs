@@ -85,6 +85,14 @@ namespace IvyFEM
         private void SetABC(IvyFEM.Linear.ComplexSparseMatrix A, System.Numerics.Complex[] B)
         {
             uint quantityId = 0;
+            if (World.GetPortCount(quantityId) ==  0)
+            {
+                return;
+            }
+            System.Diagnostics.Debug.Assert(World.GetPortCount(quantityId) == 1);
+            IList<PortCondition> portConditions = World.GetPortConditions(quantityId);
+            PortCondition portCondition = portConditions[0];
+            IList<uint> abcEIds = portCondition.EIds;
             IList<uint> feIds = World.GetLineFEIds(quantityId);
             foreach (uint feId in feIds)
             {
@@ -101,7 +109,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
                     eId = cadId;
                 }
-                if (World.ABCEIds.Contains(eId))
+                if (abcEIds.Contains(eId))
                 {
                     // ABCを適用する辺
                 }

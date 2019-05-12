@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    abstract public class Constraint
+    public abstract class Constraint
     {
         public EqualityType Equality { get; set; } = EqualityType.Eq;
         public abstract double GetValue(double[] x);

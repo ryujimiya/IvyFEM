@@ -8,6 +8,16 @@ namespace IvyFEM
 {
     public partial class LineFE
     {
+        protected double[] Get1stNodeL(int nodeId)
+        {
+            double[][] nodeL = new double[2][]
+            {
+                new double[] { 1.0, 0.0 },
+                new double[] { 0.0, 1.0 }
+            };
+            return nodeL[nodeId];
+        }
+
         protected double[] Calc1stN(double[] L)
         {
             double[] N = new double[2];
@@ -20,7 +30,7 @@ namespace IvyFEM
 
         protected double[][] Calc1stNu(double[] L)
         {
-            double[][] Nu = new double[2][];
+            double[][] Nu = new double[1][];
             double[] a;
             double[] b;
             CalcTransMatrix(out a, out b);
@@ -29,6 +39,17 @@ namespace IvyFEM
             Nu[0] = b;
 
             return Nu;
+        }
+
+        protected double[] Calc1stSN()
+        {
+            double l = GetLineLength();
+            double[] sN = new double[2]
+            {
+                l / 2.0,
+                l / 2.0
+            };
+            return sN;
         }
 
         protected double[,] Calc1stSNN()

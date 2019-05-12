@@ -43,7 +43,7 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("CalcAB t = " + (System.Environment.TickCount - t));
 
             t = System.Environment.TickCount;
-            uint portCnt = World.GetPortCount();
+            uint portCnt = World.GetPortCount(QuantityId);
             EMWaveguide1DEigenFEM[] eigenFEMs;
             SetBoundaryCondition(omega, A, B, portCnt, out eigenFEMs);
             System.Diagnostics.Debug.WriteLine("SetBoundaryCondition t = " + (System.Environment.TickCount - t));
@@ -141,10 +141,10 @@ namespace IvyFEM
                     }
                 }
 
-                bool isIncidentPort = (portId == World.IncidentPortId);
+                bool isIncidentPort = (portId == World.GetIncidentPortId(QuantityId));
                 if (isIncidentPort)
                 {
-                    int incidentModeId = World.IncidentModeId;
+                    int incidentModeId = World.GetIncidentModeId(QuantityId);
                     System.Diagnostics.Debug.Assert(incidentModeId != -1);
                     System.Numerics.Complex beta0 = betas[incidentModeId];
                     System.Numerics.Complex[] ezEVec0 = ezEVecs[incidentModeId];
@@ -172,9 +172,9 @@ namespace IvyFEM
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
                 System.Numerics.Complex[][] ezEVecs = eigenFEM.EzEVecs;
                 int incidentModeId = -1;
-                if (World.IncidentPortId == portId)
+                if (World.GetIncidentPortId(QuantityId) == portId)
                 {
-                    incidentModeId = (int)World.IncidentModeId;
+                    incidentModeId = (int)World.GetIncidentModeId(QuantityId);
                 }
                 System.Numerics.Complex[] S1 = eigenFEM.CalcSMatrix(omega, incidentModeId, betas, ezEVecs, portEz);
                 S[portId] = S1;

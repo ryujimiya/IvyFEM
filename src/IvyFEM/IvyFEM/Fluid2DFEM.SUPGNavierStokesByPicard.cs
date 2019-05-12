@@ -153,7 +153,7 @@ namespace IvyFEM
                         IvyFEM.Lapack.DoubleMatrix GMatT = new Lapack.DoubleMatrix(GMat);
                         GMatT.Transpose();
                         double GMatDoubleDot = IvyFEM.Lapack.DoubleMatrix.DoubleDot(GMat, GMatT);
-                        sqinvtaum3 = nu * nu * GMatDoubleDot;
+                        sqinvtaum3 = 30.0 * nu * nu * GMatDoubleDot;
                     }
                     double sqinvtaum = sqinvtaum1 + sqinvtaum2 + sqinvtaum3;
                     taum = 1.0 / Math.Sqrt(sqinvtaum);
@@ -565,7 +565,8 @@ namespace IvyFEM
                             //    (v[0] * vNu[0][row] + v[1] * vNu[1][row]) * rmi[rowDof];
                             //qv2[rowDof] = detJWeight * tauc * rho * vNu[rowDof][row] * rc;
                             // Picard
-                            // nothing
+                            qv1[rowDof] = detJWeight * taum *
+                                (v[0] * vNu[0][row] + v[1] * vNu[1][row]) * (-rho * g[rowDof]);
                         }
                         for (int rowDof = 0; rowDof < vDof; rowDof++)
                         {
@@ -583,7 +584,8 @@ namespace IvyFEM
                         double[] qp = new double[pDof];
                         //qp[0] = -detJWeight * (1.0 / rho) * taum * (pNu[0][row] * rmi[0] + pNu[1][row] * rmi[1]);
                         // Picard
-                        // nothing
+                        qp[0] = -detJWeight * (1.0 / rho) * taum * 
+                            (pNu[0][row] * (-rho * g[0]) + pNu[1][row] * (-rho * g[1]));
                         B[offset + rowNodeId] += -qp[0];
                     }
                 }

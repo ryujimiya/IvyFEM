@@ -52,6 +52,24 @@ namespace IvyFEM
             return nodeCnt;
         }
 
+        public double[] GetNodeL(int nodeId)
+        {
+            double[] ret = null;
+            if (Order == 1)
+            {
+                ret = Get1stNodeL(nodeId);
+            }
+            else if (Order == 2)
+            {
+                ret = Get2ndNodeL(nodeId);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+            return ret;
+        }
+
         public double GetArea()
         {
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);

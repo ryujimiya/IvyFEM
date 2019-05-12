@@ -8,6 +8,17 @@ namespace IvyFEM
 {
     public partial class TriangleFE
     {
+        protected double[] Get1stNodeL(int nodeId)
+        {
+            double[][] nodeL = new double[3][]
+            {
+                new double[] { 1.0, 0.0, 0.0 },
+                new double[] { 0.0, 1.0, 0.0 },
+                new double[] { 0.0, 0.0, 1.0 }
+            };
+            return nodeL[nodeId];
+        }
+
         protected double[] Calc1stN(double[] L)
         {
             double[] N = new double[3];

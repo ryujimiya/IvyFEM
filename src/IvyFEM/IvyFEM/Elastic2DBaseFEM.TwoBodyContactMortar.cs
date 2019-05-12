@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    abstract public partial class Elastic2DBaseFEM
+    public abstract partial class Elastic2DBaseFEM
     {
         /*
         private void CalcTwoBodyContactMortarSegmentationQuantityAB(
@@ -16,11 +16,12 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(World.GetFEOrder(uQuantityId) == 1);
             System.Diagnostics.Debug.Assert(World.GetCoordCount(uQuantityId) ==
                 World.GetCoordCount(cQuantityId));
-            int uNodeCnt = NodeCounts[uQuantityId];
-            int cNodeCnt = NodeCounts[cQuantityId];
-            int uDof = Dofs[uQuantityId];
-            int cDof = Dofs[cQuantityId];
-            System.Diagnostics.Debug.Assert(cDof == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(uQuantityId) == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(cQuantityId) == 2);
+            int uDof = 2;
+            int cDof = 2;
+            int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
+            int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
             int offset = GetOffset(cQuantityId);
 
             // 線要素の変位を更新
@@ -139,7 +140,7 @@ namespace IvyFEM
                             }
                         }
                         normal = IvyFEM.Lapack.Utils.NormalizeDoubleVector(normal);
-                        double[] tangent = { -normal[1], normal[0] };
+                        double[] tangent = { normal[1], -normal[0] };
 
                         // 対応するMasterの点を取得する
                         uint masterFEId;
@@ -438,11 +439,12 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(World.GetFEOrder(uQuantityId) == 1);
             System.Diagnostics.Debug.Assert(World.GetCoordCount(uQuantityId) ==
                 World.GetCoordCount(cQuantityId));
-            int uNodeCnt = NodeCounts[uQuantityId];
-            int cNodeCnt = NodeCounts[cQuantityId];
-            int uDof = Dofs[uQuantityId];
-            int cDof = Dofs[cQuantityId];
-            System.Diagnostics.Debug.Assert(cDof == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(uQuantityId) == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(cQuantityId) == 2);
+            int uDof = 2;
+            int cDof = 2;
+            int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
+            int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
             int offset = GetOffset(cQuantityId);
 
             // 線要素の変位を更新
@@ -561,7 +563,7 @@ namespace IvyFEM
                             }
                         }
                         normal = IvyFEM.Lapack.Utils.NormalizeDoubleVector(normal);
-                        double[] tangent = { -normal[1], normal[0] };
+                        double[] tangent = { normal[1], -normal[0] };
 
                         // 対応するMasterの点を取得する
                         uint masterFEId;

@@ -128,6 +128,8 @@ namespace IvyFEM
         Stokes,
         StdGNavierStokes,
         SUPGNavierStokes,
-        //GLSNavierStokes
+        //GLSNavierStokes,
+        StdGVorticity,
+        SUPGVorticity
     }
 }

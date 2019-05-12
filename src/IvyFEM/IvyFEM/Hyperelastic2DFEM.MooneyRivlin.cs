@@ -13,10 +13,12 @@ namespace IvyFEM
         {
             uint uQuantityId = 0;
             uint lQuantityId = 1;
-            int uDof = Dofs[0];
-            int lDof = Dofs[1];
-            int uNodeCnt = NodeCounts[0];
-            int lNodeCnt = NodeCounts[1];
+            System.Diagnostics.Debug.Assert(World.GetDof(uQuantityId) == 2);
+            System.Diagnostics.Debug.Assert(World.GetDof(lQuantityId) == 1);
+            int uDof = 2;
+            int lDof = 1;
+            int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
+            int lNodeCnt = (int)World.GetNodeCount(lQuantityId);
             //System.Diagnostics.Debug.Assert(uNodeCnt * uDof + lNodeCnt * lDof == A.RowLength);
             int offset = GetOffset(lQuantityId);
             System.Diagnostics.Debug.Assert(offset == uNodeCnt * uDof);

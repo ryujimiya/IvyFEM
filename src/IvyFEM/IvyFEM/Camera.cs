@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    abstract public class Camera
+    public abstract class Camera
     {
         public double WindowAspect { get; set; }
 
