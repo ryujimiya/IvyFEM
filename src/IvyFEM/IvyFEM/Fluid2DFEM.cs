@@ -50,7 +50,7 @@ namespace IvyFEM
             if (EquationType == FluidEquationType.StdGVorticity ||
                 EquationType == FluidEquationType.SUPGVorticity)
             {
-                SetVorticityNeumannBC(A, B);
+                SetVorticitySpecialBC(A, B);
             }
         }
 

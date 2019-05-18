@@ -12,10 +12,14 @@ namespace IvyFEM
         public IList<double[]> DoubleValuess { get; protected set; } = new List<double[]>();
         public IList<System.Numerics.Complex[]> ComplexValuess { get; protected set; } =
             new List<System.Numerics.Complex[]>();
+        public IList<double[]> DoubleAdditionalParameterss { get; protected set; } = new List<double[]>();
+        public IList<System.Numerics.Complex[]> ComplexAdditionalParameterss { get; protected set; } =
+            new List<System.Numerics.Complex[]>();
 
         public DistributedFieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, IList<uint> fixedDofIndexs) :
-            base(cadId, cadElemType, valueType, fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs,
+            uint additionalParametersDof = 0) :
+            base(cadId, cadElemType, valueType, fixedDofIndexs, additionalParametersDof)
         {
 
         }
@@ -66,6 +70,24 @@ namespace IvyFEM
             }
         }
 
+        public void InitDoubleAdditionalParameters()
+        {
+            if (AdditionalParametersDof != 0)
+            {
+                double[] param = new double[AdditionalParametersDof];
+                DoubleAdditionalParameterss.Add(param);
+            }
+        }
+
+        public void InitComplexAdditionalParameters()
+        {
+            if (AdditionalParametersDof != 0)
+            {
+                System.Numerics.Complex[] param = new System.Numerics.Complex[AdditionalParametersDof];
+                ComplexAdditionalParameterss.Add(param);
+            }
+        }
+
         public override double[] GetDoubleValues(int coId = -1)
         {
             double[] values = null;
@@ -86,6 +108,28 @@ namespace IvyFEM
                 values = ComplexValuess[index];
             }
             return values;
+        }
+
+        public override double[] GetDoubleAdditionalParameters(int coId = -1)
+        {
+            double[] param = null;
+            int index = CoIds.IndexOf(coId);
+            if (index != -1)
+            {
+                param = DoubleAdditionalParameterss[index];
+            }
+            return param;
+        }
+
+        public override System.Numerics.Complex[] GetComplexAdditionalParameters(int coId = -1)
+        {
+            System.Numerics.Complex[] param = null;
+            int index = CoIds.IndexOf(coId);
+            if (index != -1)
+            {
+                param = ComplexAdditionalParameterss[index];
+            }
+            return param;
         }
     }
 }

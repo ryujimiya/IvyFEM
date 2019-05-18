@@ -8,15 +8,13 @@ namespace IvyFEM
 {
     public class FieldFixedCad
     {
-        public uint CadId { get; set; } = 0;
+        public uint CadId { get; protected set; } = 0;
         public CadElementType CadElemType { get; protected set; } = CadElementType.NotSet;
         public FieldValueType ValueType { get; protected set; } = FieldValueType.NoValue;
-        public uint Dof { get; set; } = 0;
+        public uint Dof { get; protected set; } = 0;
         public IList<uint> FixedDofIndexs { get; protected set; } = new List<uint>();
         public IList<int> IntAdditionalParameters { get; set; } = new List<int>();
-        public IList<double> DoubleAdditionalParameters { get; set; } = new List<double>();
-        public IList<System.Numerics.Complex> ComplexAdditionalParameters { get; set; } =
-            new List<System.Numerics.Complex>();
+        public uint AdditionalParametersDof { get; protected set; } = 0;
 
         public FieldFixedCad()
         {
@@ -25,7 +23,7 @@ namespace IvyFEM
 
         // Boundary Condition
         public FieldFixedCad(uint cadId, CadElementType cadElemType,
-            FieldValueType valueType, IList<uint> fixedDofIndexs)
+            FieldValueType valueType, IList<uint> fixedDofIndexs, uint additionalParametersDof = 0)
         {
             CadId = cadId;
             CadElemType = cadElemType;
@@ -33,8 +31,7 @@ namespace IvyFEM
             Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>(fixedDofIndexs);
             IntAdditionalParameters = new List<int>();
-            DoubleAdditionalParameters = new List<double>();
-            ComplexAdditionalParameters = new List<System.Numerics.Complex>();
+            AdditionalParametersDof = additionalParametersDof;
         }
 
         // Zero
@@ -51,8 +48,7 @@ namespace IvyFEM
                 FixedDofIndexs.Add(iDof);
             }
             IntAdditionalParameters = new List<int>();
-            DoubleAdditionalParameters = new List<double>();
-            ComplexAdditionalParameters = new List<System.Numerics.Complex>();
+            AdditionalParametersDof = 0;
         }
 
         public FieldFixedCad(FieldFixedCad src)
@@ -68,8 +64,7 @@ namespace IvyFEM
             Dof = src.Dof;
             FixedDofIndexs = new List<uint>(src.FixedDofIndexs);
             IntAdditionalParameters = new List<int>(src.IntAdditionalParameters);
-            DoubleAdditionalParameters = new List<double>(src.DoubleAdditionalParameters);
-            ComplexAdditionalParameters = new List<System.Numerics.Complex>(src.ComplexAdditionalParameters);
+            AdditionalParametersDof = src.AdditionalParametersDof;
         }
 
         public virtual double[] GetDoubleValues(int coId = -1)
@@ -78,6 +73,16 @@ namespace IvyFEM
         }
 
         public virtual System.Numerics.Complex[] GetComplexValues(int coId = -1)
+        {
+            return null;
+        }
+
+        public virtual double[] GetDoubleAdditionalParameters(int coId = -1)
+        {
+            return null;
+        }
+
+        public virtual System.Numerics.Complex[] GetComplexAdditionalParameters(int coId = -1)
         {
             return null;
         }

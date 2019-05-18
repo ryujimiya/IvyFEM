@@ -24,16 +24,16 @@
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　(標準、 SUPG [Streamline Upwind Petrov-Galerkin]安定化)  
 　　　　　　　　　　Vorticity / Stream Funciton定式化  
-　　　　　　　　　　(標準）※SUPGはいまのところ改善が見られない  
+　　　　　　　　　　(標準、SUPG[Streamline Upwind Petrov-Galerkin]安定化※）※実験的  
 　　　　電磁気学　：H面導波管の伝達問題  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
 　  
-　**バイナリ（2019-05-12更新）**  
+　**バイナリ（2019-05-18更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.11  
+　　IvyFEM.dll version 0.0.0.12  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

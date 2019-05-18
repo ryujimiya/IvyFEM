@@ -88,6 +88,7 @@
     <Compile Include="CadObject2DDrawer.cs" />
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
+    <Compile Include="DistributedPortCondition.cs" />
     <Compile Include="Fluid2DBaseFEM.cs" />
     <Compile Include="Fluid2DBaseFEM.Vorticity.cs" />
     <Compile Include="Fluid2DFEM.SUPGVorticityByPicard.cs" />
@@ -179,6 +180,7 @@
     <Compile Include="Linear.IvyFEMEquationSolver.Complex.cs" />
     <Compile Include="Linear.IvyFEMEquationSolver.Double.cs" />
     <Compile Include="LoopEdgeItr.cs" />
+    <Compile Include="ConstPortCondition.cs" />
     <Compile Include="PortCondition.cs" />
     <Compile Include="VertexEdgeItr.cs" />
     <Compile Include="Lapack.ComplexBandMatrix.cs" />

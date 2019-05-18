@@ -34,7 +34,7 @@ namespace IvyFEM
 
         // Note:
         // 時計回りのベクトルを接線ベクトルとする
-        public static OpenTK.Vector2d GetTangent(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        public static OpenTK.Vector2d GetTangential(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
         {
             OpenTK.Vector2d tan = v1 - v2;
             tan = Normalize(tan);
@@ -73,7 +73,7 @@ namespace IvyFEM
 
         // Note:
         // 時計回りのベクトルを接線ベクトルとする
-        public static double[] GetTangent2D(double[] v1, double[] v2)
+        public static double[] GetTangential2D(double[] v1, double[] v2)
         {
             double[] tan = { v1[0] - v2[0], v1[1] - v2[1] };
             tan = Normalize2D(tan);

@@ -224,16 +224,5 @@ namespace IvyFEM
                 }
             }
         }
-
-        private void SetVorticityNeumannBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
-        {
-            SetVorticityDirichletBCOfVorticityForTangentFlow(A, B);
-        }
-
-        private void VorticityPostSolve()
-        {
-            GetVelocityFromVorticityStream();
-        }
-
     }
 }

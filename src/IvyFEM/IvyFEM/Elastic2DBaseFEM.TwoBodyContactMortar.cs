@@ -140,7 +140,7 @@ namespace IvyFEM
                             }
                         }
                         normal = IvyFEM.Lapack.Utils.NormalizeDoubleVector(normal);
-                        double[] tangent = { normal[1], -normal[0] };
+                        double[] tan = { normal[1], -normal[0] };
 
                         // 対応するMasterの点を取得する
                         uint masterFEId;
@@ -217,7 +217,7 @@ namespace IvyFEM
                         double lt = 0;
                         for (int iDof = 0; iDof < cDof; iDof++)
                         {
-                            lt += tangent[iDof] * l[iDof];
+                            lt += tan[iDof] * l[iDof];
                         }
 
                         // Karush-Kuhn-Tucker条件
@@ -563,7 +563,7 @@ namespace IvyFEM
                             }
                         }
                         normal = IvyFEM.Lapack.Utils.NormalizeDoubleVector(normal);
-                        double[] tangent = { normal[1], -normal[0] };
+                        double[] tan = { normal[1], -normal[0] };
 
                         // 対応するMasterの点を取得する
                         uint masterFEId;
@@ -679,9 +679,9 @@ namespace IvyFEM
                                     klu[0, rowDof] +=
                                         detJWeight * normal[rowDof] * N[row] * lN[col];
                                     kul[rowDof, 1] +=
-                                        detJWeight * tangent[rowDof] * N[row] * lN[col];
+                                        detJWeight * tan[rowDof] * N[row] * lN[col];
                                     klu[1, rowDof] +=
-                                        detJWeight * tangent[rowDof] * N[row] * lN[col];
+                                        detJWeight * tan[rowDof] * N[row] * lN[col];
                                 }
 
                                 for (int rowDof = 0; rowDof < uDof; rowDof++)
@@ -726,9 +726,9 @@ namespace IvyFEM
                                     klu[0, rowDof] +=
                                         -detJWeight * normal[rowDof] * masterN[row] * lN[col];
                                     kul[rowDof, 1] +=
-                                        -detJWeight * tangent[rowDof] * masterN[row] * lN[col];
+                                        -detJWeight * tan[rowDof] * masterN[row] * lN[col];
                                     klu[1, rowDof] +=
-                                        -detJWeight * tangent[rowDof] * masterN[row] * lN[col];
+                                        -detJWeight * tan[rowDof] * masterN[row] * lN[col];
                                 }
 
                                 for (int rowDof = 0; rowDof < uDof; rowDof++)
@@ -756,7 +756,7 @@ namespace IvyFEM
                             for (int iDof = 0; iDof < uDof; iDof++)
                             {
                                 qu[iNode, iDof] += 
-                                    detJWeight * (l[0] * normal[iDof] + l[1] * tangent[iDof]) * N[iNode];
+                                    detJWeight * (l[0] * normal[iDof] + l[1] * tan[iDof]) * N[iNode];
                             }
                         }
                         for (int iNode = 0; iNode < elemNodeCnt; iNode++)
@@ -766,7 +766,7 @@ namespace IvyFEM
                                 ql[iNode, 0] +=
                                     detJWeight * lN[iNode] * normal[iDof] * curCoord[iDof];
                                 ql[iNode, 1] +=
-                                    detJWeight * lN[iNode] * tangent[iDof] * curCoord[iDof];
+                                    detJWeight * lN[iNode] * tan[iDof] * curCoord[iDof];
                             }
                         }
 
@@ -803,7 +803,7 @@ namespace IvyFEM
                             for (int iDof = 0; iDof < uDof; iDof++)
                             {
                                 masterQu[iNode, iDof] +=
-                                    -detJWeight * (l[0] * normal[iDof] + l[1] * tangent[iDof]) * masterN[iNode];
+                                    -detJWeight * (l[0] * normal[iDof] + l[1] * tan[iDof]) * masterN[iNode];
                             }
                         }
                         for (int iNode = 0; iNode < elemNodeCnt; iNode++)
@@ -813,7 +813,7 @@ namespace IvyFEM
                                 masterQl[iNode, 0] += 
                                     -detJWeight * lN[iNode] * normal[iDof] * masterCurCoord[iDof];
                                 masterQl[iNode, 1] +=
-                                    -detJWeight * lN[iNode] * tangent[iDof] * masterCurCoord[iDof];
+                                    -detJWeight * lN[iNode] * tan[iDof] * masterCurCoord[iDof];
                             }
                         }
 

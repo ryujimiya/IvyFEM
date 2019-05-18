@@ -63,12 +63,26 @@ namespace IvyFEM
                 double[][] velos = new double[pElemNodeCnt][];
                 for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
                 {
-                    int coId = pCoIds[iNode];
-                    double[] velo = new double[vDof];
-                    for (int iDof = 0; iDof < vDof; iDof++)
+                    double[] L = pTriFE.GetNodeL(iNode);
+                    double[][] pNu = pTriFE.CalcNu(L);
+                    double[] pNx = pNu[0];
+                    double[] pNy = pNu[1];
+                    double px = 0;
+                    double py = 0;
+                    for (int kNode = 0; kNode < pElemNodeCnt; kNode++)
                     {
-                        velo[iDof] = CoordV[coId * vDof + iDof];
+                        int nodeId = pNodes[kNode];
+                        if (nodeId == -1)
+                        {
+                            continue;
+                        }
+                        double pValue = U[offset + nodeId];
+                        px += pValue * pNx[kNode];
+                        py += pValue * pNy[kNode];
                     }
+                    double[] velo = new double[vDof];
+                    velo[0] = py;
+                    velo[1] = -px;
                     velos[iNode] = velo;
                 }
 
@@ -111,18 +125,19 @@ namespace IvyFEM
                         }
                     }
 
-                    double sqinvtaum1 = 0;
+                    double sqinvtaum1 = (2.0 * 2.0) / (dt * dt);
                     double sqinvtaum2 = 0;
                     {
-                        double[] tmpVec = GMat * aveVelo;
-                        sqinvtaum2 = IvyFEM.Lapack.Functions.ddot(aveVelo, tmpVec);
+                        // vorticityの場合この項を省略すると収束しやすくなる
+                        //double[] tmpVec = GMat * aveVelo;
+                        //sqinvtaum2 = IvyFEM.Lapack.Functions.ddot(aveVelo, tmpVec);
                     }
                     double sqinvtaum3 = 0;
                     {
                         IvyFEM.Lapack.DoubleMatrix GMatT = new Lapack.DoubleMatrix(GMat);
                         GMatT.Transpose();
                         double GMatDoubleDot = IvyFEM.Lapack.DoubleMatrix.DoubleDot(GMat, GMatT);
-                        sqinvtaum3 = nu * nu * GMatDoubleDot;
+                        sqinvtaum3 = 30.0 * nu * nu * GMatDoubleDot;
                     }
                     double sqinvtaum = sqinvtaum1 + sqinvtaum2 + sqinvtaum3;
                     taum = 1.0 / Math.Sqrt(sqinvtaum);
@@ -130,7 +145,6 @@ namespace IvyFEM
                     double gDot = IvyFEM.Lapack.Functions.ddot(gVec, gVec);
                     tauc = 1.0 / (taum * gDot);
                 }
-
                 IntegrationPoints ip = TriangleFE.GetIntegrationPoints(World.TriIntegrationPointCount);//Point7
                 for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
                 {

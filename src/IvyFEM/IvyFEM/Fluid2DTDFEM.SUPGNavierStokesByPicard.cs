@@ -79,34 +79,6 @@ namespace IvyFEM
                     velos[iNode] = velo;
                 }
 
-                /*
-                double taum = 0;
-                double tauc = 0;
-                {
-                    double[] aveVelo = {
-                        (velos[0][0] + velos[1][0] + velos[2][0]) / 3.0,
-                        (velos[0][1] + velos[1][1] + velos[2][1]) / 3.0
-                    };
-                    double veloNorm = Math.Sqrt(aveVelo[0] * aveVelo[0] + aveVelo[1] * aveVelo[1]);
-                    double Ae = vTriFE.GetArea();
-                    double h = 2.0 * Math.Sqrt(Ae / Math.PI);
-                    double sqinvtaum1 = (2.0 * 2.0) / (dt * dt);
-                    double sqinvtaum2 = (2.0 * 2.0 * veloNorm * veloNorm) / (h * h);
-                    double sqinvtaum3 = (4.0 * 4.0 * nu * nu) / (h * h * h * h);
-                    double sqinvtaum = sqinvtaum1 + sqinvtaum2 + sqinvtaum3;
-                    taum = 1.0 / Math.Sqrt(sqinvtaum);
-
-                    double re = veloNorm * h / (2.0 * nu);
-                    if (re < 3.0)
-                    {
-                        tauc = (1.0 / 2.0) * h * veloNorm * re / 3.0;
-                    }
-                    else
-                    {
-                        tauc = (1.0 / 2.0) * h * veloNorm;
-                    }
-                }
-                */
                 double taum = 0;
                 double tauc = 0;
                 {

@@ -132,4 +132,10 @@ namespace IvyFEM
         StdGVorticity,
         SUPGVorticity
     }
+
+    public enum FlowDirectionType
+    {
+        Tangential,
+        Normal
+    }
 }

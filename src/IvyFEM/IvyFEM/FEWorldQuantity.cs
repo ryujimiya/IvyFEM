@@ -405,9 +405,11 @@ namespace IvyFEM
 
             // Note: 三角形要素生成後でないと特定できない
             MakeCo2FixedCads(world);
+            SetDistributedFixedCadCoords(world);
 
             // ポート上の線要素の節点ナンバリング
             NumberPortNodes(world, zeroCoordIds);
+            SetDistributedPortCoords(world);
 
             // 三角形要素の節点ナンバリング
             NumberTriangleNodes(world, zeroCoordIds);
@@ -714,6 +716,34 @@ namespace IvyFEM
             }
         }
 
+        private void SetDistributedPortCoords(FEWorld world)
+        {
+            uint portCnt = GetPortCount();
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                PortCondition portCondition = PortConditions[portId];
+                IList<uint> portEIds = portCondition.EIds;
+                if (portCondition is DistributedPortCondition)
+                {
+                    DistributedPortCondition dist = portCondition as DistributedPortCondition;
+                    IList<int> coIds = new List<int>(); 
+                    foreach (uint eId in portEIds)
+                    {
+                        IList<int> tmpCoIds = GetCoordIdsFromCadId(world, eId, CadElementType.Edge);
+                        foreach (int coId in tmpCoIds)
+                        {
+                            if (coIds.Contains(coId))
+                            {
+                                continue;
+                            }
+                            coIds.Add(coId);
+                        }
+                    }
+                    dist.InitCoordIds(coIds);
+                }
+            }
+        }
+
         // 接触解析のMaster/Slave線要素を準備する
         private void SetupContactMasterSlaveLineElements(FEWorld world)
         {
@@ -863,11 +893,6 @@ namespace IvyFEM
             foreach (var fixedCad in FieldFixedCads)
             {
                 IList<int> coIds = GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
-                if (fixedCad is DistributedFieldFixedCad)
-                {
-                    DistributedFieldFixedCad dist = fixedCad as DistributedFieldFixedCad;
-                    dist.InitCoordIds(coIds);
-                }
                 foreach (int coId in coIds)
                 {
                     IList<FieldFixedCad> fixedCads = null;
@@ -912,6 +937,19 @@ namespace IvyFEM
 
                         fixedCads.Add(fixedCad);
                     }
+                }
+            }
+        }
+
+        private void SetDistributedFixedCadCoords(FEWorld world)
+        {
+            foreach (var fixedCad in FieldFixedCads)
+            {
+                IList<int> coIds = GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
+                if (fixedCad is DistributedFieldFixedCad)
+                {
+                    DistributedFieldFixedCad dist = fixedCad as DistributedFieldFixedCad;
+                    dist.InitCoordIds(coIds);
                 }
             }
         }
