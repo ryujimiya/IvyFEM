@@ -41,7 +41,7 @@ namespace IvyFEM
 
         public void UpdateFieldValuesTimeDomain()
         {
-            UpdateFieldValuesTimeDomain(
+            UpdateFieldValuesNewmarkBetaTimeDomain(
                 U, UValueId, PrevUValueId,
                 TimeStep,
                 NewmarkBeta, NewmarkGamma);

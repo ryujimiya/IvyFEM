@@ -551,6 +551,7 @@ namespace IvyFEM
 
                     TriangleFE fe = new TriangleFE((int)FEOrder);
                     fe.World = world;
+                    fe.QuantityId = (int)this.Id;
                     fe.SetVertexCoordIds(vertexCoIds);
                     fe.SetNodeCoordIds(nodeCoIds);
                     fe.MaterialId = maId;
@@ -649,6 +650,7 @@ namespace IvyFEM
 
                     LineFE fe = new LineFE((int)FEOrder);
                     fe.World = world;
+                    fe.QuantityId = (int)this.Id;
                     fe.SetVertexCoordIds(vertexCoIds);
                     fe.SetNodeCoordIds(nodeCoIds);
                     fe.MaterialId = maId;
@@ -1063,6 +1065,7 @@ namespace IvyFEM
                     }
                     var lineFE = new LineFE((int)FEOrder);
                     lineFE.World = world;
+                    lineFE.QuantityId = (int)this.Id;
                     lineFE.SetVertexCoordIds(vertexCoIds[iEdge]);
                     lineFE.SetNodeCoordIds(nodeCoIds[iEdge]);
                     // MeshId等は対応するものがないのでセットしない

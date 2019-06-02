@@ -87,7 +87,7 @@ namespace IvyFEM.Linear
                     superdiaLength = cnt;
                 }
             }
-            System.Diagnostics.Debug.WriteLine("rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}", rowcolLength, subdiaLength, superdiaLength);
+            //System.Diagnostics.Debug.WriteLine("rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}", rowcolLength, subdiaLength, superdiaLength);
         }
 
         private static bool[,] GetDoubleMatrixNonzeroPattern(DoubleSparseMatrix A)
@@ -122,11 +122,14 @@ namespace IvyFEM.Linear
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
             {
-                System.Diagnostics.Debug.WriteLine("/////initial Band Matrix info///////");
                 int rowcolLength;
                 int subdiaLength;
                 int superdiaLength;
                 GetBandMatrixSubDiaSuperDia(matPattern, out rowcolLength, out subdiaLength, out superdiaLength);
+                System.Diagnostics.Debug.WriteLine(
+                    "Initial rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
+                    rowcolLength, subdiaLength, superdiaLength);
+
                 iniSubdiaLength = subdiaLength;
                 iniSuperdiaLength = superdiaLength;
             }
@@ -197,11 +200,14 @@ namespace IvyFEM.Linear
             bool[,] newMatPattern = GetDoubleMatrixNonzeroPattern(newA);
             // check
             {
-                System.Diagnostics.Debug.WriteLine("///// orderd Band Matrix info ///////");
                 int rowcolLength;
                 int subdiaLength;
                 int superdiaLength;
                 GetBandMatrixSubDiaSuperDia(newMatPattern, out rowcolLength, out subdiaLength, out superdiaLength);
+                System.Diagnostics.Debug.WriteLine(
+                    "Ordered rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
+                    rowcolLength, subdiaLength, superdiaLength);
+
                 if (subdiaLength <= iniSubdiaLength && superdiaLength <= iniSuperdiaLength)
                 {
                     improved = true;
@@ -271,11 +277,14 @@ namespace IvyFEM.Linear
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
             {
-                System.Diagnostics.Debug.WriteLine("/////initial Band Matrix info///////");
                 int rowcolLength;
                 int subdiaLength;
                 int superdiaLength;
                 GetBandMatrixSubDiaSuperDia(matPattern, out rowcolLength, out subdiaLength, out superdiaLength);
+                System.Diagnostics.Debug.WriteLine(
+                    "Initial rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
+                    rowcolLength, subdiaLength, superdiaLength);
+
                 iniSubdiaLength = subdiaLength;
                 iniSuperdiaLength = superdiaLength;
             }
@@ -346,11 +355,14 @@ namespace IvyFEM.Linear
             bool[,] newMatPattern = GetComplexMatrixNonzeroPattern(newA);
             // check
             {
-                System.Diagnostics.Debug.WriteLine("///// orderd Band Matrix info ///////");
                 int rowcolLength;
                 int subdiaLength;
                 int superdiaLength;
                 GetBandMatrixSubDiaSuperDia(newMatPattern, out rowcolLength, out subdiaLength, out superdiaLength);
+                System.Diagnostics.Debug.WriteLine(
+                    "Ordered rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
+                    rowcolLength, subdiaLength, superdiaLength);
+
                 if (subdiaLength <= iniSubdiaLength && superdiaLength <= iniSuperdiaLength)
                 {
                     improved = true;

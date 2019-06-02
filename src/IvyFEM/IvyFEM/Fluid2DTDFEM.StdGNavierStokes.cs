@@ -87,6 +87,7 @@ namespace IvyFEM
                         {
                             continue;
                         }
+
                         for (int iDof = 0; iDof < vDof; iDof++)
                         {
                             double vValue = U[nodeId * vDof + iDof];
@@ -124,12 +125,10 @@ namespace IvyFEM
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
 
                             double[,] kvv2 = new double[vDof, vDof];
-                            kvv2[0, 0] = detJWeight * rho * vN[row] * (
-                                vN[col] * vx[0] + v[0] * vNx[col] + v[1] * vNy[col]);
-                            kvv2[0, 1] = detJWeight * rho * vN[row] * vN[col] * vy[0];
-                            kvv2[1, 0] = detJWeight * rho * vN[row] * vN[col] * vx[1];
-                            kvv2[1, 1] = detJWeight * rho * vN[row] * (
-                                vN[col] * vy[1] + v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 0] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 1] = 0;
+                            kvv2[1, 0] = 0;
+                            kvv2[1, 1] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
 
                             double[,] m = new double[vDof, vDof];
                             m[0, 0] = detJWeight * rho * vN[row] * vN[col];
@@ -144,7 +143,6 @@ namespace IvyFEM
                                         (gamma / (beta * dt)) * m[rowDof, colDof];
 
                                     B[rowNodeId * vDof + rowDof] +=
-                                        kvv2[rowDof, colDof] * U[colNodeId * vDof + colDof] +
                                         m[rowDof, colDof] * (
                                             (gamma / (beta * dt)) * u[colDof] -
                                             (1.0 - gamma / beta) * vel[colDof] -
@@ -177,26 +175,8 @@ namespace IvyFEM
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
                                 A[rowNodeId * vDof + rowDof, offset + colNodeId] += kvp[rowDof, 0];
-                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += kvp[rowDof, 0];
+                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += -kvp[rowDof, 0];
                             }
-                        }
-                    }
-
-                    for (int row = 0; row < vElemNodeCnt; row++)
-                    {
-                        int rowNodeId = vNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double[] q2 = new double[vDof];
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            q2[rowDof] = detJWeight * rho * vN[row] * (v[0] * vx[rowDof] + v[1] * vy[rowDof]);
-                        }
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            B[rowNodeId * vDof + rowDof] += -q2[rowDof];
                         }
                     }
                 }

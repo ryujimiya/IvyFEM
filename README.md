@@ -20,20 +20,27 @@
 　　　　　　　　　　Ogden (非圧縮、微圧縮)  
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
-　　　　　　　　　　弾性体二体接触  
+　　　　　　　　　　弾性体二体接触※  
 　　　　流体力学　：Navier-Stokesの方程式  
-　　　　　　　　　　(標準、 SUPG [Streamline Upwind Petrov-Galerkin]安定化)  
+　　　　　　　　　　　標準  
+　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化  
 　　　　　　　　　　Vorticity / Stream Funciton定式化  
-　　　　　　　　　　(標準、SUPG[Streamline Upwind Petrov-Galerkin]安定化※）※実験的  
+　　　　　　　　　　　標準  
+　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※)  
+　　　　　　　　　　　分離型解法(Runge-Kutta)  
+　　　　　　　　　　Pressure Poisson定式化※  
+　　　　　　　　　　　標準  
+　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　電磁気学　：H面導波管の伝達問題  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
+　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-05-18更新）**  
+　**バイナリ（2019-06-02更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.12  
+　　IvyFEM.dll version 0.0.0.13  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

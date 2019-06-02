@@ -29,7 +29,7 @@ namespace IvyFEM
 
         public void UpdateFieldValuesTimeDomain()
         {
-            UpdateFieldValuesTimeDomain(
+            UpdateFieldValuesNewmarkBetaTimeDomain(
                 U, ValueId, PrevValueId,
                 TimeStep,
                 NewmarkBeta, NewmarkGamma);
@@ -43,19 +43,21 @@ namespace IvyFEM
                     CalcStokesAB(A, B);
                     break;
                 case FluidEquationType.StdGNavierStokes:
-                    CalcStdGNavierStokesAB(A, B);
+                    //CalcStdGNavierStokesAB(A, B);
+                    CalcStdGNavierStokesByNewtonAB(A, B);
                     break;
                 case FluidEquationType.SUPGNavierStokes:
-                    //CalcSUPGNavierStokesAB(A, B);
-                    CalcSUPGNavierStokesByPicardAB(A, B);
+                    CalcSUPGNavierStokesAB(A, B);
                     break;
                 case FluidEquationType.StdGVorticity:
-                    CalcStdGVorticityAB(A, B);
-                    //CalcStdGVorticityByPicardAB(A, B); //DEBUG
+                    //CalcStdGVorticityAB(A, B);
+                    CalcStdGVorticityByNewtonAB(A, B);
                     break;
                 case FluidEquationType.SUPGVorticity:
-                    //CalcSUPGVorticityAB(A, B); // 発散する
-                    CalcSUPGVorticityByPicardAB(A, B);
+                    CalcSUPGVorticityByAB(A, B);
+                    break;
+                case FluidEquationType.StdGPressurePoissson:
+                    CalcStdGPressurePoissonAB(A, B);
                     break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
@@ -70,6 +72,10 @@ namespace IvyFEM
             {
                 SetVorticitySpecialBC(A, B);
             }
+            else if (EquationType == FluidEquationType.StdGPressurePoissson)
+            {
+                SetPressurePoissonSpecialBC(A, B, TimeStep, NewmarkBeta, NewmarkGamma, ValueId);
+            }
         }
 
         protected override void PostSolve()
@@ -81,7 +87,7 @@ namespace IvyFEM
             }
         }
 
-        protected override bool MustUseNewtonRaphson()
+        protected override bool MustUseNonlinearIter()
         {
             if (EquationType == FluidEquationType.Stokes)
             {

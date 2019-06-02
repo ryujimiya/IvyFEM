@@ -105,6 +105,45 @@ namespace IvyFEM
             }            
         }
 
+        public double[] L2Coord(double[] L)
+        {
+            double[] pt = new double[2];
+            double[][] ptValue = new double[NodeCount][];
+            int[] coIds = NodeCoordIds;
+            for (int iNode = 0; iNode < NodeCount; iNode++)
+            {
+                int coId = coIds[iNode];
+                ptValue[iNode] = World.GetCoord((uint)QuantityId, coId);
+            }
+
+            double[] N = CalcN(L);
+            for (int iNode = 0; iNode < NodeCount; iNode++)
+            {
+                for (int iDof = 0; iDof < 2; iDof++)
+                {
+                    pt[iDof] += N[iNode] * ptValue[iNode][iDof];
+                }
+            }
+            return pt;
+        }
+
+        public double[] Coord2L(double[] pt)
+        {
+            System.Diagnostics.Debug.Assert(pt.Length == 2);
+
+            double x = pt[0];
+            double y = pt[1];
+            double[] a;
+            double[] b;
+            double[] c;
+            CalcTransMatrix(out a, out b, out c);
+            double L1 = a[0] + b[0] * x + c[0] * y;
+            double L2 = a[1] + b[1] * x + c[1] * y;
+            double L3 = a[2] + b[2] * x + c[2] * y;
+            double[] L = { L1, L2, L3 };
+            return L;
+        }
+
         public static IntegrationPoints GetIntegrationPoints(TriangleIntegrationPointCount integrationPointCount)
         {
             foreach (var ip in IntegrationPoints.TriangleIntegrationPoints)

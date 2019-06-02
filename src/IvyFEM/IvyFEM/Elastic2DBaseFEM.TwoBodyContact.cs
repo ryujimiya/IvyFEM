@@ -995,7 +995,7 @@ namespace IvyFEM
 
                 double sqNorm = 0;
                 double sqInvNorm0 = 0;
-                double convRatio = ConvRatioToleranceForNewtonRaphson;
+                double convRatio = ConvRatioToleranceForNonlinearIter;
                 double tolerance = convRatio;
                 const int maxIter = IvyFEM.Linear.Constants.MaxIter;
                 int iter = 0;

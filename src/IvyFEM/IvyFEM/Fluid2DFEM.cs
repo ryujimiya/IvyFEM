@@ -21,23 +21,21 @@ namespace IvyFEM
                     CalcStokesAB(A, B);
                     break;
                 case FluidEquationType.StdGNavierStokes:
-                    CalcStdGNavierStokesAB(A, B);
-                    //CalcStdGNavierStokesByPicardAB(A, B); // SUPGの項がないときのTest Not converge
+                    //CalcStdGNavierStokesAB(A, B);
+                    CalcStdGNavierStokesByNewtonAB(A, B);
                     break;
                 case FluidEquationType.SUPGNavierStokes:
-                    //CalcSUPGNavierStokesAB(A, B); // 発散する
-                    CalcSUPGNavierStokesByPicardAB(A, B);
+                    CalcSUPGNavierStokesAB(A, B);
                     break;
-                //case FluidEquationType.GLSNavierStokes:
-                //    CalcGLSNavierStokesByPicardAB(A, B);
-                //    break;
                 case FluidEquationType.StdGVorticity:
-                    CalcStdGVorticityAB(A, B);
-                    //CalcStdGVorticityByPicardAB(A, B); // Newton-Raphsonと同等の小さいμしか解けない
+                    //CalcStdGVorticityAB(A, B);
+                    CalcStdGVorticityByNewtonAB(A, B);
                     break;
                 case FluidEquationType.SUPGVorticity:
-                    //CalcSUPGVorticityAB(A, B); // 発散する
-                    CalcSUPGVorticityByPicardAB(A, B);
+                    CalcSUPGVorticityAB(A, B);
+                    break;
+                case FluidEquationType.StdGPressurePoissson:
+                    CalcStdGPressurePoissonAB(A, B);
                     break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
@@ -52,6 +50,10 @@ namespace IvyFEM
             {
                 SetVorticitySpecialBC(A, B);
             }
+            else if (EquationType == FluidEquationType.StdGPressurePoissson)
+            {
+                SetPressurePoissonSpecialBC(A, B, 0.0, 0.0, 0.0, 0);
+            }
         }
 
         protected override void PostSolve()
@@ -63,7 +65,7 @@ namespace IvyFEM
             }
         }
 
-        protected override bool MustUseNewtonRaphson()
+        protected override bool MustUseNonlinearIter()
         {
             if (EquationType == FluidEquationType.Stokes)
             {

@@ -11,8 +11,8 @@ namespace IvyFEM
         protected void SetVorticitySpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             SetVorticityDirichletBCOfVorticityForTangentialFlow(A, B);
-            SetVorticityDirichletBCOfVorticityForNormalFlow(A, B);
-            SetVorticityDirichletBCOfStreamForNormalFlow(A, B);
+            SetVorticityDirichletBCOfVorticityForOutflow(A, B);
+            SetVorticityDirichletBCOfStreamForOutflow(A, B);
         }
 
         protected void VorticityPostSolve()
@@ -45,8 +45,8 @@ namespace IvyFEM
                 PortCondition portCondition = portConditions[portId];
                 IList<int> intParam = portCondition.IntAdditionalParameters;
                 System.Diagnostics.Debug.Assert(intParam.Count == 1);
-                FlowDirectionType flowDirType = (FlowDirectionType)intParam[0];
-                if (flowDirType != FlowDirectionType.Tangential)
+                FlowVorticityBCType bcType = (FlowVorticityBCType)intParam[0];
+                if (bcType != FlowVorticityBCType.TangentialFlow)
                 {
                     continue;
                 }
@@ -141,7 +141,6 @@ namespace IvyFEM
                         double pxValue = param[0];
                         double pyValue = param[1];
 
-
                         for (int colNodeId = 0; colNodeId < wNodeCnt; colNodeId++)
                         {
                             int colCoId = World.Node2Coord(wQuantityId, colNodeId);
@@ -176,7 +175,7 @@ namespace IvyFEM
             }
         }
 
-        private void SetVorticityDirichletBCOfVorticityForNormalFlow(
+        private void SetVorticityDirichletBCOfVorticityForOutflow(
             IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint wQuantityId = 0;
@@ -198,8 +197,8 @@ namespace IvyFEM
                 PortCondition portCondition = portConditions[portId];
                 IList<int> intParam = portCondition.IntAdditionalParameters;
                 System.Diagnostics.Debug.Assert(intParam.Count == 1);
-                FlowDirectionType flowDirType = (FlowDirectionType)intParam[0];
-                if (flowDirType != FlowDirectionType.Normal)
+                FlowVorticityBCType bcType = (FlowVorticityBCType)intParam[0];
+                if (bcType != FlowVorticityBCType.Outflow)
                 {
                     continue;
                 }
@@ -322,8 +321,8 @@ namespace IvyFEM
             double[] v = new double[vDof];
             if (wCoId < pCoCnt)
             {
-                v[0] = CoordV[wCoId * vDof];
-                v[1] = CoordV[wCoId * vDof + 1];
+                v[0] = CoordVelocity[wCoId * vDof];
+                v[1] = CoordVelocity[wCoId * vDof + 1];
             }
             else
             {
@@ -345,15 +344,15 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(nodeIndex == 2);
                 int coId1 = coIds[0];
                 int coId2 = coIds[1];
-                double[] v1 = { CoordV[coId1 * vDof], CoordV[coId1 * vDof + 1] };
-                double[] v2 = { CoordV[coId2 * vDof], CoordV[coId2 * vDof + 1] };
+                double[] v1 = { CoordVelocity[coId1 * vDof], CoordVelocity[coId1 * vDof + 1] };
+                double[] v2 = { CoordVelocity[coId2 * vDof], CoordVelocity[coId2 * vDof + 1] };
                 v[0] = (v1[0] + v2[0]) / 2.0;
                 v[1] = (v1[1] + v2[1]) / 2.0;
             }
             return v;
         }
 
-        private void SetVorticityDirichletBCOfStreamForNormalFlow(
+        private void SetVorticityDirichletBCOfStreamForOutflow(
             IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint wQuantityId = 0;
@@ -374,8 +373,8 @@ namespace IvyFEM
                 PortCondition portCondition = portConditions[portId];
                 IList<int> intParam = portCondition.IntAdditionalParameters;
                 System.Diagnostics.Debug.Assert(intParam.Count == 1);
-                FlowDirectionType flowDirType = (FlowDirectionType)intParam[0];
-                if (flowDirType != FlowDirectionType.Normal)
+                FlowVorticityBCType bcType = (FlowVorticityBCType)intParam[0];
+                if (bcType != FlowVorticityBCType.Outflow)
                 {
                     continue;
                 }
@@ -551,7 +550,7 @@ namespace IvyFEM
             int pCoCnt = (int)World.GetCoordCount(pQuantityId);
 
             int vDof = 2; // 速度
-            CoordV = new double[pCoCnt * vDof]; // nodeでなくcoord
+            CoordVelocity = new double[pCoCnt * vDof]; // nodeでなくcoord
             int[] cnt = new int[pCoCnt];
 
             IList<uint> feIds = World.GetTriangleFEIds(pQuantityId);
@@ -605,7 +604,7 @@ namespace IvyFEM
 
                     for (int rowDof = 0; rowDof < vDof; rowDof++)
                     {
-                        CoordV[rowCoId * vDof + rowDof] += v[rowDof];
+                        CoordVelocity[rowCoId * vDof + rowDof] += v[rowDof];
                     }
                     cnt[rowCoId]++;
                 }
@@ -616,7 +615,7 @@ namespace IvyFEM
                 {
                     for (int iDof = 0; iDof < vDof; iDof++)
                     {
-                        CoordV[coId * vDof + iDof] /= cnt[coId];
+                        CoordVelocity[coId * vDof + iDof] /= cnt[coId];
                     }
                 }
             }

@@ -126,17 +126,62 @@ namespace IvyFEM
             co2 = AddDisplacement(1, co2);
             OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
             OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            var t = v2 - v1;
-            t = CadUtils.Normalize(t);
+            var dir = v2 - v1;
+            dir = CadUtils.Normalize(dir);
             double l = GetLineLength();
             {
-                a[0] = (1.0 / l) * OpenTK.Vector2d.Dot(v2, t);
-                a[1] = (1.0 / l) * OpenTK.Vector2d.Dot(-v1, t);
+                a[0] = (1.0 / l) * OpenTK.Vector2d.Dot(v2, dir);
+                a[1] = (1.0 / l) * OpenTK.Vector2d.Dot(-v1, dir);
             }
             {
                 b[0] = (1.0 / l) * (-1.0);
                 b[1] = (1.0 / l) * 1.0;
             }
+        }
+
+        public double[] L2Coord(double[] L)
+        {
+            double[] pt = new double[2];
+            double[][] ptValue = new double[NodeCount][];
+            int[] coIds = NodeCoordIds;
+            for (int iNode = 0; iNode < NodeCount; iNode++)
+            {
+                int coId = coIds[iNode];
+                ptValue[iNode] = World.GetCoord((uint)QuantityId, coId);
+            }
+
+            double[] N = CalcN(L);
+            for (int iNode = 0; iNode < NodeCount; iNode++)
+            {
+                for (int iDof = 0; iDof < 2; iDof++)
+                {
+                    pt[iDof] += N[iNode] * ptValue[iNode][iDof];
+                }
+            }
+            return pt;
+        }
+
+        public double[] Coord2L(double[] pt)
+        {
+            System.Diagnostics.Debug.Assert(pt.Length == 2);
+            double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
+            double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
+            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
+            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
+            OpenTK.Vector2d v = new OpenTK.Vector2d(pt[0], pt[1]);
+            var dir12 = v2 - v1;
+            dir12 = CadUtils.Normalize(dir12);
+            var dir = v - v1;
+            dir = CadUtils.Normalize(dir);
+            double x = dir12[0] * dir[0] + dir12[1] * dir[1];
+
+            double[] a;
+            double[] b;
+            CalcTransMatrix(out a, out b);
+            double L1 = a[0] + b[0] * x;
+            double L2 = a[1] + b[1] * x;
+            double[] L = { L1, L2 };
+            return L;
         }
 
         // ξ([-1, 1])からL1,L2に変換

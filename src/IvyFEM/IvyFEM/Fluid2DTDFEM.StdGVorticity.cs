@@ -140,35 +140,13 @@ namespace IvyFEM
                             A[rowNodeId, colNodeId] +=
                                 kww1 + kww2 +
                                 (gamma / (beta * dt)) * m;
-                            // v = f(ψ) : kww2 Newton-Raphson
-                            B[rowNodeId] += kww2 * U[colNodeId] +
+
+                            B[rowNodeId] +=
                                 m * (
                                     (gamma / (beta * dt)) * u[0] -
                                     (1.0 - gamma / beta) * vel[0] -
                                     dt * (1.0 - gamma / (2.0 * beta)) * acc[0]
                                 );
-                        }
-                    }
-
-                    // v = f(ψ): kwp Newton-Raphson
-                    for (int row = 0; row < wElemNodeCnt; row++)
-                    {
-                        int rowNodeId = wNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        for (int col = 0; col < pElemNodeCnt; col++)
-                        {
-                            int colNodeId = pNodes[col];
-                            if (colNodeId == -1)
-                            {
-                                continue;
-                            }
-
-                            double kwp = detJWeight * rho * wN[row] * (pNy[col] * wx - pNx[col] * wy);
-                            A[rowNodeId, offset + colNodeId] += kwp;
-                            B[rowNodeId] += kwp * U[offset + colNodeId];
                         }
                     }
 
@@ -210,18 +188,6 @@ namespace IvyFEM
                             double kpp = detJWeight * (pNx[row] * pNx[col] + pNy[row] * pNy[col]);
                             A[offset + rowNodeId, offset + colNodeId] += kpp;
                         }
-                    }
-
-                    // v = f(ψ): qw Newton-Raphson
-                    for (int row = 0; row < wElemNodeCnt; row++)
-                    {
-                        int rowNodeId = wNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double qw = detJWeight * rho * wN[row] * (v[0] * wx + v[1] * wy);
-                        B[rowNodeId] += -qw;
                     }
 
                     for (int row = 0; row < wElemNodeCnt; row++)

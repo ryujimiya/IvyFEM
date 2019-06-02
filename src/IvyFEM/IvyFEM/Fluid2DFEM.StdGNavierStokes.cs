@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    partial class Fluid2DFEM
+    public partial class Fluid2DFEM
     {
         private void CalcStdGNavierStokesAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
@@ -108,7 +108,7 @@ namespace IvyFEM
                             }
 
                             double[,] kvv1 = new double[vDof, vDof];
-                            kvv1[0, 0] = detJWeight * mu * (vNx[row] * vNx[col] + 
+                            kvv1[0, 0] = detJWeight * mu * (vNx[row] * vNx[col] +
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
                             kvv1[0, 1] = detJWeight * mu * vNy[row] * vNx[col];
                             kvv1[1, 0] = detJWeight * mu * vNx[row] * vNy[col];
@@ -116,12 +116,10 @@ namespace IvyFEM
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
 
                             double[,] kvv2 = new double[vDof, vDof];
-                            kvv2[0, 0] = detJWeight * rho * vN[row] * (
-                                vN[col] * vx[0] + v[0] * vNx[col] + v[1] * vNy[col]);
-                            kvv2[0, 1] = detJWeight * rho * vN[row] * vN[col] * vy[0];
-                            kvv2[1, 0] = detJWeight * rho * vN[row] * vN[col] * vx[1];
-                            kvv2[1, 1] = detJWeight * rho * vN[row] * (
-                                vN[col] * vy[1] + v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 0] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 1] = 0;
+                            kvv2[1, 0] = 0;
+                            kvv2[1, 1] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
 
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
@@ -129,9 +127,6 @@ namespace IvyFEM
                                 {
                                     A[rowNodeId * vDof + rowDof, colNodeId * vDof + colDof] +=
                                         kvv1[rowDof, colDof] + kvv2[rowDof, colDof];
-
-                                    B[rowNodeId * vDof + rowDof] +=
-                                        kvv2[rowDof, colDof] * U[colNodeId * vDof + colDof];
                                 }
                             }
                         }
@@ -159,26 +154,8 @@ namespace IvyFEM
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
                                 A[rowNodeId * vDof + rowDof, offset + colNodeId] += kvp[rowDof, 0];
-                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += kvp[rowDof, 0];
+                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += -kvp[rowDof, 0];
                             }
-                        }
-                    }
-
-                    for (int row = 0; row < vElemNodeCnt; row++)
-                    {
-                        int rowNodeId = vNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double[] q2 = new double[vDof];
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            q2[rowDof] = detJWeight * rho * vN[row] * (v[0] * vx[rowDof] + v[1] * vy[rowDof]);
-                        }
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            B[rowNodeId * vDof + rowDof] += -q2[rowDof];
                         }
                     }
                 }

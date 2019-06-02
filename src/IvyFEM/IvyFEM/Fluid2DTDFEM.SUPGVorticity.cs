@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public partial class Fluid2DTDFEM
     {
-        private void CalcSUPGVorticityAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        private void CalcSUPGVorticityByAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint wQuantityId = 0;
             uint pQuantityId = 1;
@@ -145,6 +145,7 @@ namespace IvyFEM
                     double gDot = IvyFEM.Lapack.Functions.ddot(gVec, gVec);
                     tauc = 1.0 / (taum * gDot);
                 }
+
                 IntegrationPoints ip = TriangleFE.GetIntegrationPoints(World.TriIntegrationPointCount);//Point7
                 for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
                 {
@@ -171,6 +172,9 @@ namespace IvyFEM
                     double wyx = 0;
                     double wyy = 0;
                     double velow = 0;
+                    double prevW = 0;
+                    double prevVelow = 0;
+                    double prevAccw = 0;
                     for (int iNode = 0; iNode < wElemNodeCnt; iNode++)
                     {
                         int nodeId = wNodes[iNode];
@@ -199,6 +203,9 @@ namespace IvyFEM
                             (1.0 - gamma / beta) * prevVel[0] +
                             dt * (1.0 - gamma / (2.0 * beta)) * prevAcc[0];
                         velow += vel * wN[iNode];
+                        prevW += prevU[0] * wN[iNode];
+                        prevVelow += prevVel[0] * wN[iNode];
+                        prevAccw += prevAcc[0] * wN[iNode];
                     }
                     double p = 0;
                     double px = 0;
@@ -267,8 +274,8 @@ namespace IvyFEM
                             A[rowNodeId, colNodeId] +=
                                 kww1 + kww2 +
                                 (gamma / (beta * dt)) * m;
-                            // v = f(ψ) : kww2 Newton-Raphson
-                            B[rowNodeId] += kww2 * U[colNodeId] +
+
+                            B[rowNodeId] +=
                                 m * (
                                     (gamma / (beta * dt)) * u[0] -
                                     (1.0 - gamma / beta) * vel[0] -
@@ -276,29 +283,7 @@ namespace IvyFEM
                                 );
                         }
                     }
-
-                    // v = f(ψ): kwp Newton-Raphson
-                    for (int row = 0; row < wElemNodeCnt; row++)
-                    {
-                        int rowNodeId = wNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        for (int col = 0; col < pElemNodeCnt; col++)
-                        {
-                            int colNodeId = pNodes[col];
-                            if (colNodeId == -1)
-                            {
-                                continue;
-                            }
-
-                            double kwp = detJWeight * rho * wN[row] * (pNy[col] * wx - pNx[col] * wy);
-                            A[rowNodeId, offset + colNodeId] += kwp;
-                            B[rowNodeId] += kwp * U[offset + colNodeId];
-                        }
-                    }
-
+                    
                     for (int row = 0; row < pElemNodeCnt; row++)
                     {
                         int rowNodeId = pNodes[row];
@@ -337,18 +322,6 @@ namespace IvyFEM
                             double kpp = detJWeight * (pNx[row] * pNx[col] + pNy[row] * pNy[col]);
                             A[offset + rowNodeId, offset + colNodeId] += kpp;
                         }
-                    }
-
-                    // v = f(ψ): qw Newton-Raphson
-                    for (int row = 0; row < wElemNodeCnt; row++)
-                    {
-                        int rowNodeId = wNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double qw = detJWeight * rho * wN[row] * (v[0] * wx + v[1] * wy);
-                        B[rowNodeId] += -qw;
                     }
 
                     for (int row = 0; row < wElemNodeCnt; row++)
@@ -404,7 +377,7 @@ namespace IvyFEM
                             {
                                 continue;
                             }
-                            rmp[jNode] = rho * (pNu[1][jNode] * wx - pNu[0][jNode] * wy);
+                            rmp[jNode] = 0;
                         }
                     }
                     // kww
@@ -427,9 +400,6 @@ namespace IvyFEM
                                 detJWeight * taum * (v[0] * wNu[0][row] + v[1] * wNu[1][row]) * rmw[col];
 
                             A[rowNodeId, colNodeId] += kww;
-
-                            B[rowNodeId] +=
-                                kww * U[colNodeId];
                         }
                     }
                     // kwp
@@ -449,13 +419,9 @@ namespace IvyFEM
                             }
 
                             double kwp =
-                                detJWeight * taum * (pNu[1][col] * wNu[0][row] - pNu[0][col] * wNu[1][row]) * rm +
                                 detJWeight * taum * (v[0] * wNu[0][row] + v[1] * wNu[1][row]) * rmp[col];
 
                             A[rowNodeId, offset + colNodeId] += kwp;
-
-                            B[rowNodeId] +=
-                                kwp * U[offset + colNodeId];
                         }
                     }
 
@@ -468,12 +434,15 @@ namespace IvyFEM
                         }
 
                         double qw = detJWeight * taum *
-                            (v[0] * wNu[0][row] + v[1] * wNu[1][row]) * rm;
+                            (v[0] * wNu[0][row] + v[1] * wNu[1][row]) * (
+                            -(gamma / (beta * dt)) * prevW +
+                            (1.0 - (gamma / beta)) * prevVelow +
+                            dt * (1.0 - (gamma / (2.0 * beta))) * prevAccw +
+                            -rho * (gx[1] - gy[0]));
 
                         B[rowNodeId] += -qw;
                     }
                 }
-
             }
         }
     }

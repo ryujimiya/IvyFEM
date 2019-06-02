@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public abstract partial class Fluid2DBaseFEM : FEM
     {
-        public double ConvRatioToleranceForNewtonRaphson { get; set; }
+        public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
         /// <summary>
@@ -18,12 +18,12 @@ namespace IvyFEM
 
         // output
         public double[] U { get; protected set; } = null;
-        public double[] CoordV { get; protected set; } = null; // Vorticityの場合の速度を格納
+        public double[] CoordVelocity { get; protected set; } = null; // Vorticityの場合の速度を格納
 
         protected abstract void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
         protected abstract void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
         protected abstract void PostSolve();
-        protected abstract bool MustUseNewtonRaphson();
+        protected abstract bool MustUseNonlinearIter();
 
         public override void Solve()
         {
@@ -36,12 +36,12 @@ namespace IvyFEM
                 nodeCnt += quantityNodeCnt * quantityDof;
             }
 
-            if (MustUseNewtonRaphson())
+            if (MustUseNonlinearIter())
             {
-                // Newton Raphson
+                // Nonlinear Iter
                 double sqNorm = 0;
                 double sqInvNorm0 = 0;
-                double convRatio = ConvRatioToleranceForNewtonRaphson;
+                double convRatio = ConvRatioToleranceForNonlinearIter;
                 double tolerance = convRatio;
                 const int maxIter = IvyFEM.Linear.Constants.MaxIter;
                 int iter = 0;
@@ -50,10 +50,10 @@ namespace IvyFEM
 
                 for (iter = 0; iter < maxIter; iter++)
                 {
+                    PostSolve();
+
                     var A = new IvyFEM.Linear.DoubleSparseMatrix(nodeCnt, nodeCnt);
                     var B = new double[nodeCnt];
-
-                    PostSolve();
 
                     CalcAB(A, B);
 
@@ -90,7 +90,7 @@ namespace IvyFEM
                     //---------------------------------------------------
                 }
 
-                System.Diagnostics.Debug.WriteLine("Newton Raphson iter = " + iter + " norm = " + convRatio);
+                System.Diagnostics.Debug.WriteLine("Nonlinear iter = " + iter + " norm = " + convRatio);
                 System.Diagnostics.Debug.Assert(iter < maxIter);
             }
             else
@@ -100,14 +100,11 @@ namespace IvyFEM
 
                 CalcAB(A, B);
 
-                SetSpecialBC(A, B);
-
                 DoubleSetFixedCadsCondtion(A, B);
+
                 double[] X;
                 Solver.DoubleSolve(out X, A, B);
                 U = X;
-
-                PostSolve();
             }
         }
     }

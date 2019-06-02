@@ -128,14 +128,21 @@ namespace IvyFEM
         Stokes,
         StdGNavierStokes,
         SUPGNavierStokes,
-        //GLSNavierStokes,
         StdGVorticity,
-        SUPGVorticity
+        SUPGVorticity,
+        StdGPressurePoissson
     }
 
-    public enum FlowDirectionType
+    public enum FlowVorticityBCType
     {
-        Tangential,
-        Normal
+        TangentialFlow,
+        Outflow
+    }
+
+    public enum FlowPressureBCType
+    {
+        NoConstraint,
+        NormalInflow,
+        Outflow
     }
 }

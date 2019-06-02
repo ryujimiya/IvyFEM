@@ -11,7 +11,7 @@ namespace IvyFEM
 
     public abstract partial class Elastic2DBaseFEM : FEM
     {
-        public double ConvRatioToleranceForNewtonRaphson { get; set; }
+        public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
         // Calc Matrix
         protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
@@ -58,12 +58,12 @@ namespace IvyFEM
                 nodeCnt += quantityDof * quantityNodeCnt;
             }
 
-            if (MustUseNewtonRaphson())
+            if (MustUseNonlinearIter())
             {
-                // Newton Raphson
+                // Nonlinear Iter
                 double sqNorm = 0;
                 double sqInvNorm0 = 0;
-                double convRatio = ConvRatioToleranceForNewtonRaphson;
+                double convRatio = ConvRatioToleranceForNonlinearIter;
                 double tolerance = convRatio;
                 const int maxIter = IvyFEM.Linear.Constants.MaxIter;
                 int iter = 0;
@@ -114,7 +114,7 @@ namespace IvyFEM
                     //---------------------------------------------------
                     System.Diagnostics.Debug.WriteLine("Solve: t = " + (System.Environment.TickCount - t));
                 }
-                System.Diagnostics.Debug.WriteLine("Newton Raphson iter = " + iter + " norm = " + convRatio);
+                System.Diagnostics.Debug.WriteLine("Nonlinear iter = " + iter + " norm = " + convRatio);
                 System.Diagnostics.Debug.Assert(iter < maxIter);
             }
             else
@@ -142,7 +142,7 @@ namespace IvyFEM
 
         }
 
-        protected bool MustUseNewtonRaphson()
+        protected bool MustUseNonlinearIter()
         {
             if (HasMultipointConstraints())
             {

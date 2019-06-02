@@ -74,6 +74,8 @@ namespace IvyFEM
                     {
                         int workFEOrder = 1;
                         LineFE lineFE = new LineFE(workFEOrder);
+                        lineFE.World = world;
+                        lineFE.QuantityId = (int)quantityId;
                         {
                             int[] coIds = { allCoIds[i], allCoIds[i + 1] };
                             lineFE.SetVertexCoordIds(coIds);

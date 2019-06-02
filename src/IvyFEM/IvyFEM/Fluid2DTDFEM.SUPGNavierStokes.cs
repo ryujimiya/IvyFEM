@@ -165,6 +165,9 @@ namespace IvyFEM
                     double[] vyx = new double[vDof];
                     double[] vyy = new double[vDof];
                     double[] velov = new double[vDof];
+                    double[] prevV = new double[vDof];
+                    double[] prevVelov = new double[vDof];
+                    double[] prevAccv = new double[vDof];
                     double p = 0;
                     double px = 0;
                     double py = 0;
@@ -199,8 +202,10 @@ namespace IvyFEM
                             vyx[iDof] += vValue * vNuv[1, 0][iNode];
                             vyy[iDof] += vValue * vNuv[1, 1][iNode];
                             velov[iDof] += vel[iDof] * vN[iNode];
+                            prevV[iDof] += prevU[iDof] * vN[iNode];
+                            prevVelov[iDof] += prevVel[iDof] * vN[iNode];
+                            prevAccv[iDof] += prevAcc[iDof] * vN[iNode];
                         }
-
                     }
                     for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
                     {
@@ -254,12 +259,10 @@ namespace IvyFEM
                                 vNx[row] * vNx[col] + vNy[row] * vNy[col]);
 
                             double[,] kvv2 = new double[vDof, vDof];
-                            kvv2[0, 0] = detJWeight * rho * vN[row] * (
-                                vN[col] * vx[0] + v[0] * vNx[col] + v[1] * vNy[col]);
-                            kvv2[0, 1] = detJWeight * rho * vN[row] * vN[col] * vy[0];
-                            kvv2[1, 0] = detJWeight * rho * vN[row] * vN[col] * vx[1];
-                            kvv2[1, 1] = detJWeight * rho * vN[row] * (
-                                vN[col] * vy[1] + v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 0] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
+                            kvv2[0, 1] = 0;
+                            kvv2[1, 0] = 0;
+                            kvv2[1, 1] = detJWeight * rho * vN[row] * (v[0] * vNx[col] + v[1] * vNy[col]);
 
                             double[,] m = new double[vDof, vDof];
                             m[0, 0] = detJWeight * rho * vN[row] * vN[col];
@@ -274,7 +277,6 @@ namespace IvyFEM
                                         (gamma / (beta * dt)) * m[rowDof, colDof];
 
                                     B[rowNodeId * vDof + rowDof] +=
-                                        kvv2[rowDof, colDof] * U[colNodeId * vDof + colDof] +
                                         m[rowDof, colDof] * (
                                             (gamma / (beta * dt)) * u[colDof] -
                                             (1.0 - gamma / beta) * vel[colDof] -
@@ -307,26 +309,8 @@ namespace IvyFEM
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
                                 A[rowNodeId * vDof + rowDof, offset + colNodeId] += kvp[rowDof, 0];
-                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += kvp[rowDof, 0];
+                                A[offset + colNodeId, rowNodeId * vDof + rowDof] += -kvp[rowDof, 0];
                             }
-                        }
-                    }
-
-                    for (int row = 0; row < vElemNodeCnt; row++)
-                    {
-                        int rowNodeId = vNodes[row];
-                        if (rowNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double[] q2 = new double[vDof];
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            q2[rowDof] = detJWeight * rho * vN[row] * (v[0] * vx[rowDof] + v[1] * vy[rowDof]);
-                        }
-                        for (int rowDof = 0; rowDof < vDof; rowDof++)
-                        {
-                            B[rowNodeId * vDof + rowDof] += -q2[rowDof];
                         }
                     }
 
@@ -363,8 +347,6 @@ namespace IvyFEM
                                     rmivj[iDof, jDof, jNode] +=
                                         -mu * (vNuv[0, 0][jNode] + vNuv[1, 1][jNode]);
                                 }
-                                rmivj[iDof, jDof, jNode] +=
-                                    rho * vN[jNode] * vu[jDof][iDof];
                                 if (iDof == jDof)
                                 {
                                     rmivj[iDof, jDof, jNode] +=
@@ -421,7 +403,6 @@ namespace IvyFEM
                                 for (int colDof = 0; colDof < vDof; colDof++)
                                 {
                                     kvv1[rowDof, colDof] =
-                                        detJWeight * taum * vN[col] * vNu[colDof][row] * rmi[rowDof] +
                                         detJWeight * taum * (v[0] * vNu[0][row] + v[1] * vNu[1][row]) *
                                         rmivj[rowDof, colDof, col];
                                     kvv2[rowDof, colDof] =
@@ -435,9 +416,6 @@ namespace IvyFEM
                                 {
                                     A[rowNodeId * vDof + rowDof, colNodeId * vDof + colDof] +=
                                         kvv1[rowDof, colDof] + kvv2[rowDof, colDof];
-
-                                    B[rowNodeId * vDof + rowDof] +=
-                                        (kvv1[rowDof, colDof] + kvv2[rowDof, colDof]) * U[colNodeId * vDof + colDof];
                                 }
                             }
                         }
@@ -469,9 +447,6 @@ namespace IvyFEM
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
                                 A[rowNodeId * vDof + rowDof, offset + colNodeId] += kvp[rowDof, 0];
-
-                                B[rowNodeId * vDof + rowDof] +=
-                                    kvp[rowDof, 0] * U[offset + colNodeId];
                             }
                         }
                     }
@@ -495,16 +470,13 @@ namespace IvyFEM
                             for (int colDof = 0; colDof < vDof; colDof++)
                             {
                                 kpv[0, colDof] =
-                                    -detJWeight * (1.0 / rho) * taum *
+                                    detJWeight * (1.0 / rho) * taum *
                                     (pNu[0][row] * rmivj[0, colDof, col] + pNu[1][row] * rmivj[1, colDof, col]);
                             }
 
                             for (int colDof = 0; colDof < vDof; colDof++)
                             {
                                 A[offset + rowNodeId, colNodeId * vDof + colDof] += kpv[0, colDof];
-
-                                B[offset + rowNodeId] +=
-                                    kpv[0, colDof] * U[colNodeId * vDof + colDof];
                             }
                         }
                     }
@@ -526,13 +498,10 @@ namespace IvyFEM
 
                             double[,] kpp = new double[pDof, pDof];
                             kpp[0, 0] =
-                                -detJWeight * (1.0 / rho) * taum *
+                                detJWeight * (1.0 / rho) * taum *
                                 (pNu[0][row] * rmip[0, col] + pNu[1][row] * rmip[1, col]);
 
                             A[offset + rowNodeId, offset + colNodeId] += kpp[0, 0];
-
-                            B[offset + rowNodeId] +=
-                                kpp[0, 0] * U[offset + colNodeId];
                         }
                     }
 
@@ -543,17 +512,20 @@ namespace IvyFEM
                         {
                             continue;
                         }
+
                         double[] qv1 = new double[vDof];
-                        double[] qv2 = new double[vDof];
                         for (int rowDof = 0; rowDof < vDof; rowDof++)
                         {
                             qv1[rowDof] = detJWeight * taum *
-                                (v[0] * vNu[0][row] + v[1] * vNu[1][row]) * rmi[rowDof];
-                            qv2[rowDof] = detJWeight * tauc * rho * vNu[rowDof][row] * rc;
+                                (v[0] * vNu[0][row] + v[1] * vNu[1][row]) * (
+                                -(gamma / (beta * dt)) * prevV[rowDof] +
+                                (1.0 - (gamma / beta)) * prevVelov[rowDof] +
+                                dt * (1.0 - (gamma / (2.0 * beta))) * prevAccv[rowDof] +
+                                -rho * g[rowDof]);
                         }
                         for (int rowDof = 0; rowDof < vDof; rowDof++)
                         {
-                            B[rowNodeId * vDof + rowDof] += -(qv1[rowDof] + qv2[rowDof]);
+                            B[rowNodeId * vDof + rowDof] += -qv1[rowDof];
                         }
                     }
 
@@ -565,7 +537,15 @@ namespace IvyFEM
                             continue;
                         }
                         double[] qp = new double[pDof];
-                        qp[0] = -detJWeight * (1.0 / rho) * taum * (pNu[0][row] * rmi[0] + pNu[1][row] * rmi[1]);
+                        for (int iDof = 0; iDof < vDof; iDof++)
+                        {
+                            qp[0] += detJWeight * (1.0 / rho) * taum * (
+                                pNu[iDof][row] * (
+                                -(gamma / (beta * dt)) * prevV[iDof] +
+                                (1.0 - (gamma / beta)) * prevVelov[iDof] +
+                                dt * (1.0 - (gamma / (2.0 * beta))) * prevAccv[iDof] +
+                                -rho * g[iDof]));
+                        }
                         B[offset + rowNodeId] += -qp[0];
                     }
                 }
@@ -584,6 +564,5 @@ namespace IvyFEM
                 }
             }
         }
-
     }
 }

@@ -9,6 +9,7 @@ namespace IvyFEM
     public class FE : IObject
     {
         internal FEWorld World { get; set; }
+        public int QuantityId { get; set; } = -1;
         public ElementType Type { get; protected set; } = ElementType.NotSet;
         public int Order { get; set; } = -1;
         public uint VertexCount { get; protected set; } = 0;
@@ -35,6 +36,7 @@ namespace IvyFEM
             FE srcFE = src as FE;
 
             World = srcFE.World; // shallow copy
+            QuantityId = srcFE.QuantityId;
             Type = srcFE.Type;
             Order = srcFE.Order;
             NodeCount = srcFE.NodeCount;
