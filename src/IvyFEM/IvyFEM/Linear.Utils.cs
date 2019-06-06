@@ -208,7 +208,8 @@ namespace IvyFEM.Linear
                     "Ordered rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
                     rowcolLength, subdiaLength, superdiaLength);
 
-                if (subdiaLength <= iniSubdiaLength && superdiaLength <= iniSuperdiaLength)
+                //if (subdiaLength <= iniSubdiaLength && superdiaLength <= iniSuperdiaLength)
+                if ((subdiaLength + superdiaLength) <= (iniSubdiaLength + iniSuperdiaLength))
                 {
                     improved = true;
                 }

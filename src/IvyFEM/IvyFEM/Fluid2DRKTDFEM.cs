@@ -19,7 +19,7 @@ namespace IvyFEM
         /// <summary>
         /// 方程式のタイプ
         /// </summary>
-        public FluidEquationType EquationType { get; set; } = FluidEquationType.StdGPressurePoissson;
+        public FluidEquationType EquationType { get; set; } = FluidEquationType.StdGPressurePoisson;
 
         // output
         public double[] U = null;
@@ -42,7 +42,7 @@ namespace IvyFEM
                 case FluidEquationType.StdGVorticity:
                     CalcStdGVorticity1stEquationKMF(K, M, F);
                     break;
-                case FluidEquationType.StdGPressurePoissson:
+                case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoisson1stEquationKMF(K, M, F);
                     break;
                 default:
@@ -57,7 +57,7 @@ namespace IvyFEM
             {
                 SetVorticity1stEquationSpecialBC(A, B);
             }
-            else if (EquationType == FluidEquationType.StdGPressurePoissson)
+            else if (EquationType == FluidEquationType.StdGPressurePoisson)
             {
                 SetPressurePoisson1stEquationSpecialBC(A, B);
             }
@@ -71,7 +71,7 @@ namespace IvyFEM
                 case FluidEquationType.StdGVorticity:
                     CalcStdGVorticity2ndEquationAB(A, B);
                     break;
-                case FluidEquationType.StdGPressurePoissson:
+                case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoisson2ndEquationAB(A, B);
                     break;
                 default:
@@ -86,7 +86,7 @@ namespace IvyFEM
             {
                 SetVorticity2ndEquationSpecialBC(A, B);
             }
-            else if (EquationType == FluidEquationType.StdGPressurePoissson)
+            else if (EquationType == FluidEquationType.StdGPressurePoisson)
             {
                 SetPressurePoisson2ndEquationSpecialBC(A, B);
             }

@@ -34,6 +34,12 @@ namespace IvyFEM
             {
                 return;
             }
+            FieldValue FV = null;
+            if (valueId != 0)
+            {
+                // Time Domain
+                FV = World.GetFieldValue(valueId);
+            }
             uint portCnt = World.GetPortCount(pQuantityId);
             IList<PortCondition> portConditions = World.GetPortConditions(pQuantityId);
             IList<uint> feIds = World.GetLineFEIds(pQuantityId);
@@ -185,10 +191,20 @@ namespace IvyFEM
                                     kpv1[0, 1] = detJWeight * mu * vNx[col] * (
                                         normal[1] * pNx[row] - normal[0] * pNy[row]);
 
+                                    double[,] kpv2 = new double[pDof, vDof];
+                                    if (valueId != 0)
+                                    {
+                                        // Time Domain
+                                        kpv2[0, 0] = detJWeight * rho * pN[row] * vN[col] *
+                                            normal[0] * (gamma / (beta * dt));
+                                        kpv2[0, 1] = detJWeight * rho * pN[row] * vN[col] *
+                                            normal[1] * (gamma / (beta * dt));
+                                    }
+
                                     for (int colDof = 0; colDof < vDof; colDof++)
                                     {
                                         A[offset + rowNodeId, colNodeId * vDof + colDof] +=
-                                            kpv1[0, colDof];
+                                            kpv1[0, colDof] + kpv2[0, colDof];
                                     }
                                 }
                             }
@@ -205,8 +221,29 @@ namespace IvyFEM
                                 {
                                     continue;
                                 }
-                                double qp = 0;
-                                B[offset + rowNodeId] += -qp;
+                                double qp1 = 0;
+                                double qp2 = 0;
+                                if (valueId != 0)
+                                {
+                                    // Time Domain
+                                    for (int col = 0; col < vTriFENodeCnt; col++)
+                                    {
+                                        int colCoId = vTriFECoIds[col];
+                                        double[] u = FV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
+                                        double[] vel = FV.GetDoubleValue(colCoId, FieldDerivativeType.Velocity);
+                                        double[] acc = FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
+                                        for (int colDof = 0; colDof < vDof; colDof++)
+                                        {
+                                            qp2 += detJWeight * rho * pN[row] * vN[col] *
+                                                normal[colDof] * (
+                                                -(gamma / (beta * dt)) * u[colDof] +
+                                                (1.0 - (gamma / beta)) * vel[colDof] +
+                                                dt * (1.0 - (gamma / (2.0 * beta))) * acc[colDof]);
+                                        }
+                                    }
+                                }
+
+                                B[offset + rowNodeId] += -qp1 -qp2;
                             }
                         }
                     }

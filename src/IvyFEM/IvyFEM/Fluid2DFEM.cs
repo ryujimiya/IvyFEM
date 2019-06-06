@@ -34,7 +34,7 @@ namespace IvyFEM
                 case FluidEquationType.SUPGVorticity:
                     CalcSUPGVorticityAB(A, B);
                     break;
-                case FluidEquationType.StdGPressurePoissson:
+                case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoissonAB(A, B);
                     break;
                 default:
@@ -50,7 +50,7 @@ namespace IvyFEM
             {
                 SetVorticitySpecialBC(A, B);
             }
-            else if (EquationType == FluidEquationType.StdGPressurePoissson)
+            else if (EquationType == FluidEquationType.StdGPressurePoisson)
             {
                 SetPressurePoissonSpecialBC(A, B, 0.0, 0.0, 0.0, 0);
             }

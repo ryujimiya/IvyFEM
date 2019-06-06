@@ -37,6 +37,9 @@ namespace IvyFEM
             {
                 return;
             }
+            double dt = TimeStep;
+            FieldValue FV = World.GetFieldValue(ValueId);
+            FieldValue prevFV = World.GetFieldValue(PrevValueId);
             uint portCnt = World.GetPortCount(pQuantityId);
             IList<PortCondition> portConditions = World.GetPortConditions(pQuantityId);
             IList<uint> feIds = World.GetLineFEIds(pQuantityId);
@@ -182,17 +185,31 @@ namespace IvyFEM
                                         continue;
                                     }
 
+                                    // Time Domain
+                                    int colCoId = vTriFECoIds[col];
+                                    double[] u = FV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
+                                    double[] prevU = prevFV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
+
                                     double[,] kpv1 = new double[pDof, vDof];
                                     kpv1[0, 0] = detJWeight * mu * (-vNy[col]) * (
                                         normal[1] * pNx[row] - normal[0] * pNy[row]);
                                     kpv1[0, 1] = detJWeight * mu * vNx[col] * (
                                         normal[1] * pNx[row] - normal[0] * pNy[row]);
 
+                                    double[,] kpv2 = new double[pDof, vDof];
+                                    // Time Domain
+                                    kpv2[0, 0] = detJWeight * rho * pN[row] * vN[col] *
+                                        normal[0];
+                                    kpv2[0, 1] = detJWeight * rho * pN[row] * vN[col] *
+                                        normal[1];
+
                                     for (int colDof = 0; colDof < vDof; colDof++)
                                     {
                                         double vValue = U[colNodeId * vDof + colDof];
                                         B[rowNodeId] +=
-                                            -kpv1[0, colDof] * vValue;
+                                            -kpv1[0, colDof] * vValue +
+                                            -kpv2[0, colDof] *
+                                            (3.0 * vValue - 4.0 * u[colDof] + prevU[colDof]) / (2.0 * dt);
                                     }
                                 }
                             }
@@ -460,10 +477,9 @@ namespace IvyFEM
             {
                 return;
             }
-            uint valueId = ValueId;
             double dt = TimeStep;
-            FieldValue FV = null;
-            FV = World.GetFieldValue(valueId);
+            FieldValue FV = World.GetFieldValue(ValueId);
+            FieldValue prevFV = World.GetFieldValue(PrevValueId);
 
             uint portCnt = World.GetPortCount(pQuantityId);
             IList<PortCondition> portConditions = World.GetPortConditions(pQuantityId);
@@ -616,6 +632,7 @@ namespace IvyFEM
                                     // Time Domain
                                     int colCoId = vTriFECoIds[col];
                                     double[] u = FV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
+                                    double[] prevU = prevFV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
 
                                     double[,] kpv = new double[pDof, vDof];
                                     kpv[0, 0] = detJWeight * rho * pN[row] * vN[col] *
@@ -626,8 +643,11 @@ namespace IvyFEM
                                     for (int colDof = 0; colDof < vDof; colDof++)
                                     {
                                         double vValue = U[colNodeId * vDof + colDof];
-                                        B[rowNodeId] += 
-                                            -kpv[0, 0] * (vValue - u[colDof]) / dt;
+                                        //B[rowNodeId] += 
+                                        //    -kpv[0, colDof] * (vValue - u[colDof]) / dt;
+                                        B[rowNodeId] +=
+                                            -kpv[0, colDof] * 
+                                            (3.0 * vValue - 4.0 * u[colDof] + prevU[colDof]) / (2.0 * dt);
                                     }
                                 }
                             }

@@ -130,7 +130,7 @@ namespace IvyFEM
         SUPGNavierStokes,
         StdGVorticity,
         SUPGVorticity,
-        StdGPressurePoissson
+        StdGPressurePoisson
     }
 
     public enum FlowVorticityBCType
