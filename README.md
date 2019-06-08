@@ -38,9 +38,9 @@
 　　　　　　　　　　Helmholtz方程式  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-06-07更新）**  
+　**バイナリ（2019-06-08更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.14  
+　　IvyFEM.dll version 0.0.0.15  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

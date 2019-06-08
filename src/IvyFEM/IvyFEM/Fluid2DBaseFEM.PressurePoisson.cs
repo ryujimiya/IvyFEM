@@ -660,7 +660,7 @@ namespace IvyFEM
 
                                     for (int colDof = 0; colDof < vDof; colDof++)
                                     {
-                                        A[offset + rowNodeId, colNodeId * vDof + colDof] += kpv[0, 0];
+                                        A[offset + rowNodeId, colNodeId * vDof + colDof] += kpv[0, colDof];
                                     }
                                 }
                             }
