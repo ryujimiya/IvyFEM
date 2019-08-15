@@ -26,11 +26,16 @@ namespace IvyFEM
         public IList<PortCondition> PortConditions { get; private set; } =new List<PortCondition>();
         private IList<Dictionary<int, int>> PortCo2Nodes = new List<Dictionary<int, int>>();
         private IList<Dictionary<int, int>> PortNode2Cos = new List<Dictionary<int, int>>();
+        private IList<IList<Dictionary<int, int>>> PeriodicPortBcCo2Nodess = new List<IList<Dictionary<int, int>>>();
+        private IList<IList<Dictionary<int, int>>> PeriodicPortBcNode2Coss = new List<IList<Dictionary<int, int>>>();
         private IList<IList<uint>> PortLineFEIdss = new List<IList<uint>>();
+        private IList<IList<IList<uint>>> PeriodicPortLineFEIdsss = new List<IList<IList<uint>>>();
+        private IList<IList<uint>> PeriodicPortTriangleFEIdss = new List<IList<uint>>();
         private Dictionary<int, int> Co2Node = new Dictionary<int, int>();
         private Dictionary<int, int> Node2Co = new Dictionary<int, int>();
         private Dictionary<string, uint> Mesh2LineFE = new Dictionary<string, uint>();
         private Dictionary<string, uint> Mesh2TriangleFE = new Dictionary<string, uint>();
+        private Dictionary<int, IList<uint>> Co2LineFE = new Dictionary<int, IList<uint>>();
         private Dictionary<int, IList<uint>> Co2TriangleFE = new Dictionary<int, IList<uint>>();
         private Dictionary<string, IList<uint>> EdgeCos2TriangleFE = new Dictionary<string, IList<uint>>();
         private IList<uint> ContactSlaveLineFEIds = new List<uint>();
@@ -70,11 +75,14 @@ namespace IvyFEM
                 portNode2Co.Clear();
             }
             PortNode2Cos.Clear();
+            PeriodicPortBcCo2Nodess.Clear();
+            PeriodicPortBcNode2Coss.Clear();
             Co2Node.Clear();
             Node2Co.Clear();
             Mesh2LineFE.Clear();
             Mesh2TriangleFE.Clear();
             Co2TriangleFE.Clear();
+            Co2LineFE.Clear();
             EdgeCos2TriangleFE.Clear();
             ContactSlaveLineFEIds.Clear();
             ContactMasterLineFEIds.Clear();
@@ -84,6 +92,8 @@ namespace IvyFEM
                 portLineFEIds.Clear();
             }
             PortLineFEIdss.Clear();
+            PeriodicPortLineFEIdsss.Clear();
+            PeriodicPortTriangleFEIdss.Clear();
             TriangleFEArray.Clear();
         }
 
@@ -177,6 +187,33 @@ namespace IvyFEM
                 return -1;
             }
             return portNode2Co[nodeId];
+        }
+
+        public IList<int> GetPeriodicPortBcCoIds(uint portId, uint bcIndex)
+        {
+            var periodicPortBcCo2Node = PeriodicPortBcCo2Nodess[(int)portId][(int)bcIndex];
+            IList<int> coIds = periodicPortBcCo2Node.Keys.ToList();
+            return coIds;
+        }
+
+        public int PeriodicPortBcCoord2Node(uint portId, uint bcIndex, int coId)
+        {
+            var periodicPortBcCo2Node = PeriodicPortBcCo2Nodess[(int)portId][(int)bcIndex];
+            if (!periodicPortBcCo2Node.ContainsKey(coId))
+            {
+                return -1;
+            }
+            return periodicPortBcCo2Node[coId];
+        }
+
+        public int PeriodicPortBcNode2Coord(uint portId, uint bcIndex, int nodeId)
+        {
+            var periodicPortBcNode2Co = PeriodicPortBcNode2Coss[(int)portId][(int)bcIndex];
+            if (!periodicPortBcNode2Co.ContainsKey(nodeId))
+            {
+                return -1;
+            }
+            return periodicPortBcNode2Co[nodeId];
         }
 
         public IList<int> GetCoordIdsFromCadId(FEWorld world, uint cadId, CadElementType cadElemType)
@@ -302,6 +339,16 @@ namespace IvyFEM
             return 0;
         }
 
+        public IList<uint> GetLineFEIdsFromCoord(int coId)
+        {
+            IList<uint> feIds = new List<uint>();
+            if (Co2LineFE.ContainsKey(coId))
+            {
+                feIds = Co2LineFE[coId];
+            }
+            return feIds;
+        }
+
         public IList<uint> GetTriangleFEIdsFromCoord(int coId)
         {
             IList<uint> feIds = new List<uint>();
@@ -332,6 +379,56 @@ namespace IvyFEM
             return feIds;
         }
 
+        public IList<uint> GetLineFEIdsFromEdgeCadId(FEWorld world, uint eId)
+        {
+            IList<uint> retFEIds = new List<uint>();
+
+            IList<uint> feIds = GetLineFEIds();
+            foreach (uint feId in feIds)
+            {
+                LineFE lineFE = GetLineFE(feId);
+                uint meshId= lineFE.MeshId;
+                int meshElemId = lineFE.MeshElemId;
+                uint cadId;
+                uint elemCount;
+                MeshType meshType;
+                int loc;
+                world.Mesh.GetMeshInfo(meshId, out elemCount, out meshType, out loc, out cadId);
+                System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+
+                if (cadId == eId)
+                {
+                    retFEIds.Add(feId);
+                }
+            }
+            return retFEIds;
+        }
+
+        public IList<uint> GetTriangleFEIdsFromLoopCadId(FEWorld world, uint lId)
+        {
+            IList<uint> retFEIds = new List<uint>();
+
+            IList<uint> feIds = GetTriangleFEIds();
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(feId);
+                uint meshId = triFE.MeshId;
+                int meshElemId = triFE.MeshElemId;
+                uint cadId;
+                uint elemCount;
+                MeshType meshType;
+                int loc;
+                world.Mesh.GetMeshInfo(meshId, out elemCount, out meshType, out loc, out cadId);
+                System.Diagnostics.Debug.Assert(meshType == MeshType.Tri);
+
+                if (cadId == lId)
+                {
+                    retFEIds.Add(feId);
+                }
+            }
+            return retFEIds;
+        }
+
         public IList<uint> GetLineFEIds()
         {
             return LineFEArray.GetObjectIds();
@@ -347,6 +444,18 @@ namespace IvyFEM
         {
             System.Diagnostics.Debug.Assert(portId < PortLineFEIdss.Count);
             return PortLineFEIdss[(int)portId];
+        }
+
+        public IList<uint> GetPeriodicPortLineFEIds(uint portId, uint bcIndex)
+        {
+            System.Diagnostics.Debug.Assert(portId < PeriodicPortLineFEIdsss.Count);
+            return PeriodicPortLineFEIdsss[(int)portId][(int)bcIndex];
+        }
+
+        public IList<uint> GetPeriodicPortTriangleFEIds(uint portId)
+        {
+            System.Diagnostics.Debug.Assert(portId < PeriodicPortTriangleFEIdss.Count);
+            return PeriodicPortTriangleFEIdss[(int)portId];
         }
 
         public IList<uint> GetContactSlaveLineFEIds()
@@ -407,6 +516,9 @@ namespace IvyFEM
             MakeCo2FixedCads(world);
             SetDistributedFixedCadCoords(world);
 
+            // 頂点→三角形要素のマップと辺→三角形要素のマップ作成
+            MakeCo2AndEdgeCos2TriangleFE();
+
             // ポート上の線要素の節点ナンバリング
             NumberPortNodes(world, zeroCoordIds);
             SetDistributedPortCoords(world);
@@ -420,8 +532,8 @@ namespace IvyFEM
             // 節点→座標のマップ作成
             MakeNode2CoFromCo2Node();
 
-            // 頂点→三角形要素のマップと辺→三角形要素のマップ作成
-            MakeCo2AndEdgeCos2TriangleFE();
+            // 頂点→線要素のマップ
+            MakeCo2LineFE();
         }
 
         // 座標、三角形要素と線要素を生成する
@@ -676,14 +788,89 @@ namespace IvyFEM
             for (int portId = 0; portId < portCnt; portId++)
             {
                 PortCondition portCondition = PortConditions[portId];
-                IList<uint> portEIds = portCondition.EIds;
+                if (portCondition.IsPeriodic)
+                {
+                    NumberPeriodicPortNodes(world, mesh, portCondition, zeroCoordIds);
+                }
+                else
+                {
+                    NumberNormalPortNodes(world, mesh, portCondition, zeroCoordIds);
+                }
+            }
+        }
+
+        // 通常のポート（境界のみ）
+        private void NumberNormalPortNodes(
+            FEWorld world, Mesher2D mesh, PortCondition portCondition, IList<int> zeroCoordIds)
+        {
+            System.Diagnostics.Debug.Assert(!portCondition.IsPeriodic);
+            IList<uint> portEIds = portCondition.EIds;
+            var lineFEIds = new List<uint>();
+            PortLineFEIdss.Add(lineFEIds);
+
+            var portCo2Node = new Dictionary<int, int>();
+            PortCo2Nodes.Add(portCo2Node);
+            int portNodeId = 0;
+
+            IList<uint> feIds = LineFEArray.GetObjectIds();
+            foreach (var feId in feIds)
+            {
+                LineFE lineFE = LineFEArray.GetObject(feId);
+                uint cadId;
+                {
+                    uint meshId = lineFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+                }
+                if (portEIds.Contains(cadId))
+                {
+                    // ポート上の線要素
+                    lineFEIds.Add(feId);
+
+                    int[] coIds = lineFE.NodeCoordIds;
+
+                    foreach (int coId in coIds)
+                    {
+                        if (!portCo2Node.ContainsKey(coId) &&
+                            zeroCoordIds.IndexOf(coId) == -1)
+                        {
+                            portCo2Node[coId] = portNodeId;
+                            portNodeId++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 周期構造のポート（2つの境界と内部領域）
+        private void NumberPeriodicPortNodes(
+            FEWorld world, Mesher2D mesh, PortCondition portCondition, IList<int> zeroCoordIds)
+        {
+            System.Diagnostics.Debug.Assert(portCondition.IsPeriodic);
+
+            var portCo2Node = new Dictionary<int, int>();
+            PortCo2Nodes.Add(portCo2Node);
+            int portNodeId = 0;
+
+            // 境界1、2、内部の順に番号を振る
+            // 2つの境界
+            IList<IList<uint>> portLineFEIdss = new List<IList<uint>>();
+            PeriodicPortLineFEIdsss.Add(portLineFEIdss);
+            IList<Dictionary<int, int>> bcCo2Nodes = new List<Dictionary<int, int>>();
+            PeriodicPortBcCo2Nodess.Add(bcCo2Nodes);
+            IList<uint>[] portEIdss = { portCondition.BcEIdsForPeriodic1, portCondition.BcEIdsForPeriodic2 };
+            for (int bcIndex = 0; bcIndex < 2; bcIndex++)
+            {
+                IList<uint> portEIds = portEIdss[bcIndex];
+                Dictionary<int, int> bcCo2Node = new Dictionary<int, int>();
+                bcCo2Nodes.Add(bcCo2Node);
                 var lineFEIds = new List<uint>();
-                PortLineFEIdss.Add(lineFEIds);
+                portLineFEIdss.Add(lineFEIds);
 
-                var portCo2Node = new Dictionary<int, int>();
-                PortCo2Nodes.Add(portCo2Node);
-                int portNodeId = 0;
-
+                IList<int> bcCoIds = new List<int>();
                 IList<uint> feIds = LineFEArray.GetObjectIds();
                 foreach (var feId in feIds)
                 {
@@ -703,6 +890,74 @@ namespace IvyFEM
                         lineFEIds.Add(feId);
 
                         int[] coIds = lineFE.NodeCoordIds;
+                        foreach (int coId in coIds)
+                        {
+                            if (bcCoIds.IndexOf(coId) == -1)
+                            {
+                                bcCoIds.Add(coId);
+                            }
+                        }
+                    }
+                }
+                // 境界の方向順に節点番号を振る
+                OpenTK.Vector2d sPt;
+                {
+                    uint eId0 = portEIds[0];
+                    Edge2D e = mesh.Cad2D.GetEdge(eId0);
+                    sPt = e.GetVertexCoord(true); // 始点の座標
+                }
+                {
+                    var coIdDistances = new List<KeyValuePair<int, double>>();
+                    foreach (int coId in bcCoIds)
+                    {
+                        double[] coord = world.GetCoord(Id, coId);
+                        double distance = OpenTK.Vector2d.Distance(sPt, new OpenTK.Vector2d(coord[0], coord[1]));
+                        coIdDistances.Add(new KeyValuePair<int, double>(coId, distance));
+                    }
+                    coIdDistances.Sort((a, b) =>
+                    {
+                        // 距離を比較
+                        double diff = a.Value - b.Value;
+                        // 昇順
+                        if (diff > 0)
+                        {
+                            return 1;
+                        }
+                        else if (diff < 0)
+                        {
+                            return -1;
+                        }
+                        return 0;
+                    });
+                    foreach (var coIdDistance in coIdDistances)
+                    {
+                        int coId = coIdDistance.Key;
+                        if (!portCo2Node.ContainsKey(coId) &&
+                            zeroCoordIds.IndexOf(coId) == -1)
+                        {
+                            portCo2Node[coId] = portNodeId;
+                            bcCo2Node[coId] = portNodeId;
+                            portNodeId++;
+                        }
+                    }
+                }
+            }
+
+            // 内部領域の三角形要素
+            IList<uint> triFEIds = new List<uint>();
+            PeriodicPortTriangleFEIdss.Add(triFEIds);
+            IList<uint> lIds = portCondition.LoopIdsForPeriodic;
+            foreach (uint lId in lIds)
+            {
+                IList<uint> tmpTriFEIds = world.GetTriangleFEIdsFromLoopCadId(Id, lId);
+                foreach (uint feId in tmpTriFEIds)
+                {
+                    if (triFEIds.IndexOf(feId) == -1)
+                    {
+                        triFEIds.Add(feId);
+
+                        TriangleFE triFE = TriangleFEArray.GetObject(feId);
+                        int[] coIds = triFE.NodeCoordIds;
 
                         foreach (int coId in coIds)
                         {
@@ -874,6 +1129,35 @@ namespace IvyFEM
             }
         }
 
+        private void MakeCo2LineFE()
+        {
+            Co2LineFE.Clear();
+            IList<uint> feIds = GetLineFEIds();
+            foreach (uint feId in feIds)
+            {
+                LineFE lineFE = GetLineFE(feId);
+                // 節点→要素
+                {
+                    int[] coIds = lineFE.NodeCoordIds;
+                    for (int i = 0; i < coIds.Length; i++)
+                    {
+                        int coId = coIds[i];
+                        IList<uint> targetIds = null;
+                        if (Co2LineFE.ContainsKey(coId))
+                        {
+                            targetIds = Co2LineFE[coId];
+                        }
+                        else
+                        {
+                            targetIds = new List<uint>();
+                            Co2LineFE[coId] = targetIds;
+                        }
+                        targetIds.Add(feId);
+                    }
+                }
+            }
+        }
+
         private IList<int> GetZeroCoordIds(FEWorld world)
         {
             IList<int> zeroCoIds = new List<int>();
@@ -1000,6 +1284,23 @@ namespace IvyFEM
                 int tmpCoId = pair.Key;
                 int tmpNodeId = pair.Value;
                 Node2Co[tmpNodeId] = tmpCoId;
+            }
+            foreach (var periodicPortBcCo2Nodes in PeriodicPortBcCo2Nodess)
+            {
+                IList<Dictionary<int, int>> periodicPortBcNode2Cos = new List<Dictionary<int, int>>();
+                PeriodicPortBcNode2Coss.Add(periodicPortBcNode2Cos);
+                System.Diagnostics.Debug.Assert(periodicPortBcCo2Nodes.Count == 2);
+                foreach (var periodicPortBcCo2Node in periodicPortBcCo2Nodes)
+                {
+                    var periodicPortBcNode2Co = new Dictionary<int, int>();
+                    periodicPortBcNode2Cos.Add(periodicPortBcNode2Co);
+                    foreach (var pair in periodicPortBcCo2Node)
+                    {
+                        int tmpPortCoId = pair.Key;
+                        int tmpPortNodeId = pair.Value;
+                        periodicPortBcNode2Co[tmpPortNodeId] = tmpPortCoId;
+                    }
+                }
             }
         }
 

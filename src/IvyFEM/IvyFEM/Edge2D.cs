@@ -50,21 +50,13 @@ namespace IvyFEM
             CurveType = srcEdge.CurveType;
             IsLeftSide = srcEdge.IsLeftSide;
             DistanceRatio = srcEdge.DistanceRatio;
-            RelCos.Clear();
-            foreach (var relco in srcEdge.RelCos)
-            {
-                RelCos.Add(relco);
-            }
+            RelCos = new List<double>(srcEdge.RelCos);
             SVId = srcEdge.SVId;
             EVId = srcEdge.EVId;
             SPt = new OpenTK.Vector2d(srcEdge.SPt.X, srcEdge.SPt.Y);
             EPt = new OpenTK.Vector2d(srcEdge.EPt.X, srcEdge.EPt.Y);
             BB.Copy(srcEdge.BB);
-            Coords.Clear();
-            foreach (var co in srcEdge.Coords)
-            {
-                Coords.Add(co);
-            }
+            Coords = new List<OpenTK.Vector2d>(srcEdge.Coords);
             srcEdge.Color.CopyTo(Color, 0);
         }
 
@@ -168,7 +160,7 @@ namespace IvyFEM
             }
         }
 
-        public OpenTK.Vector2d GetVertex(bool isRoot)
+        public OpenTK.Vector2d GetVertexCoord(bool isRoot)
         {
             return isRoot ? SPt : EPt;
         }

@@ -70,6 +70,7 @@ namespace IvyFEM
             HEId = uL.HEId;
         }
 
+        /*
         public static LoopEdgeItr operator++ (LoopEdgeItr src)
         {
             LoopEdgeItr dest = new LoopEdgeItr(src);
@@ -82,6 +83,20 @@ namespace IvyFEM
             HalfEdge hE = dest.BRep2D.BRep.GetHalfEdge(dest.HEId);
             dest.HEId = hE.FHEId;
             return dest;
+        }
+        */
+
+        // ++のオブジェクト生成をしないバージョン
+        public void Next()
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+            IsInitial = false;
+            System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(HEId));
+            HalfEdge hE = BRep2D.BRep.GetHalfEdge(HEId);
+            HEId = hE.FHEId;
         }
 
         public bool IsEnd()

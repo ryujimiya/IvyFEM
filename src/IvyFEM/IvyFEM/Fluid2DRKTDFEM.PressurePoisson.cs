@@ -643,8 +643,6 @@ namespace IvyFEM
                                     for (int colDof = 0; colDof < vDof; colDof++)
                                     {
                                         double vValue = U[colNodeId * vDof + colDof];
-                                        //B[rowNodeId] += 
-                                        //    -kpv[0, colDof] * (vValue - u[colDof]) / dt;
                                         B[rowNodeId] +=
                                             -kpv[0, colDof] * 
                                             (3.0 * vValue - 4.0 * u[colDof] + prevU[colDof]) / (2.0 * dt);

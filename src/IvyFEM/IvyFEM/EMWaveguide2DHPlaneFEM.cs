@@ -128,14 +128,14 @@ namespace IvyFEM
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
                 System.Numerics.Complex[][] ezEVecs = eigenFEM.EzEVecs;
                 IvyFEM.Lapack.ComplexMatrix b = eigenFEM.CalcBoundaryMatrix(omega, betas, ezEVecs);
-                for (int col = 0; col < portNodeCnt; col++)
+                for (int row = 0; row < portNodeCnt; row++)
                 {
-                    int colCoId = World.PortNode2Coord(QuantityId, portId, col);
-                    int colNodeId = World.Coord2Node(QuantityId, colCoId);
-                    for (int row = 0; row < portNodeCnt; row++)
+                    int rowCoId = World.PortNode2Coord(QuantityId, portId, row);
+                    int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
+                    for (int col = 0; col < portNodeCnt; col++)
                     {
-                        int rowCoId = World.PortNode2Coord(QuantityId, portId, row);
-                        int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
+                        int colCoId = World.PortNode2Coord(QuantityId, portId, col);
+                        int colNodeId = World.Coord2Node(QuantityId, colCoId);
 
                         A[rowNodeId, colNodeId] += b[row, col];
                     }

@@ -27,6 +27,7 @@ namespace IvyFEM
 
     public class Mesher2D
     {
+        public CadObject2D Cad2D { get; private set; } = null;
         private HashSet<uint> CutMeshLCadIds = new HashSet<uint>();
         private uint MeshingMode;
         private double ELen;
@@ -50,6 +51,7 @@ namespace IvyFEM
 
         public Mesher2D(CadObject2D cad2D)
         {
+            Cad2D = cad2D;
             MeshingMode = 0;
             ELen = 1;
             ESize = 1000;
@@ -59,11 +61,12 @@ namespace IvyFEM
                 CutMeshLCadIds.Add(lIds[(int)i]);
             }
 
-            Meshing(cad2D);
+            Meshing(Cad2D);
         }
 
         public Mesher2D(CadObject2D cad2D, double eLen)
         {
+            Cad2D = cad2D;
             MeshingMode = 2;
             ELen = eLen;
             ESize = 1000;
@@ -74,7 +77,7 @@ namespace IvyFEM
                 CutMeshLCadIds.Add(lIds[i]);
             }
 
-            Meshing(cad2D);
+            Meshing(Cad2D);
         }
 
         public Mesher2D(Mesher2D src)
@@ -641,7 +644,7 @@ namespace IvyFEM
                     while (true)
                     {
                         // ループをめぐる
-                        for (; !loopItr.IsEnd(); loopItr++)
+                        for (; !loopItr.IsEnd(); loopItr.Next())
                         {
                             // このループの中のエッジをめぐる
                             {
@@ -937,7 +940,7 @@ namespace IvyFEM
                 while (true)
                 {
                     // 子ループのためのループ
-                    for (; !loopItr.IsEnd(); loopItr++)
+                    for (; !loopItr.IsEnd(); loopItr.Next())
                     {
                         uint eId;
                         bool isSameDir;
@@ -1094,7 +1097,7 @@ namespace IvyFEM
                 while (true)
                 {   
                     // 子ループのためのループ
-                    for (; !loopItr.IsEnd(); loopItr++)
+                    for (; !loopItr.IsEnd(); loopItr.Next())
                     {
                         uint eId;
                         bool isSameDir;
@@ -1200,7 +1203,7 @@ namespace IvyFEM
                 while (true)
                 {
                     // 子ループのためのループ
-                    for (; !loopItr.IsEnd(); loopItr++)
+                    for (; !loopItr.IsEnd(); loopItr.Next())
                     {
                         uint eId;
                         bool isSameDir;
@@ -1334,7 +1337,7 @@ namespace IvyFEM
                 uint iKerTri0 = (uint)tris.Count;
                 {
                     LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
-                    for (; !loopItr.IsEnd(); loopItr++)
+                    for (; !loopItr.IsEnd(); loopItr.Next())
                     {
                         uint eId;
                         bool isSameDir;
@@ -1442,7 +1445,7 @@ namespace IvyFEM
                     while (true)
                     {
                         // 子ループのためのループ
-                        for (; !loopItr.IsEnd(); loopItr++)
+                        for (; !loopItr.IsEnd(); loopItr.Next())
                         {
                             uint eId;
                             bool isSameDir;
@@ -1959,7 +1962,7 @@ namespace IvyFEM
                 LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
                 while (true)
                 {
-                    for (; !lItr.IsEnd(); lItr++)
+                    for (; !lItr.IsEnd(); lItr.Next())
                     {
                         uint vCadId = lItr.GetVertexId();
                         uint meshVId = GetIdFromCadId(vCadId, CadElementType.Vertex);
@@ -2078,7 +2081,7 @@ namespace IvyFEM
                     LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
                     while (true)
                     {
-                        for (; !lItr.IsEnd(); lItr++)
+                        for (; !lItr.IsEnd(); lItr.Next())
                         {
                             uint vId = lItr.GetVertexId();
                             if (vtxFlgs.Count <= vId)
@@ -2136,7 +2139,7 @@ namespace IvyFEM
                 uint lId = loopIds[iLId];
                 for (LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
-                    for (lItr.Begin(); !lItr.IsEnd(); lItr++)
+                    for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
                     {
                         uint eId;
                         bool isSameDir;

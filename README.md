@@ -32,15 +32,16 @@
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　電磁気学　：H面導波管の伝達問題  
+　　　　　　　　　　フォトニック結晶導波路の伝達問題（正方格子）  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-06-08更新）**  
+　**バイナリ（2019-08-15更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.15  
+　　IvyFEM.dll version 0.0.0.16  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -91,4 +92,6 @@
 　　![SUPG Back-step 7](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194022.jpg)  
 　　〇H面導波路の伝達問題  
 　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
+　　〇フォトニック結晶導波路の伝達問題  
+　　![フォトニック結晶導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190815/20190815191231.jpg)  
 　  

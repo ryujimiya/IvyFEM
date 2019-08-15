@@ -192,10 +192,9 @@ namespace IvyFEM
                 eVals[iMode] = beta;
 
                 var eVec = eVecs[iMode];
-                var e = new IvyFEM.Lapack.ComplexMatrix(eVec, eVec.Length, 1);
                 var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
-                var work = RyyZ * e;
-                var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work.Buffer);
+                var work = RyyZ * eVec;
+                var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work);
                 var d = System.Numerics.Complex.Sqrt(
                     (System.Numerics.Complex)(omega * Constants.Mu0) /
                     (((System.Numerics.Complex)beta.Magnitude) * work2));
@@ -219,14 +218,14 @@ namespace IvyFEM
                 var vec1 = RyyZ * ezEVec;
                 var vec2 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
 
-                for (int col = 0; col < nodeCnt; col++)
+                for (int row = 0; row < nodeCnt; row++)
                 {
-                    for (int row = 0; row < nodeCnt; row++)
+                    for (int col = 0; col < nodeCnt; col++)
                     {
-                        System.Numerics.Complex value = (System.Numerics.Complex.ImaginaryOne /
-                            (omega * Constants.Mu0)) *
+                        System.Numerics.Complex value = 
+                            (System.Numerics.Complex.ImaginaryOne / (omega * Constants.Mu0)) *
                             beta * beta.Magnitude *
-                            vec1[col] * vec2[row];
+                            vec1[row] * vec2[col];
                         X[row, col] += value;
                     }
                 }
@@ -262,10 +261,10 @@ namespace IvyFEM
                 var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
-                var b = (System.Numerics.Complex)(beta.Magnitude / (omega * Constants.Mu0)) * work1;
+                var b = (beta.Magnitude / (omega * Constants.Mu0)) * work1;
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
-                    b = (System.Numerics.Complex)(-1.0) + b;
+                    b = (-1.0) + b;
                 }
                 S[iMode] = b;
             }

@@ -568,7 +568,7 @@ namespace IvyFEM.Lapack
                     for (int j = 0; j < ldvr; j++)
                     {
                         vec1[j] = new System.Numerics.Complex(vr[i * ldvr + j], vr[(i + 1) * ldvr + j]);
-                        vec2[j] = new System.Numerics.Complex(vr[i * ldvr + j], vr[(i + 1) * ldvr + j]);
+                        vec2[j] = new System.Numerics.Complex(vr[i * ldvr + j], -vr[(i + 1) * ldvr + j]);
                     }
                     eVecs[i] = vec1;
                     eVecs[i + 1] = vec2;
@@ -849,8 +849,7 @@ namespace IvyFEM.Lapack
 
         public static int dsbgv(double[] A, int aRow, int aCol, int aSuperdia,
             double[] B, int bRow, int bCol, int bSuperdia,
-            double[] eVals,
-            double[][]  eVecs )
+            out double[] eVals, out double[][]  eVecs )
         {
             byte jobz = Job.Compute;
             byte uplo = UpperLower.Upper;
@@ -1102,8 +1101,7 @@ namespace IvyFEM.Lapack
 
         public static int zhbgv(System.Numerics.Complex[] A, int aRow, int aCol, int aSuperdia,
             System.Numerics.Complex[] B, int bRow, int bCol, int bSuperdia,
-            double[] eVals,
-            System.Numerics.Complex[][] eVecs)
+            out double[] eVals, out System.Numerics.Complex[][] eVecs)
         {
             byte jobz = Job.Compute;
             byte uplo = UpperLower.Upper;

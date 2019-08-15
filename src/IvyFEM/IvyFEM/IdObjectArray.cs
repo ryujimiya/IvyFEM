@@ -31,18 +31,8 @@ namespace IvyFEM
 
         public void Copy(IdObjectArray<T> src)
         {
-            Index2Ids.Clear();
-            foreach (uint id in src.Index2Ids)
-            {
-                Index2Ids.Add(id);
-            }
-
-            Id2Indexs.Clear();
-            foreach (int index in src.Id2Indexs)
-            {
-                Id2Indexs.Add(index);
-            }
-
+            Index2Ids = new List<uint>(src.Index2Ids);
+            Id2Indexs = new List<int>(src.Id2Indexs);
             Objects.Clear();
             foreach (T obj in src.Objects)
             {

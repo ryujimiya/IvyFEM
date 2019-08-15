@@ -29,8 +29,8 @@ namespace IvyFEM
                 return true;
             }
             {
-                OpenTK.Vector2d sPt = edge.GetVertex(true);
-                OpenTK.Vector2d ePt = edge.GetVertex(false);
+                OpenTK.Vector2d sPt = edge.GetVertexCoord(true);
+                OpenTK.Vector2d ePt = edge.GetVertexCoord(false);
                 double sqLen = CadUtils.SquareLength(ePt - sPt);
                 var eh = (ePt - sPt) * (1 / sqLen);
                 OpenTK.Vector2d ev = new OpenTK.Vector2d(-eh.Y, eh.X);
@@ -42,7 +42,7 @@ namespace IvyFEM
             }
 
             HashSet<uint> setLId = new HashSet<uint>();
-            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr.Next())
             {
                 uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
@@ -50,7 +50,7 @@ namespace IvyFEM
                     setLId.Add(tmpLId);
                 }
             }
-            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr.Next())
             {
                 uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
@@ -85,7 +85,7 @@ namespace IvyFEM
             HashSet<uint> setLId = new HashSet<uint>();  // check these loop for intersection detection
             for (LoopEdgeItr lItr = this.BRep.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
             {
-                for (lItr.Begin(); !lItr.IsEnd(); lItr++)
+                for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
                 {
                     uint vId = lItr.GetVertexId();
                     if (mapOldVec.ContainsKey(vId))
@@ -173,7 +173,7 @@ namespace IvyFEM
             {
                 // Check Interfarance
                 HashSet<uint> lIds = new HashSet<uint>();
-                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(sVId); !vItr.IsEnd(); vItr++)
+                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(sVId); !vItr.IsEnd(); vItr.Next())
                 {
                     uint lId = vItr.GetLoopId();
                     if (IsElementId(CadElementType.Loop, lId))
@@ -192,7 +192,7 @@ namespace IvyFEM
                         }
                     }
                 }
-                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(eVId); !vItr.IsEnd(); vItr++)
+                for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(eVId); !vItr.IsEnd(); vItr.Next())
                 {
                     uint lId = vItr.GetLoopId();
                     if (IsElementId(CadElementType.Loop, lId))
@@ -272,7 +272,7 @@ namespace IvyFEM
                 {   
                     // move point adjacent to loop
                     HashSet<uint> lIds = new HashSet<uint>();
-                    for (; !vItr.IsEnd(); vItr++)
+                    for (; !vItr.IsEnd(); vItr.Next())
                     {
                         uint lId = vItr.GetLoopId();
                         if (IsElementId(CadElementType.Loop, lId))
@@ -370,8 +370,8 @@ namespace IvyFEM
             Edge2D edge = GetEdge(eId);
             System.Diagnostics.Debug.Assert(edge.CurveType == CurveType.CurveArc);
             {
-                OpenTK.Vector2d sPt = edge.GetVertex(true);
-                OpenTK.Vector2d ePt = edge.GetVertex(false);
+                OpenTK.Vector2d sPt = edge.GetVertexCoord(true);
+                OpenTK.Vector2d ePt = edge.GetVertexCoord(false);
                 double edgeLen = Math.Sqrt(CadUtils.SquareLength(sPt, ePt));
                 if (Math.Abs(CadUtils.TriHeight(vec, sPt, ePt)) > edgeLen * 0.02)
                 {
@@ -389,7 +389,7 @@ namespace IvyFEM
             }
 
             HashSet<uint> setLId = new HashSet<uint>();
-            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(true)); !vItr.IsEnd(); vItr.Next())
             {
                 uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
@@ -397,7 +397,7 @@ namespace IvyFEM
                     setLId.Add(tmpLId);
                 }
             }
-            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr++)
+            for (VertexEdgeItr vItr = this.BRep.GetVertexEdgeItr(edge.GetVertexId(false)); !vItr.IsEnd(); vItr.Next())
             {
                 uint tmpLId = vItr.GetLoopId();
                 if (!setLId.Contains(tmpLId))
@@ -490,8 +490,8 @@ namespace IvyFEM
                 aIndNo.Clear();
                 aIndNo = tmp.ToList();
 
-                OpenTK.Vector2d sPt = edge.GetVertex(true);
-                OpenTK.Vector2d ePt = edge.GetVertex(false);
+                OpenTK.Vector2d sPt = edge.GetVertexCoord(true);
+                OpenTK.Vector2d ePt = edge.GetVertexCoord(false);
                 var v0 = ePt - sPt;
                 OpenTK.Vector2d v1 = new OpenTK.Vector2d(-v0.Y, v0.X);
                 for (int ino = 0; ino < nno; ino++)

@@ -67,8 +67,8 @@ namespace IvyFEM.Lapack
                     }
                 }
             }
-            System.Diagnostics.Debug.WriteLine("rowcolLength: {0} superdiaLength: {1}",
-                rowColLength, superdiaLength);
+            //System.Diagnostics.Debug.WriteLine("rowcolLength: {0} superdiaLength: {1}",
+            //    rowColLength, superdiaLength);
 
             // バッファの確保
             m.Resize(rowColLength, superdiaLength);

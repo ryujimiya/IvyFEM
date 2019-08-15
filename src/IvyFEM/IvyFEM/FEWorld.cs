@@ -198,6 +198,21 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].PortNode2Coord(portId, nodeId);
         }
 
+        public IList<int> GetPeriodicPortBcCoIds(uint quantityId, uint portId, uint bcIndex)
+        {
+            return Quantitys[(int)quantityId].GetPeriodicPortBcCoIds(portId, bcIndex);
+        }
+
+        public int PeriodicPortBcCoord2Node(uint quantityId, uint portId, uint bcIndex, int coId)
+        {
+            return Quantitys[(int)quantityId].PeriodicPortBcCoord2Node(portId, bcIndex, coId);
+        }
+
+        public int PeriodicPortBcNode2Coord(uint quantityId, uint portId, uint bcIndex, int nodeId)
+        {
+            return Quantitys[(int)quantityId].PeriodicPortBcNode2Coord(portId, bcIndex, nodeId);
+        }
+
         public uint GetDof(uint quantityId)
         {
             return Quantitys[(int)quantityId].Dof;
@@ -300,6 +315,11 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].GetTriangleFEIdFromMesh(meshId, iElem);
         }
 
+        public IList<uint> GetLineFEIdsFromCoord(uint quantityId, int coId)
+        {
+            return Quantitys[(int)quantityId].GetLineFEIdsFromCoord(coId);
+        }
+
         public IList<uint> GetTriangleFEIdsFromCoord(uint quantityId, int coId)
         {
             return Quantitys[(int)quantityId].GetTriangleFEIdsFromCoord(coId);
@@ -309,7 +329,17 @@ namespace IvyFEM
         {
             return Quantitys[(int)quantityId].GetTriangleFEIdsFromEdgeCoord(coId1, coId2);
         }
-        
+
+        public IList<uint> GetLineFEIdsFromEdgeCadId(uint quantityId, uint eId)
+        {
+            return Quantitys[(int)quantityId].GetLineFEIdsFromEdgeCadId(this, eId);
+        }
+
+        public IList<uint> GetTriangleFEIdsFromLoopCadId(uint quantityId, uint lId)
+        {
+            return Quantitys[(int)quantityId].GetTriangleFEIdsFromLoopCadId(this, lId);
+        }
+
         public IList<uint> GetLineFEIds(uint quantityId)
         {
             return Quantitys[(int)quantityId].GetLineFEIds();
@@ -323,6 +353,16 @@ namespace IvyFEM
         public IList<uint> GetPortLineFEIds(uint quantityId, uint portId)
         {
             return Quantitys[(int)quantityId].GetPortLineFEIds(portId);
+        }
+
+        public IList<uint> GetPeriodicPortLineFEIds(uint quantityId, uint portId, uint bcIndex)
+        {
+            return Quantitys[(int)quantityId].GetPeriodicPortLineFEIds(portId, bcIndex);
+        }
+
+        public IList<uint> GetPeriodicPortTriangleFEIds(uint quantityId, uint portId)
+        {
+            return Quantitys[(int)quantityId].GetPeriodicPortTriangleFEIds(portId);
         }
 
         public IList<uint> GetContactSlaveLineFEIds(uint quantityId)

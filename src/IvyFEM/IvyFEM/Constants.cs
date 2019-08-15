@@ -105,7 +105,8 @@ namespace IvyFEM
         Point2 = 2,
         Point3 = 3,
         Point4 = 4,
-        Point5 = 5
+        Point5 = 5,
+        Point10 = 10
     }
 
     public enum TriangleIntegrationPointCount
@@ -113,7 +114,8 @@ namespace IvyFEM
         Point1 = 1,
         Point3 = 3,
         Point4 = 4,
-        Point7 = 7
+        Point7 = 7,
+        Point25 = 25
     }
 
     public enum EqualityType

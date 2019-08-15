@@ -47,6 +47,7 @@ namespace IvyFEM
             HEId = uV.HEId;
         }
 
+        /*
         public static VertexEdgeItr operator ++(VertexEdgeItr src)
         {
             VertexEdgeItr dest = new VertexEdgeItr(src);
@@ -62,6 +63,23 @@ namespace IvyFEM
             HalfEdge bHE = dest.BRep2D.BRep.GetHalfEdge(bHEId);
             dest.HEId = bHE.OHEId;
             return dest;
+        }
+        */
+
+        // ++のオブジェクトを生成しないバージョン
+        public void Next()
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+            IsInitial = false;
+            System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(HEId));
+            HalfEdge hE = BRep2D.BRep.GetHalfEdge(HEId);
+            uint bHEId = hE.BHEId;
+            System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(bHEId));
+            HalfEdge bHE = BRep2D.BRep.GetHalfEdge(bHEId);
+            HEId = bHE.OHEId;
         }
 
         public bool IsEnd()
