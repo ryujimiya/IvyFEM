@@ -12,6 +12,8 @@ namespace IvyFEM
         public uint Dimension { get; set; } = 0;
         public uint Dof { get; set; } = 1;
         public uint FEOrder { get; set; } = 1;
+        public int IdBaseOffset { get; set; } = 0;
+        public FiniteElementType FEType { get; set; } = FiniteElementType.ScalarLagrange;
         public IList<FieldFixedCad> ZeroFieldFixedCads { get; private set; } = new List<FieldFixedCad>();
         public IList<FieldFixedCad> FieldFixedCads { get; private set; } = new List<FieldFixedCad>();
         private Dictionary<int, IList<FieldFixedCad>> Co2FixedCads = new Dictionary<int, IList<FieldFixedCad>>();
@@ -43,12 +45,15 @@ namespace IvyFEM
         private ObjectArray<LineFE> LineFEArray = new ObjectArray<LineFE>();
         private ObjectArray<TriangleFE> TriangleFEArray = new ObjectArray<TriangleFE>();
 
-        public FEWorldQuantity(uint id, uint dimension, uint dof, uint feOrder)
+        public FEWorldQuantity(
+            uint id, uint dimension, uint dof, uint feOrder, FiniteElementType feType, int idBaseOffset)
         {
             Id = id;
             Dimension = dimension;
             Dof = dof;
             FEOrder = feOrder;
+            FEType = feType;
+            IdBaseOffset = idBaseOffset;
         }
 
         public void Clear()
@@ -546,11 +551,15 @@ namespace IvyFEM
             Mesher2D mesh = world.Mesh;
             System.Diagnostics.Debug.Assert(mesh != null);
 
-            if (FEOrder == 1)
+            if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
             {
                 Coords = new List<double>(vertexCoords);
             }
-            else if (FEOrder == 2)
+            else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+            {
+                Coords = new List<double>(vertexCoords);
+            }
+            else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
             {
                 Coords = new List<double>(vertexCoords);
             }
@@ -586,11 +595,15 @@ namespace IvyFEM
 
                 int elemVertexCnt = 3;
                 int elemNodeCnt = 0;
-                if (FEOrder == 1)
+                if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                 {
                     elemNodeCnt = 3;
                 }
-                else if (FEOrder == 2)
+                else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                {
+                    elemNodeCnt = 3;
+                }
+                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                 {
                     elemNodeCnt = 6;
                 }
@@ -613,12 +626,17 @@ namespace IvyFEM
                         vertexCoIds[iPt] = coId;
                     }
                     int[] nodeCoIds = new int[elemNodeCnt];
-                    if (FEOrder == 1)
+                    if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
-                    else if (FEOrder == 2)
+                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                    {
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                     {
                         for (int i = 0; i < elemVertexCnt; i++)
                         {
@@ -661,9 +679,10 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(false);
                     }
 
-                    TriangleFE fe = new TriangleFE((int)FEOrder);
+                    TriangleFE fe = new TriangleFE((int)FEOrder, FEType);
                     fe.World = world;
                     fe.QuantityId = (int)this.Id;
+                    fe.QuantityIdBaseOffset = IdBaseOffset;
                     fe.SetVertexCoordIds(vertexCoIds);
                     fe.SetNodeCoordIds(nodeCoIds);
                     fe.MaterialId = maId;
@@ -692,11 +711,16 @@ namespace IvyFEM
 
                 int elemVertexCnt = 2;
                 int elemNodeCnt = 0;
-                if (FEOrder == 1)
+                if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                 {
                     elemNodeCnt = 2;
                 }
-                else if (FEOrder == 2)
+                else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                {
+                    // 暫定：Lagrange線要素で代用
+                    elemNodeCnt = 2;
+                }
+                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                 {
                     elemNodeCnt = 3;
                 }
@@ -727,12 +751,18 @@ namespace IvyFEM
                         vertexCoIds[iPt] = coId;
                     }
                     int[] nodeCoIds = new int[elemNodeCnt];
-                    if (FEOrder == 1)
+                    if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
-                    else if (FEOrder == 2)
+                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                    {
+                        // 暫定：Lagrange線要素で代用
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                     {
                         for (int i = 0; i < 2; i++)
                         {
@@ -760,7 +790,7 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(false);
                     }
 
-                    LineFE fe = new LineFE((int)FEOrder);
+                    LineFE fe = new LineFE((int)FEOrder, FEType);
                     fe.World = world;
                     fe.QuantityId = (int)this.Id;
                     fe.SetVertexCoordIds(vertexCoIds);
@@ -813,6 +843,7 @@ namespace IvyFEM
             int portNodeId = 0;
 
             IList<uint> feIds = LineFEArray.GetObjectIds();
+            IList<int> portCoIds = new List<int>();
             foreach (var feId in feIds)
             {
                 LineFE lineFE = LineFEArray.GetObject(feId);
@@ -834,13 +865,24 @@ namespace IvyFEM
 
                     foreach (int coId in coIds)
                     {
-                        if (!portCo2Node.ContainsKey(coId) &&
-                            zeroCoordIds.IndexOf(coId) == -1)
+                        if (portCoIds.IndexOf(coId) == -1)
                         {
-                            portCo2Node[coId] = portNodeId;
-                            portNodeId++;
+                            portCoIds.Add(coId);
                         }
                     }
+                }
+            }
+            // 境界の方向順に節点番号を振る
+            uint eId0 = portEIds[0];
+            IList<int> sortedCoIds;
+            SortPortCoIds(world, mesh, eId0, portCoIds, out sortedCoIds);
+            foreach (int coId in sortedCoIds)
+            {
+                if (!portCo2Node.ContainsKey(coId) &&
+                    zeroCoordIds.IndexOf(coId) == -1)
+                {
+                    portCo2Node[coId] = portNodeId;
+                    portNodeId++;
                 }
             }
         }
@@ -900,45 +942,17 @@ namespace IvyFEM
                     }
                 }
                 // 境界の方向順に節点番号を振る
-                OpenTK.Vector2d sPt;
+                uint eId0 = portEIds[0];
+                IList<int> sortedCoIds;
+                SortPortCoIds(world, mesh, eId0, bcCoIds, out sortedCoIds);
+                foreach (int coId in sortedCoIds)
                 {
-                    uint eId0 = portEIds[0];
-                    Edge2D e = mesh.Cad2D.GetEdge(eId0);
-                    sPt = e.GetVertexCoord(true); // 始点の座標
-                }
-                {
-                    var coIdDistances = new List<KeyValuePair<int, double>>();
-                    foreach (int coId in bcCoIds)
+                    if (!portCo2Node.ContainsKey(coId) &&
+                        zeroCoordIds.IndexOf(coId) == -1)
                     {
-                        double[] coord = world.GetCoord(Id, coId);
-                        double distance = OpenTK.Vector2d.Distance(sPt, new OpenTK.Vector2d(coord[0], coord[1]));
-                        coIdDistances.Add(new KeyValuePair<int, double>(coId, distance));
-                    }
-                    coIdDistances.Sort((a, b) =>
-                    {
-                        // 距離を比較
-                        double diff = a.Value - b.Value;
-                        // 昇順
-                        if (diff > 0)
-                        {
-                            return 1;
-                        }
-                        else if (diff < 0)
-                        {
-                            return -1;
-                        }
-                        return 0;
-                    });
-                    foreach (var coIdDistance in coIdDistances)
-                    {
-                        int coId = coIdDistance.Key;
-                        if (!portCo2Node.ContainsKey(coId) &&
-                            zeroCoordIds.IndexOf(coId) == -1)
-                        {
-                            portCo2Node[coId] = portNodeId;
-                            bcCo2Node[coId] = portNodeId;
-                            portNodeId++;
-                        }
+                        portCo2Node[coId] = portNodeId;
+                        bcCo2Node[coId] = portNodeId;
+                        portNodeId++;
                     }
                 }
             }
@@ -968,6 +982,53 @@ namespace IvyFEM
                                 portNodeId++;
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        private void SortPortCoIds(
+            FEWorld world, Mesher2D mesh, uint eId0, IList<int> bcCoIds, out IList<int> sortedCoIds)
+        {
+            sortedCoIds = null;
+
+            // 境界の方向順に節点番号を振る
+            OpenTK.Vector2d sPt;
+            {
+                Edge2D e = mesh.Cad2D.GetEdge(eId0);
+                sPt = e.GetVertexCoord(true); // 始点の座標
+            }
+            var coIdDistances = new List<KeyValuePair<int, double>>();
+            foreach (int coId in bcCoIds)
+            {
+                double[] coord = world.GetCoord(Id, coId);
+                double distance = OpenTK.Vector2d.Distance(sPt, new OpenTK.Vector2d(coord[0], coord[1]));
+                coIdDistances.Add(new KeyValuePair<int, double>(coId, distance));
+            }
+            coIdDistances.Sort((a, b) =>
+            {
+                // 距離を比較
+                double diff = a.Value - b.Value;
+                // 昇順
+                if (diff > 0)
+                {
+                    return 1;
+                }
+                else if (diff < 0)
+                {
+                    return -1;
+                }
+                return 0;
+            });
+
+            sortedCoIds = new List<int>();
+            {
+                foreach (var coIdDistance in coIdDistances)
+                {
+                    int coId = coIdDistance.Key;
+                    if (sortedCoIds.IndexOf(coId) == -1)
+                    {
+                        sortedCoIds.Add(coId);
                     }
                 }
             }
@@ -1364,7 +1425,7 @@ namespace IvyFEM
                     {
                         edges.Add(edgeKey);
                     }
-                    var lineFE = new LineFE((int)FEOrder);
+                    var lineFE = new LineFE((int)FEOrder, FEType);
                     lineFE.World = world;
                     lineFE.QuantityId = (int)this.Id;
                     lineFE.SetVertexCoordIds(vertexCoIds[iEdge]);

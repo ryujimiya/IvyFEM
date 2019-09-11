@@ -37,11 +37,13 @@
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
+　　　　三角形要素：Lagrange (1次、2次)  
+　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-08-15更新）**  
+　**バイナリ（2019-09-11更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.16  
+　　IvyFEM.dll version 0.0.0.17  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

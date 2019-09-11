@@ -6,21 +6,25 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public partial class TriangleFE : FE
+    public class TriangleFE : FE
     {
         public TriangleFE() : base()
         {
             Type = ElementType.Tri;
             Order = 1;
+            FEType = FiniteElementType.ScalarLagrange;
             VertexCount = 3;
+            CreateInterpolate();
             NodeCount = GetNodeCount();
         }
 
-        public TriangleFE(int order) : base()
+        public TriangleFE(int order, FiniteElementType feType) : base()
         {
             Type = ElementType.Tri;
             Order = order;
+            FEType = feType;
             VertexCount = 3;
+            CreateInterpolate();
             NodeCount = GetNodeCount();
         }
 
@@ -36,37 +40,12 @@ namespace IvyFEM
 
         protected uint GetNodeCount()
         {
-            uint nodeCnt = 0;
-            if (Order == 1)
-            {
-                nodeCnt = 3;
-            }
-            else if (Order == 2)
-            {
-                nodeCnt = 6;
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
-            return nodeCnt;
+            return Interpolate.GetNodeCount();
         }
 
         public double[] GetNodeL(int nodeId)
         {
-            double[] ret = null;
-            if (Order == 1)
-            {
-                ret = Get1stNodeL(nodeId);
-            }
-            else if (Order == 2)
-            {
-                ret = Get2ndNodeL(nodeId);
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[] ret = Interpolate.GetNodeL(nodeId);
             return ret;
         }
 
@@ -80,6 +59,29 @@ namespace IvyFEM
             OpenTK.Vector2d v3 = new OpenTK.Vector2d(co3[0], co3[1]);
             double area = CadUtils.TriArea(v1, v2, v3);
             return area;
+        }
+
+        public double[] GetEdgeLengths()
+        {
+            double[] a;
+            double[] b;
+            double[] c;
+            CalcTransMatrix(out a, out b, out c);
+            // 1/(2A)の係数をなくしたa, b, cを求める
+            double A = GetArea();
+            for (int i = 0; i < 3; i++)
+            {
+                a[i] *= (2.0 * A);
+                b[i] *= (2.0 * A);
+                c[i] *= (2.0 * A);
+            }
+
+            double[] edgeLengths = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                edgeLengths[i] = Math.Sqrt(b[i] * b[i] + c[i] * c[i]);
+            }
+            return edgeLengths;
         }
 
         public void CalcTransMatrix(out double[] a, out double[] b, out double[] c)
@@ -170,19 +172,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[] CalcN(double[] L)
         {
-            double[] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stN(L);
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndN(L);
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[] ret = Interpolate.CalcN(L);
             return ret;
         }
 
@@ -192,19 +182,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[][] CalcNu(double[] L)
         {
-            double[][] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stNu(L);
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndNu(L);
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[][] ret = Interpolate.CalcNu(L);
             return ret;
         }
 
@@ -215,19 +193,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[,][] CalcNuv(double[] L)
         {
-            double[,][] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stNuv(L);
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndNuv(L);
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[,][] ret = Interpolate.CalcNuv(L);
             return ret;
         }
 
@@ -237,19 +203,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[] CalcSN()
         {
-            double[] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stSN();
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndSN();
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[] ret = Interpolate.CalcSN();
             return ret;
         }
 
@@ -259,19 +213,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[,] CalcSNN()
         {
-            double[,] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stSNN();
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndSNN();
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[,] ret = Interpolate.CalcSNN();
             return ret;
         }
 
@@ -281,19 +223,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[,][,] CalcSNuNv()
         {
-            double[,][,] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stSNuNv();
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndSNuNv();
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[,][,] ret = Interpolate.CalcSNuNv();
             return ret;
         }
 
@@ -303,19 +233,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[][,] CalcSNuN()
         {
-            double[][,] ret = null;
-            if (Order == 1)
-            {
-                ret = Calc1stSNuN();
-            }
-            else if (Order == 2)
-            {
-                ret = Calc2ndSNuN();
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
+            double[][,] ret = Interpolate.CalcSNuN();
             return ret;
         }
     }

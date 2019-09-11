@@ -95,6 +95,8 @@
     <Compile Include="FEM.TD.cs" />
     <Compile Include="FEM.SplitQuantityFixedCadsCondition.cs" />
     <Compile Include="Fluid2DBaseFEM.cs" />
+    <Compile Include="Fluid2DBaseFEM.PressurePoissonWithBell.cs" />
+    <Compile Include="Fluid2DFEM.StdGPressurePoissonWithBell.cs" />
     <Compile Include="Fluid2DRKTDFEM.PressurePoisson.cs" />
     <Compile Include="Fluid2DBaseFEM.PressurePoisson.cs" />
     <Compile Include="Fluid2DBaseFEM.Vorticity.cs" />
@@ -107,6 +109,7 @@
     <Compile Include="Fluid2DRKTDFEM.StdVorticity.cs" />
     <Compile Include="Fluid2DRKTDFEM.Vorticity.cs" />
     <Compile Include="Fluid2DRKTDFEM.StdGPressurePoisson.cs" />
+    <Compile Include="Fluid2DTDFEM.StdGPressurePoissonWithBell.cs" />
     <Compile Include="Fluid2DTDFEM.StdGPressurePoisson.cs" />
     <Compile Include="Fluid2DTDFEM.StdGNavierStokesByNewton.cs" />
     <Compile Include="Fluid2DTDFEM.StdGVorticity.cs" />
@@ -177,6 +180,7 @@
     <Compile Include="IColorMap.cs" />
     <Compile Include="IDrawer.cs" />
     <Compile Include="IFieldDrawer.cs" />
+    <Compile Include="IInterpolate.cs" />
     <Compile Include="IntegrationPoints.cs" />
     <Compile Include="Linear.Functions.Complex.COCG.cs" />
     <Compile Include="Linear.Functions.Complex.BiCGSTAB.cs" />
@@ -195,6 +199,7 @@
     <Compile Include="PCWaveguidePortInfo.cs" />
     <Compile Include="PCWaveguideUtils.cs" />
     <Compile Include="PortCondition.cs" />
+    <Compile Include="TriangleFEBellInterpolate.cs" />
     <Compile Include="VertexEdgeItr.cs" />
     <Compile Include="Lapack.ComplexBandMatrix.cs" />
     <Compile Include="Lapack.ComplexHermitianBandMatrix.cs" />
@@ -218,8 +223,8 @@
     <Compile Include="Linear.Utils.cs" />
     <Compile Include="LinearElasticMaterial.cs" />
     <Compile Include="LineConstraint.cs" />
-    <Compile Include="LineFE.1st.cs" />
-    <Compile Include="LineFE.2nd.cs" />
+    <Compile Include="LineFE1stInterpolate.cs" />
+    <Compile Include="LineFE2ndInterpolate.cs" />
     <Compile Include="LineFE.cs" />
     <Compile Include="Lis.Constants.cs" />
     <Compile Include="Lis.Functions.cs" />
@@ -259,8 +264,8 @@
     <Compile Include="SaintVenantHyperelasticMaterial.cs" />
     <Compile Include="SelectedObject.cs" />
     <Compile Include="Serializer.cs" />
-    <Compile Include="TriangleFE.1st.cs" />
-    <Compile Include="TriangleFE.2nd.cs" />
+    <Compile Include="TriangleFE1stInterpolate.cs" />
+    <Compile Include="TriangleFE2ndInterpolate.cs" />
     <Compile Include="TriangleFE.cs" />
     <Compile Include="TriDiaMat3.cs" />
     <Compile Include="UseLoop.cs" />

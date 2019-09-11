@@ -73,7 +73,8 @@ namespace IvyFEM
                     for (int i = 0; i < (allCoIds.Count - 1); i++)
                     {
                         int workFEOrder = 1;
-                        LineFE lineFE = new LineFE(workFEOrder);
+                        FiniteElementType workFEType = FiniteElementType.ScalarLagrange;
+                        LineFE lineFE = new LineFE(workFEOrder, workFEType);
                         lineFE.World = world;
                         lineFE.QuantityId = (int)quantityId;
                         {

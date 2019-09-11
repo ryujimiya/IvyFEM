@@ -10,7 +10,9 @@ namespace IvyFEM
     {
         internal FEWorld World { get; set; }
         public int QuantityId { get; set; } = -1;
+        public int QuantityIdBaseOffset { get; set; } = 0;
         public ElementType Type { get; protected set; } = ElementType.NotSet;
+        public FiniteElementType FEType { get; set; } = FiniteElementType.ScalarLagrange;
         public int Order { get; set; } = -1;
         public uint VertexCount { get; protected set; } = 0;
         public uint NodeCount { get; protected set; } = 0;
@@ -20,6 +22,7 @@ namespace IvyFEM
         public uint MaterialId { get; set; } = 0;
         public uint MeshId { get; set; } = 0;
         public int MeshElemId { get; set; } = -1;
+        protected IInterpolate Interpolate = null;
 
         public FE()
         {
@@ -29,6 +32,7 @@ namespace IvyFEM
         public FE(FE src)
         {
             Copy(src);
+            CreateInterpolate();
         }
 
         public virtual void Copy(IObject src)
@@ -38,6 +42,7 @@ namespace IvyFEM
             World = srcFE.World; // shallow copy
             QuantityId = srcFE.QuantityId;
             Type = srcFE.Type;
+            FEType = srcFE.FEType;
             Order = srcFE.Order;
             NodeCount = srcFE.NodeCount;
             VertexCoordIds = null;
@@ -67,6 +72,98 @@ namespace IvyFEM
             MaterialId = srcFE.MaterialId;
             MeshId = srcFE.MeshId;
             MeshElemId = srcFE.MeshElemId;
+        }
+
+        protected void CreateInterpolate()
+        {
+            if (FEType == FiniteElementType.ScalarLagrange)
+            {
+                CreateLagrangeInterpolate();
+            }
+            else if (FEType == FiniteElementType.ScalarBell)
+            {
+                CreateBellInterpolate();
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+
+        }
+
+        protected void CreateLagrangeInterpolate()
+        {
+            System.Diagnostics.Debug.Assert(FEType == FiniteElementType.ScalarLagrange);
+            if (this is LineFE)
+            {
+                LineFE thisLineFE = this as LineFE;
+                if (Order == 1)
+                {
+                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                }
+                else if (Order == 2)
+                {
+                    Interpolate = new LineFE2ndInterpolate(thisLineFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TriangleFE)
+            {
+                TriangleFE thisTriFE = this as TriangleFE;
+                if (Order == 1)
+                {
+                    Interpolate = new TriangleFE1stInterpolate(thisTriFE);
+                }
+                else if (Order == 2)
+                {
+                    Interpolate = new TriangleFE2ndInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+        }
+
+        protected void CreateBellInterpolate()
+        {
+            System.Diagnostics.Debug.Assert(FEType == FiniteElementType.ScalarBell);
+            if (this is LineFE)
+            {
+                LineFE thisLineFE = this as LineFE;
+                if (Order == 5)
+                {
+                    // 暫定：Lagrange線要素で代用.当然ながら形状関数は正しくない
+                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TriangleFE)
+            {
+                TriangleFE thisTriFE = this as TriangleFE;
+                if (Order == 5)
+                {
+                    Interpolate = new TriangleFEBellInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
         }
 
         public void SetVertexCoordIds(int[] vertexCoordIds)

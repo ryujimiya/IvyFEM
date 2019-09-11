@@ -37,6 +37,9 @@ namespace IvyFEM
                 case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoissonAB(A, B);
                     break;
+                case FluidEquationType.StdGPressurePoissonWithBell:
+                    CalcStdGPressurePoissonWithBellAB(A, B);
+                    break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
@@ -53,6 +56,10 @@ namespace IvyFEM
             else if (EquationType == FluidEquationType.StdGPressurePoisson)
             {
                 SetPressurePoissonSpecialBC(A, B, 0.0, 0.0, 0.0, 0);
+            }
+            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell)
+            {
+                SetPressurePoissonWithBellSpecialBC(A, B, 0.0, 0.0, 0.0, 0);
             }
         }
 

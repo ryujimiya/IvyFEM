@@ -118,6 +118,12 @@ namespace IvyFEM
         Point25 = 25
     }
 
+    public enum FiniteElementType
+    {
+        ScalarLagrange,
+        ScalarBell
+    }
+
     public enum EqualityType
     {
         Eq,
@@ -132,7 +138,8 @@ namespace IvyFEM
         SUPGNavierStokes,
         StdGVorticity,
         SUPGVorticity,
-        StdGPressurePoisson
+        StdGPressurePoisson,
+        StdGPressurePoissonWithBell
     }
 
     public enum FlowVorticityBCType

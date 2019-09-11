@@ -26,10 +26,10 @@ namespace IvyFEM
 
         }
 
-        public uint AddQuantity(uint dof, uint feOrder)
+        public uint AddQuantity(uint dof, uint feOrder, FiniteElementType feType, int idBaseOffset = 0)
         {
             uint id = (uint)Quantitys.Count;
-            var quantity = new FEWorldQuantity(id, Dimension, dof, feOrder);
+            var quantity = new FEWorldQuantity(id, Dimension, dof, feOrder, feType, idBaseOffset);
             Quantitys.Add(quantity);
             return id;
         }
