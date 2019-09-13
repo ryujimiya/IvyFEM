@@ -414,7 +414,7 @@ namespace IvyFEM
                     coef[i] += (1.0 / det) * 12.0 * alpha5[i];
                     coef[i] += (1.0 / det) * 8.0 * alpha7[i];
                     coef[i] += (1.0 / det) * 12.0 * alpha8[i];
-                    coef[i] += 4.0 * k3[i];
+                    coef[i] += (1.0 / det) * 4.0 * k3[i];
                 }
             }
             // 式(48)
@@ -434,7 +434,7 @@ namespace IvyFEM
                     coef[i] += (1.0 / det) * (-8.0) * alpha5[i];
                     coef[i] += (1.0 / det) * (-8.0) * alpha7[i];
                     coef[i] += (1.0 / det) * (-8.0) * alpha8[i];
-                    coef[i] += -4.0 * k3[i];
+                    coef[i] += (1.0 / det) * (-4.0) * k3[i];
                 }
             }
             // 式(49)
@@ -454,7 +454,7 @@ namespace IvyFEM
                     coef[i] += (1.0 / det) * (-12.0) * alpha5[i];
                     coef[i] += (1.0 / det) * (-4.0) * alpha7[i];
                     coef[i] += (1.0 / det) * (-12.0) * alpha8[i];
-                    coef[i] += -4.0 * k3[i];
+                    coef[i] += (1.0 / det) * (-4.0) * k3[i];
                 }
             }
             else
@@ -474,7 +474,7 @@ namespace IvyFEM
                 coef[7] = 8.0;
                 coef[13] = 8.0;
                 coef[10] = -2.0;
-                coef[16] = -2.0;
+                coef[16] = 2.0;
                 double d01 = b[0] * b[1] + c[0] * c[1];
                 double l0 = Math.Sqrt(b[0] * b[0] + c[0] * c[0]);
                 double workC = d01 / (l0 * l0);
@@ -490,11 +490,11 @@ namespace IvyFEM
                 double[] alpha20 = alphas[20];
                 for (int i = 0; i < coef.Length; i++)
                 {
-                    coef[i] += workC * (-16.0 * alpha2[i]);
-                    coef[i] += workC * (-16.0 * alpha5[i]);
-                    coef[i] += workC * (-12.0 * alpha9[i]);
-                    coef[i] += workC * (-8.0 * alpha14[i]);
-                    coef[i] += workC * (-5.0 * alpha20[i]);
+                    coef[i] += workC * (-16.0) * alpha2[i];
+                    coef[i] += workC * (-16.0) * alpha5[i];
+                    coef[i] += workC * (-12.0) * alpha9[i];
+                    coef[i] += workC * (-8.0) * alpha14[i];
+                    coef[i] += workC * (-5.0) * alpha20[i];
                 }
             }
             // 式(40)
@@ -518,11 +518,11 @@ namespace IvyFEM
                 double[] alpha15 = alphas[15];
                 for (int i = 0; i < coef.Length; i++)
                 {
-                    coef[i] += workC * (-16.0 * alpha1[i]);
-                    coef[i] += workC * (-16.0 * alpha3[i]);
-                    coef[i] += workC * (-12.0 * alpha6[i]);
-                    coef[i] += workC * (-8.0 * alpha10[i]);
-                    coef[i] += workC * (-5.0 * alpha15[i]);
+                    coef[i] += workC * (-16.0) * alpha1[i];
+                    coef[i] += workC * (-16.0) * alpha3[i];
+                    coef[i] += workC * (-12.0) * alpha6[i];
+                    coef[i] += workC * (-8.0) * alpha10[i];
+                    coef[i] += workC * (-5.0) * alpha15[i];
                 }
             }
             // 式(46)
@@ -545,7 +545,7 @@ namespace IvyFEM
                 coef[5] = workC12 * 2.0 * 5.0 / 4.0;
                 coef[9] += workC12 * 2.0 * (-1.0 / 4.0);
                 coef[10] += workC12 * 2.0;
-                coef[11] = workC12 * (-1.0);
+                coef[11] = workC12 * 2.0 * (-1.0);
                 double[] alpha1 = alphas[1];
                 double[] alpha3 = alphas[3];
                 double[] alpha4 = alphas[4];
@@ -565,32 +565,32 @@ namespace IvyFEM
                 double[] alpha20 = alphas[20];
                 for (int i = 0; i < coef.Length; i++)
                 {
-                    coef[i] += workC02 * (-16.0 * alpha1[i]);
-                    coef[i] += workC02 * (-16.0 * alpha3[i]);
-                    coef[i] += workC02 * (-8.0 * alpha4[i]);
-                    coef[i] += workC02 * (-12.0 * alpha6[i]);
-                    coef[i] += workC02 * (-8.0 * alpha7[i]);
-                    coef[i] += workC02 * (-4.0 * alpha8[i]);
-                    coef[i] += workC02 * (-8.0 * alpha10[i]);
-                    coef[i] += workC02 * (-6.0 * alpha11[i]);
-                    coef[i] += workC02 * (-2.0 * alpha13[i]);
-                    coef[i] += workC02 * (-5.0 * alpha15[i]);
-                    coef[i] += workC02 * (-4.0 * alpha16[i]);
-                    coef[i] += workC02 * (-1.0 * alpha19[i]);
+                    coef[i] += workC02 * (-16.0) * alpha1[i];
+                    coef[i] += workC02 * (-16.0) * alpha3[i];
+                    coef[i] += workC02 * (-8.0) * alpha4[i];
+                    coef[i] += workC02 * (-12.0) * alpha6[i];
+                    coef[i] += workC02 * (-8.0) * alpha7[i];
+                    coef[i] += workC02 * (-4.0) * alpha8[i];
+                    coef[i] += workC02 * (-8.0) * alpha10[i];
+                    coef[i] += workC02 * (-6.0) * alpha11[i];
+                    coef[i] += workC02 * (-2.0) * alpha13[i];
+                    coef[i] += workC02 * (-5.0) * alpha15[i];
+                    coef[i] += workC02 * (-4.0) * alpha16[i];
+                    coef[i] += workC02 * (-1.0) * alpha19[i];
 
-                    coef[i] += workC12 * (-16.0 * alpha2[i]);
-                    coef[i] += workC12 * (1.0 * alpha3[i]);
-                    coef[i] += workC12 * (-8.0 * alpha4[i]);
-                    coef[i] += workC12 * (-17.0 * alpha5[i]);
-                    coef[i] += workC12 * (-3.0 * alpha7[i]);
-                    coef[i] += workC12 * (-9.0 * alpha8[i]);
-                    coef[i] += workC12 * (-12.0 * alpha9[i]);
-                    coef[i] += workC12 * (-2.0 * alpha11[i]);
-                    coef[i] += workC12 * (-6.0 * alpha13[i]);
-                    coef[i] += workC12 * (-8.0 * alpha14[i]);
-                    coef[i] += workC12 * (-1.0 * alpha16[i]);
-                    coef[i] += workC12 * (-4.0 * alpha19[i]);
-                    coef[i] += workC12 * (-5.0 * alpha20[i]);
+                    coef[i] += workC12 * (-16.0) * alpha2[i];
+                    coef[i] += workC12 * 1.0 * alpha3[i];
+                    coef[i] += workC12 * (-8.0) * alpha4[i];
+                    coef[i] += workC12 * (-17.0) * alpha5[i];
+                    coef[i] += workC12 * (-3.0) * alpha7[i];
+                    coef[i] += workC12 * (-9.0) * alpha8[i];
+                    coef[i] += workC12 * (-12.0) * alpha9[i];
+                    coef[i] += workC12 * (-2.0) * alpha11[i];
+                    coef[i] += workC12 * (-6.0) * alpha13[i];
+                    coef[i] += workC12 * (-8.0) * alpha14[i];
+                    coef[i] += workC12 * (-1.0) * alpha16[i];
+                    coef[i] += workC12 * (-4.0) * alpha19[i];
+                    coef[i] += workC12 * (-5.0) * alpha20[i];
                 }
             }
             else
