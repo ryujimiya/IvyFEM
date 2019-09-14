@@ -48,10 +48,6 @@ namespace IvyFEM
         /// </summary>
         public IList<uint> BcEdgeIds2 = new List<uint>();
         /// <summary>
-        /// 周期構造入出力導波路 フォトニック導波路？
-        /// </summary>
-        public bool IsPCWaveguide = true;
-        /// <summary>
         /// 周期構造の方向
         /// false: X方向
         /// true: Y方向
@@ -86,9 +82,16 @@ namespace IvyFEM
         /// </summary>
         public double MaxWaveNum = 0.5;
         /// <summary>
-        /// 前回の固有モードベクトルのリスト
+        /// TEモードで実装した式をTMモードに流用するため
+        ///   TEモードの場合は μ0
+        ///   TMモードの場合は ε0
         /// </summary>
-        public System.Numerics.Complex[][] PrevModalVecList = null;
+        public double ReplacedMu0 = Constants.Mu0;
+        
+        /// <summary>
+        /// モード追跡
+        /// </summary>
+        public System.Numerics.Complex[][] PrevModeEVecs = null;
 
         public PCWaveguidePortInfo()
         {

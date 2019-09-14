@@ -181,7 +181,7 @@ namespace IvyFEM.Lapack
                 throw new ArgumentException("Mismatched size: aCol != X.Length(" + aCol + " != " + X.Length + ")");
             }
 
-            Y = new double[X.Length];
+            Y = new double[aRow];
 
             byte trans = Trans.FromTransposeType(aTransposeType);
             int m = aRow;
@@ -399,7 +399,7 @@ namespace IvyFEM.Lapack
                 throw new ArgumentException("Mismatched size: aCol != X.Length(" + aCol + " != " + X.Length + ")");
             }
 
-            Y = new System.Numerics.Complex[X.Length];
+            Y = new System.Numerics.Complex[aRow];
 
             byte trans = Trans.FromTransposeType(aTransposeType);
             int m = aRow;

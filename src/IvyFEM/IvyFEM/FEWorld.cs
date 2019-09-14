@@ -19,6 +19,8 @@ namespace IvyFEM
 
         public TriangleIntegrationPointCount TriIntegrationPointCount { get; set; } =
             TriangleIntegrationPointCount.Point7;
+        public double RotAngle { get; set; } = 0.0;
+        public double[] RotOrigin { get; set; } = null;
         private IList<FEWorldQuantity> Quantitys = new List<FEWorldQuantity>();
 
         public FEWorld()
@@ -73,6 +75,13 @@ namespace IvyFEM
 
         public double[] GetVertexCoord(int coId)
         {
+            double[] coord = _GetVertexCoord(coId);
+            coord = GetRotCoord(coord, RotAngle, RotOrigin);
+            return coord;
+        }
+
+        private double[] _GetVertexCoord(int coId)
+        {
             System.Diagnostics.Debug.Assert(coId * Dimension + (Dimension - 1) < VertexCoords.Count);
             double[] coord = new double[Dimension];
             for (int iDim = 0; iDim < Dimension; iDim++)
@@ -80,6 +89,30 @@ namespace IvyFEM
                 coord[iDim] = VertexCoords[(int)(coId * Dimension + iDim)];
             }
             return coord;
+        }
+
+        /// <summary>
+        /// 回転移動する
+        /// </summary>
+        /// <param name="srcPt"></param>
+        /// <param name="rotAngle"></param>
+        /// <param name="rotOrigin"></param>
+        /// <returns></returns>
+        public static double[] GetRotCoord(double[] srcPt, double rotAngle, double[] rotOrigin = null)
+        {
+            double[] destPt = new double[2];
+            double x0 = 0;
+            double y0 = 0;
+            if (rotOrigin != null)
+            {
+                x0 = rotOrigin[0];
+                y0 = rotOrigin[1];
+            }
+            double cosA = Math.Cos(rotAngle);
+            double sinA = Math.Sin(rotAngle);
+            destPt[0] = cosA * (srcPt[0] - x0) + sinA * (srcPt[1] - y0);
+            destPt[1] = -sinA * (srcPt[0] - x0) + cosA * (srcPt[1] - y0);
+            return destPt;
         }
 
         public uint GetFEOrder(uint quantityId)
@@ -135,7 +168,7 @@ namespace IvyFEM
 
         public double[] GetCoord(uint quantityId, int coId)
         {
-            return Quantitys[(int)quantityId].GetCoord(coId);
+            return Quantitys[(int)quantityId].GetCoord(coId, RotAngle, RotOrigin);
         }
 
         public uint GetNodeCount(uint quantityId)

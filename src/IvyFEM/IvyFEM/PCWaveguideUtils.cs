@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class PCWageguideUtils
+    public class PCWaveguideUtils
     {
         /// <summary>
         /// 境界を分割する
@@ -336,8 +336,9 @@ namespace IvyFEM
             uint retLoopId = 0;
 
             OpenTK.Vector2d pt_center = cad2D.GetVertexCoord(vId1);
-            System.Diagnostics.Debug.Assert(Math.Abs(x0 - pt_center.X) < IvyFEM.Constants.PrecisionLowerLimit);
-            System.Diagnostics.Debug.Assert(Math.Abs(y0 - pt_center.Y) < IvyFEM.Constants.PrecisionLowerLimit);
+            double th = 1.0e-12;
+            System.Diagnostics.Debug.Assert(Math.Abs(x0 - pt_center.X) < th);
+            System.Diagnostics.Debug.Assert(Math.Abs(y0 - pt_center.Y) < th);
             // check
             //CVector2D pt0 = cad2d.GetVertexCoord(id_v0);
             //double x_pt0 = pt0.x;
@@ -658,6 +659,46 @@ namespace IvyFEM
             }
 
             return retLoopId;
+        }
+
+        /// <summary>
+        /// Y軸からの回転移動原点、角度を算出する
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="bcEIds"></param>
+        /// <param name="rotAngle"></param>
+        /// <param name="rotOrigin"></param>
+        public static void GetRotOriginRotAngleFromY(
+            FEWorld world, uint[] bcEIds, out double rotAngle, out double[] rotOrigin)
+        {
+            uint eId1 = bcEIds[0];
+            uint eId2 = bcEIds[bcEIds.Length - 1];
+            Edge2D e1 = world.Mesh.Cad2D.GetEdge(eId1);
+            Edge2D e2 = world.Mesh.Cad2D.GetEdge(eId2);
+            OpenTK.Vector2d firstPt = e1.GetVertexCoord(true);
+            OpenTK.Vector2d lastPt = e2.GetVertexCoord(false);
+            double[] firstCoord = { firstPt.X, firstPt.Y };
+            double[] lasCoord = { lastPt.X, lastPt.Y };
+
+            // 回転移動
+            rotOrigin = null;
+            rotAngle = 0.0; // ラジアン
+            // 境界の傾きから回転角度を算出する
+            if (Math.Abs(firstCoord[0] - lasCoord[0]) >= 1.0e-12)
+            {
+                // X軸からの回転角
+                rotAngle = Math.Atan2((lasCoord[1] - firstCoord[1]), (lasCoord[0] - firstCoord[0]));
+                // Y軸からの回転角に変換 (境界はY軸に平行、X方向周期構造)
+                rotAngle = rotAngle - 0.5 * Math.PI;
+                rotOrigin = firstCoord;
+                System.Diagnostics.Debug.WriteLine("rotAngle: {0} rotOrigin:{1} {2}", rotAngle * 180.0 / Math.PI, rotOrigin[0], rotOrigin[1]);
+            }
+            else
+            {
+                // 角度0ラジアン
+                rotAngle = 0.0;
+                rotOrigin = null;
+            }
         }
     }
 }

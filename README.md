@@ -32,7 +32,8 @@
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　電磁気学　：H面導波管の伝達問題  
-　　　　　　　　　　フォトニック結晶導波路の伝達問題（正方格子）  
+　　　　　　　　　　フォトニック結晶導波路の伝達問題  
+　　　　　　　　　　（正方格子、三角形格子）（誘電体ロッド型、エアホール型）  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
@@ -41,9 +42,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-09-13更新）**  
+　**バイナリ（2019-09-14更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.17  
+　　IvyFEM.dll version 0.0.0.19  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -95,5 +96,6 @@
 　　〇H面導波路の伝達問題  
 　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
 　　〇フォトニック結晶導波路の伝達問題  
-　　![フォトニック結晶導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190815/20190815191231.jpg)  
+　　![フォトニック結晶導波路の伝達問題(正方格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
+　　![フォトニック結晶導波路の伝達問題(三角形格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  
 　  

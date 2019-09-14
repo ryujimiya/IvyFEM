@@ -15,6 +15,10 @@ namespace IvyFEM
         public IvyFEM.Lapack.DoubleMatrix CMat { get; private set; } = null;
         public IvyFEM.Lapack.DoubleMatrix MMat { get; private set; } = null;
 
+        private IvyFEM.Lapack.DoubleMatrix KMat0 = null;
+        private IvyFEM.Lapack.DoubleMatrix CMat0 = null;
+        private IvyFEM.Lapack.DoubleMatrix MMat0 = null;
+
         // 境界1積分
         public IvyFEM.Lapack.DoubleMatrix TxxB1 { get; private set; } = null;
         public IvyFEM.Lapack.DoubleMatrix RyyB1 { get; private set; } = null;
@@ -44,9 +48,6 @@ namespace IvyFEM
             int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
             IList<uint> feIds = World.GetPeriodicPortTriangleFEIds(QuantityId, PortId);
 
-            IvyFEM.Lapack.DoubleMatrix KMat0;
-            IvyFEM.Lapack.DoubleMatrix CMat0;
-            IvyFEM.Lapack.DoubleMatrix MMat0;
             KMat0 = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             CMat0 = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             MMat0 = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
@@ -75,7 +76,6 @@ namespace IvyFEM
                 double[,] sNxN = sNuN[0];
                 double[,] sNyN = sNuN[1];
 
-                System.Diagnostics.Debug.Assert(WgPortInfo.IsSVEA);
                 // 要素剛性行列、要素質量行列を作る
                 //  { [K]e - jβ[C]e - β^2[M]e }{Φ}= {0}
                 for (int row = 0; row < elemNodeCnt; row++)
@@ -121,118 +121,129 @@ namespace IvyFEM
             int bcNodeCnt = WgPortInfo.BcNodess[0].Count;
             System.Diagnostics.Debug.Assert(WgPortInfo.BcNodess[0].Count == WgPortInfo.BcNodess[1].Count);
             int nodeCnt1 = nodeCnt - bcNodeCnt; // 境界2を除く
-            KMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
-            CMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
-            MMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
-            // 境界1
-            for (int i = 0; i < bcNodeCnt; i++)
-            {
-                for (int j = 0; j < bcNodeCnt; j++)
-                {
-                    KMat[i, j] = KMat0[i, j];
-                    CMat[i, j] = CMat0[i, j];
-                    MMat[i, j] = MMat0[i, j];
-                }
-                for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
-                {
-                    int j1 = j - bcNodeCnt;
-                    KMat[i, j1] = KMat0[i, j];
-                    CMat[i, j1] = CMat0[i, j];
-                    MMat[i, j1] = MMat0[i, j];
-                }
-            }
-            // 内部
-            for (int i = bcNodeCnt * 2; i < nodeCnt; i++)
-            {
-                int i1 = i - bcNodeCnt;
-                for (int j = 0; j < bcNodeCnt; j++)
-                {
-                    KMat[i1, j] = KMat0[i, j];
-                    CMat[i1, j] = CMat0[i, j];
-                    MMat[i1, j] = MMat0[i, j];
-                }
-                for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
-                {
-                    int j1 = j - bcNodeCnt;
-                    KMat[i1, j1] = KMat0[i, j];
-                    CMat[i1, j1] = CMat0[i, j];
-                    MMat[i1, j1] = MMat0[i, j];
-                }
-            }
-            // 境界条件
-            bool isPortBc2Reverse = WgPortInfo.IsPortBc2Reverse;
-            for (int i = 0; i < bcNodeCnt; i++)
-            {
-                for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
-                {
-                    int j1 = isPortBc2Reverse ?
-                        (bcNodeCnt * 2 - 1 - j) :
-                        (j - bcNodeCnt);
-                    KMat[i, j1] += KMat0[i, j];
-                    CMat[i, j1] += CMat0[i, j];
-                    MMat[i, j1] += MMat0[i, j];
-                }
-            }
-            for (int i = bcNodeCnt * 2; i < nodeCnt; i++)
-            {
-                int i1 = i - bcNodeCnt;
-                for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
-                {
-                    int j1 = isPortBc2Reverse ?
-                        (bcNodeCnt * 2 - 1 - j) :
-                        (j - bcNodeCnt);
-                    KMat[i1, j1] += KMat0[i, j];
-                    CMat[i1, j1] += CMat0[i, j];
-                    MMat[i1, j1] += MMat0[i, j];
-                }
-            }
-            for (int i = bcNodeCnt; i < bcNodeCnt * 2; i++)
-            {
-                int i1 = isPortBc2Reverse ?
-                    (bcNodeCnt * 2 - 1 - i) :
-                    (i - bcNodeCnt);
-                for (int j = 0; j < bcNodeCnt; j++)
-                {
-                    KMat[i1, j] += KMat0[i, j];
-                    CMat[i1, j] += CMat0[i, j];
-                    MMat[i1, j] += MMat0[i, j];
-                }
-                for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
-                {
-                    int j1 = j - bcNodeCnt;
-                    KMat[i1, j1] += KMat0[i, j];
-                    CMat[i1, j1] += CMat0[i, j];
-                    MMat[i1, j1] += MMat0[i, j];
-                }
-                for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
-                {
-                    int j1 = isPortBc2Reverse ?
-                        (bcNodeCnt * 2 - 1 - j) :
-                        (j - bcNodeCnt);
-                    KMat[i1, j1] += KMat0[i, j];
-                    CMat[i1, j1] += CMat0[i, j];
-                    MMat[i1, j1] += MMat0[i, j];
-                }
-            }
 
-            // 行列要素check
+            bool isSVEA = WgPortInfo.IsSVEA;
+            bool isPortBc2Reverse = WgPortInfo.IsPortBc2Reverse;
+            if (isSVEA)
             {
-                double th = 1.0e-12;//Constants.PrecisionLowerLimit;
-                for (int i = 0; i < nodeCnt1; i++)
+                KMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
+                CMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
+                MMat = new IvyFEM.Lapack.DoubleMatrix(nodeCnt1, nodeCnt1);
+                // 境界1
+                for (int i = 0; i < bcNodeCnt; i++)
                 {
-                    for (int j = i; j < nodeCnt1; j++)
+                    for (int j = 0; j < bcNodeCnt; j++)
                     {
-                        // [K]は対称行列
-                        System.Diagnostics.Debug.Assert(
-                            Math.Abs(KMat[i, j] - KMat[j, i]) < th);
-                        // [M]は対称行列
-                        System.Diagnostics.Debug.Assert(
-                            Math.Abs(MMat[i, j] - MMat[j, i]) < th);
-                        // [C]は反対称行列
-                        System.Diagnostics.Debug.Assert(
-                            Math.Abs((-CMat[i, j]) - CMat[j, i]) < th);
+                        KMat[i, j] = KMat0[i, j];
+                        CMat[i, j] = CMat0[i, j];
+                        MMat[i, j] = MMat0[i, j];
+                    }
+                    for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
+                    {
+                        int j1 = j - bcNodeCnt;
+                        KMat[i, j1] = KMat0[i, j];
+                        CMat[i, j1] = CMat0[i, j];
+                        MMat[i, j1] = MMat0[i, j];
                     }
                 }
+                // 内部
+                for (int i = bcNodeCnt * 2; i < nodeCnt; i++)
+                {
+                    int i1 = i - bcNodeCnt;
+                    for (int j = 0; j < bcNodeCnt; j++)
+                    {
+                        KMat[i1, j] = KMat0[i, j];
+                        CMat[i1, j] = CMat0[i, j];
+                        MMat[i1, j] = MMat0[i, j];
+                    }
+                    for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
+                    {
+                        int j1 = j - bcNodeCnt;
+                        KMat[i1, j1] = KMat0[i, j];
+                        CMat[i1, j1] = CMat0[i, j];
+                        MMat[i1, j1] = MMat0[i, j];
+                    }
+                }
+                // 境界条件
+                for (int i = 0; i < bcNodeCnt; i++)
+                {
+                    for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
+                    {
+                        int j1 = isPortBc2Reverse ?
+                            (bcNodeCnt * 2 - 1 - j) :
+                            (j - bcNodeCnt);
+                        KMat[i, j1] += KMat0[i, j];
+                        CMat[i, j1] += CMat0[i, j];
+                        MMat[i, j1] += MMat0[i, j];
+                    }
+                }
+                for (int i = bcNodeCnt * 2; i < nodeCnt; i++)
+                {
+                    int i1 = i - bcNodeCnt;
+                    for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
+                    {
+                        int j1 = isPortBc2Reverse ?
+                            (bcNodeCnt * 2 - 1 - j) :
+                            (j - bcNodeCnt);
+                        KMat[i1, j1] += KMat0[i, j];
+                        CMat[i1, j1] += CMat0[i, j];
+                        MMat[i1, j1] += MMat0[i, j];
+                    }
+                }
+                for (int i = bcNodeCnt; i < bcNodeCnt * 2; i++)
+                {
+                    int i1 = isPortBc2Reverse ?
+                        (bcNodeCnt * 2 - 1 - i) :
+                        (i - bcNodeCnt);
+                    for (int j = 0; j < bcNodeCnt; j++)
+                    {
+                        KMat[i1, j] += KMat0[i, j];
+                        CMat[i1, j] += CMat0[i, j];
+                        MMat[i1, j] += MMat0[i, j];
+                    }
+                    for (int j = bcNodeCnt * 2; j < nodeCnt; j++)
+                    {
+                        int j1 = j - bcNodeCnt;
+                        KMat[i1, j1] += KMat0[i, j];
+                        CMat[i1, j1] += CMat0[i, j];
+                        MMat[i1, j1] += MMat0[i, j];
+                    }
+                    for (int j = bcNodeCnt; j < bcNodeCnt * 2; j++)
+                    {
+                        int j1 = isPortBc2Reverse ?
+                            (bcNodeCnt * 2 - 1 - j) :
+                            (j - bcNodeCnt);
+                        KMat[i1, j1] += KMat0[i, j];
+                        CMat[i1, j1] += CMat0[i, j];
+                        MMat[i1, j1] += MMat0[i, j];
+                    }
+                }
+                // 行列要素check
+                {
+                    double th = 1.0e-12;
+                    for (int i = 0; i < nodeCnt1; i++)
+                    {
+                        for (int j = i; j < nodeCnt1; j++)
+                        {
+                            // [K]は対称行列
+                            System.Diagnostics.Debug.Assert(
+                                Math.Abs(KMat[i, j] - KMat[j, i]) < th);
+                            // [M]は対称行列
+                            System.Diagnostics.Debug.Assert(
+                                Math.Abs(MMat[i, j] - MMat[j, i]) < th);
+                            // [C]は反対称行列
+                            System.Diagnostics.Debug.Assert(
+                                Math.Abs((-CMat[i, j]) - CMat[j, i]) < th);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // KMatは使わない
+                KMat = null;
+                MMat = null;
+                CMat = null;
             }
         }
 
@@ -310,6 +321,25 @@ namespace IvyFEM
 
             double periodicDistance = WgPortInfo.PeriodicDistance;
 
+            bool isYDirectionPeriodic = WgPortInfo.IsYDirectionPeriodic;
+            if (isYDirectionPeriodic)
+            {
+                // 回転移動させない
+                World.RotAngle = 0;
+                World.RotOrigin = null;
+            }
+            else
+            {
+                // 回転移動
+                double rotAngle;
+                double[] rotOrigin;
+                PCWaveguideUtils.GetRotOriginRotAngleFromY(
+                    World, WgPortInfo.BcEdgeIds1.ToArray(), out rotAngle, out rotOrigin);
+
+                World.RotAngle = rotAngle;
+                World.RotOrigin = rotOrigin;
+            }
+
             // 領域
             CalcMatrixs(k0);
 
@@ -321,7 +351,6 @@ namespace IvyFEM
             double minBeta = minEffN;
             double maxBeta = maxEffN;
             // PC導波路の場合は、波数が[0, π]の領域から探索する
-            System.Diagnostics.Debug.Assert(WgPortInfo.IsPCWaveguide);
             {
                 double minWaveNum = WgPortInfo.MinWaveNum;
                 double maxWaveNum = WgPortInfo.MaxWaveNum;
@@ -339,12 +368,24 @@ namespace IvyFEM
                 //System.Diagnostics.Debug.WriteLine("minBeta: {0}, maxBeta: {1}", minBeta, maxBeta);
             }
 
+            bool isSVEA = WgPortInfo.IsSVEA;
             System.Numerics.Complex[] eVals;
             System.Numerics.Complex[][] eVecs;
-            solveAsStandardEigenWithRealMat(out eVals, out eVecs);
-            //solveAsGeneralizedEigenWithRealMat(out eVals, out eVecs);
-            //solveItrAsGeneralizedEigen(k0, minBeta, maxBeta, out eVals, out eVecs);
-            
+            if (isSVEA)
+            {
+                solveAsStandardEigenWithRealMat(out eVals, out eVecs);
+                //solveAsGeneralizedEigenWithRealMat(out eVals, out eVecs);
+                //solveItrAsGeneralizedEigen(k0, minBeta, maxBeta, out eVals, out eVecs);
+            }
+            else
+            {
+                solveNonSVEAModeAsQuadraticGeneralizedEigenWithRealMat(
+                    minBeta,
+                    maxBeta,
+                    k0,
+                    out eVals, out eVecs);
+            }
+
             SortEVals(eVals, eVecs);
             AdjustPhaseEVecs(eVecs);
 
@@ -359,12 +400,14 @@ namespace IvyFEM
                 k0, minBeta, maxBeta,
                 propBetas, propEVecs,
                 out defectBetas, out defectEVecs);
+            // モード追跡
+            TraceMode(defectBetas, defectEVecs);
 
             System.Numerics.Complex[][] defectFxEVecs0;
             System.Numerics.Complex[][] defectFyEVecs0;
             CalcFuValues(defectBetas, defectEVecs, out defectFxEVecs0, out defectFyEVecs0);
             System.Numerics.Complex[][] defectFxEVecs = null;
-            if (WgPortInfo.IsYDirectionPeriodic)
+            if (isYDirectionPeriodic)
             {
                 defectFxEVecs = defectFyEVecs0;
             }
@@ -411,8 +454,10 @@ namespace IvyFEM
                 var work = RyyZ * defectBcEVec;
                 System.Numerics.Complex work2 = 
                     IvyFEM.Lapack.Functions.zdotu(IvyFEM.Lapack.Utils.Conjugate(eVecModify), work);
+                //double replacedMu0 = Constants.Mu0; // TEモード
+                double replacedMu0 = WgPortInfo.ReplacedMu0; // TE/TM共用
                 System.Numerics.Complex d = System.Numerics.Complex.Sqrt(
-                    omega * Constants.Mu0 * 
+                    omega * replacedMu0 * 
                     (1.0 / beta.Magnitude) * 
                     (System.Numerics.Complex.Conjugate(beta) /
                     System.Numerics.Complex.Conjugate(betaPeriodic)) *
@@ -422,6 +467,12 @@ namespace IvyFEM
                 defectBcEVecs[iMode] = defectBcEVec;
                 defectBcFxEVecs[iMode] = defectBcFxEVec;
             }
+
+            // 後片付け
+            // 回転移動設定をクリアする
+            World.RotAngle = 0;
+            World.RotOrigin = null;
+
 
             Betas = defectBetas;
             EVecs = defectEVecs;
@@ -859,6 +910,362 @@ namespace IvyFEM
             }
         }
 
+        // Φを直接解く
+        private void solveNonSVEAModeAsQuadraticGeneralizedEigenWithRealMat(
+            double minBeta,
+            double maxBeta,
+            double k0,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            eVals = null;
+            eVecs = null;
+
+            int nodeCnt = KMat0.RowLength;
+            int bcNodeCnt = WgPortInfo.BcNodess[0].Count;
+            System.Diagnostics.Debug.Assert(WgPortInfo.BcNodess[0].Count == WgPortInfo.BcNodess[1].Count);
+            int nodeCnt1 = nodeCnt - bcNodeCnt; // 境界2を除く
+            bool isPortBc2Reverse = WgPortInfo.IsPortBc2Reverse;
+            double periodicDistance = WgPortInfo.PeriodicDistance;
+
+            // 複素モード、エバネセントモードの固有ベクトル計算をスキップする？ (計算時間短縮するため)
+            bool isSkipCalcComplexAndEvanescentModeVec = true;
+            // 緩慢変化包絡線近似？ Φを直接解く方法なので常にfalse
+            const bool isSVEA = false; // Φを直接解く方法
+            // 境界1のみの式に変換
+            int innerNodeCnt = nodeCnt - bcNodeCnt * 2;
+            var P11 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            var P10 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, innerNodeCnt);
+            var P12 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            var P01 = new IvyFEM.Lapack.DoubleMatrix(innerNodeCnt, bcNodeCnt);
+            var P00 = new IvyFEM.Lapack.DoubleMatrix(innerNodeCnt, innerNodeCnt);
+            var P02 = new IvyFEM.Lapack.DoubleMatrix(innerNodeCnt, bcNodeCnt);
+            var P21 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            var P20 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, innerNodeCnt);
+            var P22 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+
+            for (int i = 0; i < bcNodeCnt; i++)
+            {
+                int iB2 = isPortBc2Reverse ? (bcNodeCnt * 2 - 1 - i) : (bcNodeCnt + i);
+                for (int j = 0; j < bcNodeCnt; j++)
+                {
+                    int jB2 = isPortBc2Reverse ? (bcNodeCnt * 2 - 1 - j) : (bcNodeCnt + j);
+                    // [K11]
+                    P11[i, j] = KMat0[i, j];
+                    // [K12]
+                    P12[i, j] = KMat0[i, jB2];
+                    // [K21]
+                    P21[i, j] = KMat0[iB2, j];
+                    // [K22]
+                    P22[i, j] = KMat0[iB2, jB2];
+                }
+                for (int j = 0; j < innerNodeCnt; j++)
+                {
+                    // [K10]
+                    P10[i, j] = KMat0[i, j + bcNodeCnt * 2];
+                    // [K20]
+                    P20[i, j] = KMat0[iB2, j + bcNodeCnt * 2];
+                }
+            }
+            for (int i = 0; i < innerNodeCnt; i++)
+            {
+                for (int j = 0; j < bcNodeCnt; j++)
+                {
+                    int jB2 = isPortBc2Reverse ? (bcNodeCnt * 2 - 1 - j) : (bcNodeCnt + j);
+                    // [K01]
+                    P01[i, j] = KMat0[i + bcNodeCnt * 2, j];
+                    // [K02]
+                    P02[i, j] = KMat0[i + bcNodeCnt * 2, jB2];
+                }
+                for (int j = 0; j < innerNodeCnt; j++)
+                {
+                    // [K00]
+                    P00[i, j] = KMat0[i + bcNodeCnt * 2, j + bcNodeCnt * 2];
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("setup [K]B [C]B [M]B");
+            var invP00 = IvyFEM.Lapack.DoubleMatrix.Inverse(P00);
+            var P10xinvP00 = P10 * invP00;
+            var P20xinvP00 = P20 * invP00;
+            // for [C]B
+            var P10xinvP00xP01 = P10xinvP00 * P01;
+            var P20xinvP00xP02 = P20xinvP00 * P02;
+            // for [M]B
+            var P10xinvP00xP02 = P10xinvP00 * P02;
+            // for [K]B
+            var P20xinvP00xP01 = P20xinvP00 * P01;
+            // [C]B
+            var CMatB = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            // [M]B
+            var MMatB = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            // [K]B
+            var KMatB = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
+            for (int i = 0; i < bcNodeCnt; i++)
+            {
+                for (int j = 0; j < bcNodeCnt; j++)
+                {
+                    CMatB[i, j] =
+                        -P10xinvP00xP01[i, j]
+                        + P11[i, j]
+                        - P20xinvP00xP02[i, j]
+                        + P22[i, j];
+                    MMatB[i, j] =
+                        -P10xinvP00xP02[i, j]
+                        + P12[i, j];
+                    KMatB[i, j] =
+                        -P20xinvP00xP01[i, j]
+                        + P21[i, j];
+                }
+            }
+
+            // 非線形固有値問題
+            //  [K] + λ[C] + λ^2[M]{Φ}= {0}
+            // 一般化固有値解析(実行列として解く)
+            var A = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt * 2, bcNodeCnt * 2);
+            var B = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt * 2, bcNodeCnt * 2);
+            for (int i = 0; i < bcNodeCnt; i++)
+            {
+                for (int j = 0; j < bcNodeCnt; j++)
+                {
+                    A[i, j] = 0.0;
+                    A[i, j + bcNodeCnt] = (i == j) ? 1.0 : 0.0;
+                    A[i + bcNodeCnt, j] = -1.0 * KMatB[i, j];
+                    A[i + bcNodeCnt, j + bcNodeCnt] = -1.0 * CMatB[i, j];
+                }
+            }
+            for (int i = 0; i < bcNodeCnt; i++)
+            {
+                for (int j = 0; j < bcNodeCnt; j++)
+                {
+                    B[i, j] = (i == j) ? 1.0 : 0.0;
+                    B[i , j + bcNodeCnt] = 0.0;
+                    B[i + bcNodeCnt, j] = 0.0;
+                    B[i + bcNodeCnt, j + bcNodeCnt] = MMatB[i, j];
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine("solve eigen");
+            {
+                // 固有値問題を解く
+                System.Numerics.Complex[][] eVecs0;
+                int ret = IvyFEM.Lapack.Functions.dggev(
+                    A.Buffer, A.RowLength, A.ColumnLength,
+                    B.Buffer, B.RowLength, B.ColumnLength,
+                    out eVals, out eVecs0);
+                System.Diagnostics.Debug.Assert(ret == 0);
+
+                int modeCnt = eVals.Length;
+                // βに変換
+                double th = 1.0e-12;
+                for (int i = 0; i < eVals.Length; i++)
+                {
+                    System.Numerics.Complex eVal = eVals[i];
+                    if ((Math.Abs(eVal.Real) < th &&
+                        Math.Abs(eVal.Imaginary) < th)
+                        || double.IsInfinity(eVal.Real) || double.IsInfinity(eVal.Imaginary)
+                        || double.IsNaN(eVal.Real) || double.IsNaN(eVal.Imaginary)
+                        )
+                    {
+                        // 無効な固有値
+                        eVals[i] = System.Numerics.Complex.ImaginaryOne * double.MaxValue;
+                    }
+                    else
+                    {
+                        System.Numerics.Complex beta = 
+                            -1.0 * System.Numerics.Complex.Log(eVal) / 
+                            (System.Numerics.Complex.ImaginaryOne * periodicDistance);
+                        eVals[i] = beta;
+                    }
+                }
+
+                // 2次元配列に格納する ({Φ}のみ格納)
+                eVecs = new System.Numerics.Complex[modeCnt][];
+                for (int iMode = 0; iMode < modeCnt; iMode++)
+                {
+                    eVecs[iMode] = new System.Numerics.Complex[nodeCnt];
+                }
+
+                System.Diagnostics.Debug.WriteLine("calc {Φ}0");
+                var invP00xP01 = invP00 * P01;
+                var invP00xP02 = invP00 * P02;
+                var transMat = new IvyFEM.Lapack.ComplexMatrix(innerNodeCnt, bcNodeCnt);
+                for (int iMode = 0; iMode < modeCnt; iMode++)
+                {
+                    System.Numerics.Complex beta = eVals[iMode];
+                    // 複素モード、エバネセントモードの固有モード計算をスキップする？
+                    if (isSkipCalcComplexAndEvanescentModeVec)
+                    {
+                        if (Math.Abs(beta.Imaginary) >= th)
+                        {
+                            // 複素モード、エバネセントモードの固有モード計算をスキップする
+                            continue;
+                        }
+                    }
+
+                    System.Numerics.Complex expA = 
+                        System.Numerics.Complex.Exp(
+                            -1.0 * System.Numerics.Complex.ImaginaryOne * beta * periodicDistance);
+                    System.Numerics.Complex[] eVec = eVecs[iMode];
+                    System.Numerics.Complex[] eVec0 = eVecs0[iMode];
+                    System.Diagnostics.Debug.Assert(eVec0.Length == bcNodeCnt * 2);
+                    System.Numerics.Complex[] fVecB = new System.Numerics.Complex[bcNodeCnt];
+                    ///////////////////////////////
+                    // {Φ}Bを格納
+                    for (int i = 0; i < bcNodeCnt; i++)
+                    {
+                        System.Numerics.Complex value = eVec0[i];
+                        eVec[i] = value;
+                        fVecB[i] = value;
+                    }
+                    for (int i = 0; i < bcNodeCnt; i++)
+                    {
+                        int i1 = isPortBc2Reverse ?
+                            (bcNodeCnt * 2 - 1 - i) :
+                            (i + bcNodeCnt);
+                        System.Numerics.Complex value = eVec0[i];
+                        eVec[i1] = value * expA;
+                    }
+
+                    ///////////////////////////////
+                    // {Φ}0を計算
+                    //   変換行列を計算
+                    for (int i = 0; i < innerNodeCnt; i++)
+                    {
+                        for (int j = 0; j < bcNodeCnt; j++)
+                        {
+                            transMat[i, j] = -1.0 * (invP00xP01[i, j] + expA * invP00xP02[i, j]);
+                        }
+                    }
+                    //   {Φ}0を計算
+                    System.Numerics.Complex[] fVecInner = transMat * fVecB;
+                    //   {Φ}0を格納
+                    for (int i = 0; i < innerNodeCnt; i++)
+                    {
+                        eVec[i + bcNodeCnt * 2] = fVecInner[i];
+                    }
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            {
+                for (int iMode = 0; iMode < eVals.Length; iMode++)
+                {
+                    // 伝搬定数
+                    System.Numerics.Complex beta = eVals[iMode];
+
+                    System.Numerics.Complex betad = beta * periodicDistance;
+                    double th = 1.0e-12;
+                    if (
+                        // [-π, 0]の解を[π, 2π]に移動する
+                        ((minBeta * k0 * periodicDistance / (2.0 * Math.PI)) >= (0.5 - th)
+                             && (minBeta * k0 * periodicDistance / (2.0 * Math.PI)) < 1.0
+                             && Math.Abs(beta.Real) >= th
+                             && Math.Abs(beta.Imaginary) < th
+                             && (betad.Real / (2.0 * Math.PI)) >= (-0.5 - th)
+                             && (betad.Real / (2.0 * Math.PI)) < 0.0)
+                        // [0, π]の解を[2π, 3π]に移動する
+                        || ((minBeta * k0 * periodicDistance / (2.0 * Math.PI)) >= (1.0 - th)
+                                && (minBeta * k0 * periodicDistance / (2.0 * Math.PI)) < 1.5
+                                && Math.Abs(beta.Real) >= th
+                                && Math.Abs(beta.Imaginary) < th
+                                && (betad.Real / (2.0 * Math.PI)) >= (0.0 - th)
+                                && (betad.Real / (2.0 * Math.PI)) < 0.5)
+                        )
+                    {
+                        // [0, π]の解を2πだけ移動する
+                        double deltaPhase = 2.0 * Math.PI;
+                        betad += deltaPhase; // 実部に加算する
+                        beta = betad / periodicDistance;
+                        //check
+                        System.Diagnostics.Debug.WriteLine("shift beta * d / (2π): {0} + {1} i to {2} + {3} i",
+                            eVals[iMode].Real * periodicDistance / (2.0 * Math.PI),
+                            eVals[iMode].Imaginary * periodicDistance / (2.0 * Math.PI),
+                            betad.Real / (2.0 * Math.PI),
+                            betad.Imaginary / (2.0 * Math.PI));
+                        // 再設定
+                        eVals[iMode] = beta;
+                    }
+                }
+            }
+        }
+
+        private void TraceMode(System.Numerics.Complex[] defectBetas, System.Numerics.Complex[][] defectEVecs)
+        {
+            // モード追跡
+            System.Numerics.Complex[][] prevModeEVecs = WgPortInfo.PrevModeEVecs;
+            if (prevModeEVecs != null)
+            {
+                int prevModeCnt = prevModeEVecs.Length;
+                IList<int> traceModeIndexss = new List<int>();
+                for (int iPrevMode = 0; iPrevMode < prevModeCnt; iPrevMode++)
+                {
+                    System.Numerics.Complex[] prevEVec = prevModeEVecs[iPrevMode];
+
+                    double hitNorm = 0;
+                    int traceModeIndex = -1;
+                    int modeCnt = defectBetas.Length;
+                    for (int iMode = 0; iMode < modeCnt; iMode++)
+                    {
+                        System.Numerics.Complex beta = defectBetas[iMode];
+                        System.Numerics.Complex[] eVec = defectEVecs[iMode];
+                        double norm = 0.0;
+                        bool isHitSameMode = IsSameMode(prevEVec, beta, eVec, out norm);
+                        if (isHitSameMode)
+                        {
+                            // より分布の近いモードを採用する
+                            if (Math.Abs(norm - 1.0) < Math.Abs(hitNorm - 1.0))
+                            {
+                                // 追跡するモードのインデックス退避
+                                traceModeIndex = iMode;
+                                hitNorm = norm;
+                            }
+                        }
+                    }
+                    if (traceModeIndex != -1)
+                    {
+                        traceModeIndexss.Add(traceModeIndex);
+                    }
+                }
+                // 並び替え
+                {
+                    int modeCnt = defectBetas.Length;
+                    System.Numerics.Complex[] prevBetas = new System.Numerics.Complex[modeCnt];
+                    defectBetas.CopyTo(prevBetas, 0);
+                    System.Numerics.Complex[][] prevEVecs = new System.Numerics.Complex[modeCnt][];
+                    defectEVecs.CopyTo(prevEVecs, 0);
+                    int index = 0;
+                    for (int i = 0; i < traceModeIndexss.Count; i++)
+                    {
+                        int traceModeIndex = traceModeIndexss[i];
+                        defectBetas[index] = prevBetas[traceModeIndex];
+                        defectEVecs[index] = prevEVecs[traceModeIndex];
+                        index++;
+                    }
+                    for (int iMode = 0; iMode < modeCnt; iMode++)
+                    {
+                        if (!traceModeIndexss.Contains(iMode))
+                        {
+                            defectBetas[index] = prevBetas[iMode];
+                            defectEVecs[index] = prevEVecs[iMode];
+                            index++;
+                        }
+                    }
+                    System.Diagnostics.Debug.Assert(index == modeCnt);
+                }
+                {
+                    int modeCnt = defectBetas.Length;
+                    WgPortInfo.PrevModeEVecs = new System.Numerics.Complex[modeCnt][];
+                    defectEVecs.CopyTo(WgPortInfo.PrevModeEVecs, 0);
+                }
+            }
+            else
+            {
+                int modeCnt = defectBetas.Length;
+                WgPortInfo.PrevModeEVecs = new System.Numerics.Complex[modeCnt][];
+                defectEVecs.CopyTo(WgPortInfo.PrevModeEVecs, 0);
+            }
+        }
+
         // 伝搬モード一覧の取得
         private void GetPropagationModes(
             System.Numerics.Complex[] betas, System.Numerics.Complex[][] eVecs,
@@ -928,7 +1335,7 @@ namespace IvyFEM
             bool isHit = false;
             int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
 
-            double th = 1.0e-12;//Constants.PrecisionLowerLimit;
+            double th = 1.0e-12;
             if (Math.Abs(beta.Real) >= th &&
                 Math.Abs(beta.Imaginary) >= th)
             {
@@ -1035,7 +1442,7 @@ namespace IvyFEM
             System.Numerics.Complex[] prevEVec,
             System.Numerics.Complex beta,
             System.Numerics.Complex[] eVec,
-            out System.Numerics.Complex retNorm)
+            out double retNorm)
         {
             bool isHit = false;
             retNorm = 0;
@@ -1046,7 +1453,7 @@ namespace IvyFEM
                 return isHit;
             }
 
-            double th = 1.0e-12;//Constants.PrecisionLowerLimit;
+            double th = 1.0e-12;
             if (Math.Abs(beta.Real) >= th &&
                 Math.Abs(beta.Imaginary) >= th)
             {
@@ -1104,7 +1511,7 @@ namespace IvyFEM
         }
 
         // 周期構造導波路の伝搬定数に変換する(βdが[-π, π]に収まるように変換)
-        public static System.Numerics.Complex ToBetaPeriodic(System.Numerics.Complex beta, double periodicDistance)
+        private System.Numerics.Complex ToBetaPeriodic(System.Numerics.Complex beta, double periodicDistance)
         {
             // βの再変換
             System.Numerics.Complex expA = 
@@ -1112,6 +1519,71 @@ namespace IvyFEM
             System.Numerics.Complex betaPeriodic = 
                 -1.0 * System.Numerics.Complex.Log(expA) / (System.Numerics.Complex.ImaginaryOne * periodicDistance);
             return betaPeriodic;
+        }
+
+        private void NonSVEAEVecToSVEAEVec(
+            System.Numerics.Complex beta,
+            System.Numerics.Complex[] fVec, System.Numerics.Complex[] fxVec, System.Numerics.Complex[] fyVec)
+        {
+            System.Diagnostics.Debug.Assert(!WgPortInfo.IsSVEA);
+            int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
+            System.Diagnostics.Debug.Assert(nodeCnt == fVec.Length);
+            System.Diagnostics.Debug.Assert(nodeCnt == fxVec.Length);
+            System.Diagnostics.Debug.Assert(nodeCnt == fyVec.Length);
+
+            IList<uint> bcEIds = WgPortInfo.BcEdgeIds1;
+            uint eId1 = bcEIds[0];
+            uint eId2 = bcEIds[bcEIds.Count - 1];
+            Edge2D e1 = World.Mesh.Cad2D.GetEdge(eId1);
+            Edge2D e2 = World.Mesh.Cad2D.GetEdge(eId2);
+            OpenTK.Vector2d firstPt = e1.GetVertexCoord(true);
+            OpenTK.Vector2d lastPt = e2.GetVertexCoord(false);
+            double[] firstCoord = { firstPt.X, firstPt.Y };
+            double[] lasCoord = { lastPt.X, lastPt.Y };
+
+            double periodicDistance = WgPortInfo.PeriodicDistance;
+            bool isYDirectionPeriodic = WgPortInfo.IsYDirectionPeriodic;
+            System.Numerics.Complex betaPeriodic = ToBetaPeriodic(beta, periodicDistance);
+            for (int nodeId = 0; nodeId < nodeCnt; nodeId++)
+            {
+                int coId = World.PortNode2Coord(QuantityId, PortId, nodeId);
+                double[] coord = World.GetCoord(QuantityId, coId);
+                double ptX = 0;
+                if (isYDirectionPeriodic)
+                {
+                    // Y方向
+                    ptX = coord[1] - firstCoord[1];
+                }
+                else
+                {
+                    // X方向
+                    ptX = coord[0] - firstCoord[0];
+                }
+
+                System.Numerics.Complex expX =
+                    System.Numerics.Complex.Exp(-1.0 * System.Numerics.Complex.ImaginaryOne * beta * ptX);
+
+                System.Numerics.Complex fVal = fVec[nodeId];
+                System.Numerics.Complex fxVal = fxVec[nodeId];
+                System.Numerics.Complex fyVal = fyVec[nodeId];
+                // ΦのSVEA(φ)
+                System.Numerics.Complex fValSVEA = fVal / expX;
+                fVec[nodeId] = fValSVEA;
+
+                // SVEAの微分( exp(-jβx)dφ/dx = dΦ/dx + jβφexp(-jβx))
+                if (isYDirectionPeriodic)
+                {
+                    // Y方向周期構造
+                    fxVec[nodeId] = fxVal / expX;
+                    fyVec[nodeId] = fyVal / expX + System.Numerics.Complex.ImaginaryOne * betaPeriodic * fValSVEA;
+                }
+                else
+                {
+                    // X方向周期構造
+                    fxVec[nodeId] = fxVal / expX + System.Numerics.Complex.ImaginaryOne * betaPeriodic * fValSVEA;
+                    fyVec[nodeId] = fyVal / expX;
+                }
+            }
         }
 
         private void SortEVals(System.Numerics.Complex[] betas, System.Numerics.Complex[][] eVecs)
@@ -1128,7 +1600,7 @@ namespace IvyFEM
                 System.Numerics.Complex betaA = a.Key;
                 System.Numerics.Complex betaB = b.Key;
                 int cmp = 0;
-                double th = 1.0e-12;//Constants.PrecisionLowerLimit;
+                double th = 1.0e-12;
                 if (Math.Abs(betaA.Real) < th && Math.Abs(betaB.Real) < th)
                 {
                     double cmpfi = Math.Abs(betaA.Imaginary) - Math.Abs(betaB.Imaginary);
@@ -1236,6 +1708,7 @@ namespace IvyFEM
             fxVecs = new System.Numerics.Complex[modeCnt][];
             fyVecs = new System.Numerics.Complex[modeCnt][];
 
+            bool isSVEA = WgPortInfo.IsSVEA;
             for (int iMode = 0; iMode < modeCnt; iMode++)
             {
                 System.Numerics.Complex beta = betas[iMode];
@@ -1247,23 +1720,44 @@ namespace IvyFEM
                 // 境界1と境界2の節点の微分値は同じという条件を弱形式で課している為、微分値は同じにならない。
                 // 加えて、CalcModeFuValuesは内部節点からの寄与を片側のみしか計算していない。
                 // →境界の両側からの寄与を考慮する為に境界1の微分値と境界2の微分値を平均してみる
-                System.Diagnostics.Debug.Assert(WgPortInfo.IsSVEA);
                 var bcNodes1 = WgPortInfo.BcNodess[0];
                 var bcNodes2 = WgPortInfo.BcNodess[1];
                 int bcNodeCnt = bcNodes1.Count;
                 bool isPortBc2Reverse = WgPortInfo.IsPortBc2Reverse;
+                double periodicDistance = WgPortInfo.PeriodicDistance;
                 for (int i = 0; i < bcNodeCnt; i++)
                 {
                     int portNodeId1 = bcNodes1[i];
                     int i2 = isPortBc2Reverse ? (bcNodeCnt - 1 - i) : i;
                     int portNodeId2 = bcNodes2[i2];
-                    // SVEAの振幅fVecを用いる場合
-                    var fx = (fxVec[portNodeId1] + fxVec[portNodeId2]) / 2.0;
-                    var fy = (fyVec[portNodeId1] + fyVec[portNodeId2]) / 2.0;
-                    fxVec[portNodeId1] = fx;
-                    fxVec[portNodeId2] = fx;
-                    fyVec[portNodeId1] = fy;
-                    fyVec[portNodeId2] = fy;
+                    if (isSVEA)
+                    {
+                        // 緩慢変化包絡線近似の場合は、Φ2 = Φ1
+                        var fx = (fxVec[portNodeId1] + fxVec[portNodeId2]) / 2.0;
+                        var fy = (fyVec[portNodeId1] + fyVec[portNodeId2]) / 2.0;
+                        fxVec[portNodeId1] = fx;
+                        fxVec[portNodeId2] = fx;
+                        fyVec[portNodeId1] = fy;
+                        fyVec[portNodeId2] = fy;
+                    }
+                    else
+                    {
+                        // 緩慢変化包絡線近似でない場合は、Φ2 = expA * Φ1
+                        System.Numerics.Complex expA = 
+                            System.Numerics.Complex.Exp(
+                                -1.0 * System.Numerics.Complex.ImaginaryOne * beta * periodicDistance);
+                        var fx = (fxVec[portNodeId1] + fxVec[portNodeId2] / expA) / 2.0;
+                        var fy = (fyVec[portNodeId1] + fyVec[portNodeId2] / expA) / 2.0;
+                        fxVec[portNodeId1] = fx;
+                        fxVec[portNodeId2] = fx * expA;
+                        fyVec[portNodeId1] = fy;
+                        fyVec[portNodeId2] = fy * expA;
+                    }
+                }
+
+                if (!isSVEA)
+                {
+                    NonSVEAEVecToSVEAEVec(beta, fVec, fxVec, fyVec);
                 }
 
                 fxVecs[iMode] = fxVec;
@@ -1383,12 +1877,14 @@ namespace IvyFEM
                 var vec1 = RyyZ * ezEVecModify;
                 var vec2 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVecModify);
 
+                //double replacedMu0 = Constants.Mu0; // TEモード
+                double replacedMu0 = WgPortInfo.ReplacedMu0; // TE/TM共用
                 for (int row = 0; row < bcNodeCnt; row++)
                 {
                     for (int col = 0; col < bcNodeCnt; col++)
                     {
                         System.Numerics.Complex value = 
-                            (System.Numerics.Complex.ImaginaryOne / (omega * Constants.Mu0)) *
+                            (System.Numerics.Complex.ImaginaryOne / (omega * replacedMu0)) *
                             betaPeriodic * beta.Magnitude *
                             (System.Numerics.Complex.Conjugate(betaPeriodic) /
                             System.Numerics.Complex.Conjugate(beta)) *
@@ -1458,11 +1954,13 @@ namespace IvyFEM
                         ezEVec[i] - ezXEVec[i] / (System.Numerics.Complex.ImaginaryOne * betaPeriodic);
                 }
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVecModify);
+                //double replacedMu0 = Constants.Mu0; // TEモード
+                double replacedMu0 = WgPortInfo.ReplacedMu0; // TE/TM共用
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
                 var b = beta.Magnitude *
                     (System.Numerics.Complex.Conjugate(betaPeriodic) / 
                     System.Numerics.Complex.Conjugate(beta)) *
-                    (1.0 / (omega * Constants.Mu0)) * work1;
+                    (1.0 / (omega * replacedMu0)) * work1;
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
                     b = (-1.0) + b;

@@ -129,7 +129,14 @@ namespace IvyFEM
             return (uint)Coords.Count / Dimension;
         }
 
-        public double[] GetCoord(int coId)
+        public double[] GetCoord(int coId, double rotAngle, double[] rotOrigin)
+        {
+            double[] coord = _GetCoord(coId);
+            coord = FEWorld.GetRotCoord(coord, rotAngle, rotOrigin);
+            return coord;
+        }
+
+        private double[] _GetCoord(int coId)
         {
             System.Diagnostics.Debug.Assert(coId * Dimension + (Dimension - 1) < Coords.Count);
             double[] coord = new double[Dimension];
