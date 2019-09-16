@@ -439,6 +439,8 @@ namespace IvyFEM
 
         public bool Meshing(CadObject2D cad2D)
         {
+            Cad2D = cad2D;
+
             IList<uint> cutLIds = new List<uint>();
             {
                 foreach (uint lId in CutMeshLCadIds)

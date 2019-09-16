@@ -221,6 +221,16 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].GetPortNodeCount(portId);
         }
 
+        public IList<int> GetPortCoIds(uint quantityId, uint portId)
+        {
+            return Quantitys[(int)quantityId].GetPortCoIds(this, portId);
+        }
+
+        public double GetPortLineLength(uint quantityId, uint portId)
+        {
+            return Quantitys[(int)quantityId].GetPortLineLength(this, portId, RotAngle, RotOrigin);
+        }
+
         public int PortCoord2Node(uint quantityId, uint portId, int coId)
         {
             return Quantitys[(int)quantityId].PortCoord2Node(portId, coId);

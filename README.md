@@ -32,6 +32,7 @@
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　電磁気学　：H面導波管の伝達問題  
+　　　　　　　　　　E面導波管の伝達問題  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
 　　　　　　　　　　（正方格子、三角形格子）（誘電体ロッド型、エアホール型）  
 　　　　各種方程式：Poisson方程式  
@@ -42,9 +43,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-09-14更新）**  
+　**バイナリ（2019-09-16更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.19  
+　　IvyFEM.dll version 0.0.0.20  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

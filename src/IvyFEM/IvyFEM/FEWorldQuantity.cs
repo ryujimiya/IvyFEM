@@ -181,6 +181,60 @@ namespace IvyFEM
             return (uint)PortCo2Nodes[(int)portId].Count;
         }
 
+        public IList<int> GetPortCoIds(FEWorld world, uint portId)
+        {
+            System.Diagnostics.Debug.Assert(portId < PortConditions.Count);
+            IList<int> coIds = new List<int>();
+            IList<uint> eIds = PortConditions[(int)portId].EIds;
+            foreach (uint eId in eIds)
+            {
+                IList<int> tmpCoIds = GetCoordIdsFromCadId(world, eId, CadElementType.Edge);
+                foreach (int tmpCoId in tmpCoIds)
+                {
+                    if (!coIds.Contains(tmpCoId))
+                    {
+                        coIds.Add(tmpCoId);
+                    }
+                }
+            }
+            return coIds;
+        }
+
+        public double GetPortLineLength(FEWorld world, uint portId, double rotAngle, double[] rotOrigin)
+        {
+            IList<int> coIds = GetPortCoIds(world, portId);
+            // Note: 始点、終点とは限らない
+            int coId1 = coIds[0];
+            double[] coord1 = GetCoord(coId1, rotAngle, rotOrigin);
+            OpenTK.Vector2d pt1 = new OpenTK.Vector2d(coord1[0], coord1[1]);
+            int coId2 = coIds[1];
+            double[] coord2 = GetCoord(coId2, rotAngle, rotOrigin);
+            OpenTK.Vector2d pt2 = new OpenTK.Vector2d(coord2[0], coord2[1]);
+            var dir = pt2 - pt1;
+            dir.Normalize();
+
+            double minX = double.MaxValue;
+            double maxX = double.MinValue;
+            foreach (int coId in coIds)
+            {
+                double[] coord = GetCoord(coId, rotAngle, rotOrigin);
+                OpenTK.Vector2d pt = new OpenTK.Vector2d(coord[0], coord[1]);
+                var vec = pt - pt1;
+                double X = OpenTK.Vector2d.Dot(vec, dir);
+                if (minX > X)
+                {
+                    minX = X;
+                }
+                if (maxX < X)
+                {
+                    maxX = X;
+                }
+            }
+            double length = maxX - minX;
+            System.Diagnostics.Debug.Assert(length > 0);
+            return length;
+        }
+
         public int PortCoord2Node(uint portId, int coId)
         {
             var portCo2Node = PortCo2Nodes[(int)portId];

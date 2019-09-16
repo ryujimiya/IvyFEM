@@ -10,6 +10,9 @@ namespace IvyFEM
     {
         public uint QuantityId { get; private set; } = 0;
         public uint PortId { get; private set; } = 0;
+        public EMWaveguideType WaveguideType { get; set; } = EMWaveguideType.HPlane2D;
+        public double WaveguideWidthForEPlane { get; set; } = 0;
+
         public IvyFEM.Lapack.DoubleMatrix Txx { get; private set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Ryy { get; private set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Uzz { get; private set; } = null;
@@ -26,10 +29,26 @@ namespace IvyFEM
             World = world;
             QuantityId = quantityId;
             PortId = portId;
-            CalcMatrixs();
         }
 
-        private void CalcMatrixs()
+        private double GetBarEpForEPlane(double k0)
+        {
+            uint maId0 = 1;
+            DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
+
+            // εyの式
+            double barEp = (ma0.Epyy -
+                Math.PI * Math.PI / (
+                k0 * k0 * WaveguideWidthForEPlane * WaveguideWidthForEPlane * ma0.Muxx)) /
+                ma0.Epyy;
+            if (Math.Abs(barEp) < Constants.PrecisionLowerLimit)
+            {
+                barEp = barEp >= 0 ? Constants.PrecisionLowerLimit : -Constants.PrecisionLowerLimit;
+            }
+            return barEp;
+        }
+
+        private void CalcMatrixs(double k0)
         {
             int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
             IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
@@ -54,6 +73,30 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
 
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (WaveguideType == EMWaveguideType.HPlane2D)
+                {
+                    maPxx = 1.0 / ma.Muxx;
+                    maPyy = 1.0 / ma.Muyy;
+                    maQzz = ma.Epzz;
+                }
+                else if (WaveguideType == EMWaveguideType.EPlane2D)
+                {
+                    // LSE(TE^z)モード(Ez = 0:紙面に垂直な方向の電界を０)として解析する
+                    //   波動方程式の導出でμx = μy  εx = εyを仮定した
+                    maPxx = 1.0 / ma.Epxx;
+                    maPyy = 1.0 / ma.Epyy;
+                    maQzz = ma.Muzz -
+                        (Math.PI * Math.PI * ma.Muzz) /
+                        (k0 * k0 * ma.Epyy * WaveguideWidthForEPlane * WaveguideWidthForEPlane * ma.Muxx);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+
                 double[,] sNN = lineFE.CalcSNN();
                 double[,] sNyNy = lineFE.CalcSNxNx();
                 for (int row = 0; row < elemNodeCnt; row++)
@@ -70,9 +113,9 @@ namespace IvyFEM
                         {
                             continue;
                         }
-                        double txxVal = (1.0 / ma.Muxx) * sNyNy[row, col];
-                        double ryyVal = (1.0 / ma.Muyy) * sNN[row, col];
-                        double uzzVal = ma.Epzz * sNN[row, col];
+                        double txxVal = maPxx * sNyNy[row, col];
+                        double ryyVal = maPyy * sNN[row, col];
+                        double uzzVal = maQzz * sNN[row, col];
 
                         Txx[rowNodeId, colNodeId] += txxVal;
                         Ryy[rowNodeId, colNodeId] += ryyVal;
@@ -92,6 +135,8 @@ namespace IvyFEM
             // 波数
             double k0 = omega / Constants.C0;
 
+            CalcMatrixs(k0);
+
             int nodeCnt = (int)World.GetPortNodeCount(QuantityId, PortId);
             var A = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             var B = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
@@ -101,6 +146,39 @@ namespace IvyFEM
                 {
                     A[row, col] = (k0 * k0) * Uzz[row, col] - Txx[row, col];
                     B[row, col] = Ryy[row, col];
+                }
+            }
+
+            // 質量行列の正定値マトリクスチェック
+            if (WaveguideType == EMWaveguideType.EPlane2D)
+            {
+                // 比誘電率を置き換えているため、正定値行列にならないことがある（おそらくTE10モードが減衰モードのとき）
+                bool isPositiveDefinite = true;
+                for (int i = 0; i < B.RowLength; i++)
+                {
+                    // 対角成分の符号チェック
+                    if (B[i, i] < 0.0)
+                    {
+                        isPositiveDefinite = false;
+                        break;
+                    }
+                }
+                if (!isPositiveDefinite)
+                {
+                    for (int i = 0; i < A.RowLength; i++)
+                    {
+                        for (int j =0; j < A.ColumnLength; j++)
+                        {
+                            A[i, j] = -1.0 * A[i, j];
+                        }
+                    }
+                    for (int i = 0; i < B.RowLength; i++)
+                    {
+                        for (int j = 0; j < B.ColumnLength; j++)
+                        {
+                            B[i, j] = -1.0 * B[i, j];
+                        }
+                    }
                 }
             }
 
@@ -180,6 +258,25 @@ namespace IvyFEM
         private void GetBetasEzVecs(
             double omega, System.Numerics.Complex[] eVals, System.Numerics.Complex[][] eVecs)
         {
+            // 波数
+            double k0 = omega / Constants.C0;
+
+            uint maId0 = 1;
+            DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
+            double barEp = 0; // for EPlane
+            if (WaveguideType == EMWaveguideType.HPlane2D)
+            {
+
+            }
+            else if (WaveguideType == EMWaveguideType.EPlane2D)
+            {
+                barEp = GetBarEpForEPlane(k0);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+
             int modeCnt = eVals.Length;
             for (int iMode = 0; iMode < modeCnt; iMode++)
             {
@@ -195,9 +292,25 @@ namespace IvyFEM
                 var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
                 var work = RyyZ * eVec;
                 var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work);
-                var d = System.Numerics.Complex.Sqrt(
-                    (System.Numerics.Complex)(omega * Constants.Mu0) /
-                    (((System.Numerics.Complex)beta.Magnitude) * work2));
+                System.Numerics.Complex d = 0;
+                if (WaveguideType == EMWaveguideType.HPlane2D)
+                {
+                    d = System.Numerics.Complex.Sqrt(
+                        (System.Numerics.Complex)(omega * Constants.Mu0) /
+                        (((System.Numerics.Complex)beta.Magnitude) * work2));
+                }
+                else if (WaveguideType == EMWaveguideType.EPlane2D)
+                {
+                    d = System.Numerics.Complex.Sqrt(
+                        omega * Constants.Ep0 * 
+                        System.Numerics.Complex.Conjugate(barEp * ma0.Epyy * (1.0 / ma0.Muyy)) /
+                        (((System.Numerics.Complex)beta.Magnitude) * work2));
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+
                 eVec = IvyFEM.Lapack.Functions.zscal(eVec, d);
                 eVecs[iMode] = eVec;
             }
@@ -206,6 +319,25 @@ namespace IvyFEM
         public IvyFEM.Lapack.ComplexMatrix CalcBoundaryMatrix(
             double omega, System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs)
         {
+            // 波数
+            double k0 = omega / Constants.C0;
+
+            uint maId0 = 1;
+            DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
+            double barEp = 0; // for EPlane
+            if (WaveguideType == EMWaveguideType.HPlane2D)
+            {
+
+            }
+            else if (WaveguideType == EMWaveguideType.EPlane2D)
+            {
+                barEp = GetBarEpForEPlane(k0);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+
             int nodeCnt = ezEVecs[0].Length;
             IvyFEM.Lapack.ComplexMatrix X = new Lapack.ComplexMatrix(nodeCnt, nodeCnt);
 
@@ -222,10 +354,26 @@ namespace IvyFEM
                 {
                     for (int col = 0; col < nodeCnt; col++)
                     {
-                        System.Numerics.Complex value = 
-                            (System.Numerics.Complex.ImaginaryOne / (omega * Constants.Mu0)) *
-                            beta * beta.Magnitude *
-                            vec1[row] * vec2[col];
+                        System.Numerics.Complex value = 0;
+                        if (WaveguideType == EMWaveguideType.HPlane2D)
+                        {
+                            value = (System.Numerics.Complex.ImaginaryOne / (omega * Constants.Mu0)) *
+                                beta * beta.Magnitude *
+                                vec1[row] * vec2[col];
+
+                        }
+                        else if (WaveguideType == EMWaveguideType.EPlane2D)
+                        {
+                            value = (System.Numerics.Complex.ImaginaryOne / 
+                                (omega * Constants.Ep0 * 
+                                System.Numerics.Complex.Conjugate(barEp * ma0.Epyy * (1.0 / ma0.Muyy))))
+                                * beta * beta.Magnitude *
+                                vec1[row] * vec2[col];
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Assert(false);
+                        }
                         X[row, col] += value;
                     }
                 }
@@ -250,6 +398,25 @@ namespace IvyFEM
             System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs,
             System.Numerics.Complex[] Ez)
         {
+            // 波数
+            double k0 = omega / Constants.C0;
+
+            uint maId0 = 1;
+            DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
+            double barEp = 0; // for EPlane
+            if (WaveguideType == EMWaveguideType.HPlane2D)
+            {
+
+            }
+            else if (WaveguideType == EMWaveguideType.EPlane2D)
+            {
+                barEp = GetBarEpForEPlane(k0);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+
             int modeCnt = betas.Length;
             int nodeCnt = ezEVecs[0].Length;
             System.Numerics.Complex[] S = new System.Numerics.Complex[modeCnt];
@@ -261,7 +428,23 @@ namespace IvyFEM
                 var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
-                var b = (beta.Magnitude / (omega * Constants.Mu0)) * work1;
+                System.Numerics.Complex b = 0;
+                if (WaveguideType == EMWaveguideType.HPlane2D)
+                {
+
+                    b = (beta.Magnitude / (omega * Constants.Mu0)) * work1;
+                }
+                else if (WaveguideType == EMWaveguideType.EPlane2D)
+                {
+                    b = (beta.Magnitude / (omega * Constants.Ep0 *
+                        System.Numerics.Complex.Conjugate(ma0.Epyy * barEp * (1.0 / ma0.Muyy))
+                        )) * work1;
+
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
                     b = (-1.0) + b;

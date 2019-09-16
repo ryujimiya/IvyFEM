@@ -131,6 +131,12 @@ namespace IvyFEM
         GreaterEq
     }
 
+    public enum EMWaveguideType
+    {
+        HPlane2D,
+        EPlane2D
+    }
+
     public enum FluidEquationType
     {
         Stokes,

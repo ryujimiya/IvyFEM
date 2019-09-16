@@ -9,6 +9,11 @@ namespace IvyFEM
     public class EMWaveguide2DHPlaneFEM : FEM
     {
         public uint QuantityId { get; private set; } = 0;
+        public EMWaveguideType WaveguideType { get; set; } = EMWaveguideType.HPlane2D;
+        /// <summary>
+        ///  E面導波路の場合の導波管幅a(図面で言うと高さ方向の幅)
+        /// </summary>
+        public double WaveguideWidthForEPlane { get; set; } = 0;
 
         // Solve
         // input
@@ -82,6 +87,30 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
 
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (WaveguideType == EMWaveguideType.HPlane2D)
+                {
+                    maPxx = 1.0 / ma.Muxx;
+                    maPyy = 1.0 / ma.Muyy;
+                    maQzz = ma.Epzz;
+                }
+                else if (WaveguideType == EMWaveguideType.EPlane2D)
+                {
+                    // LSE(TE^z)モード(Ez = 0:紙面に垂直な方向の電界を０)として解析する
+                    //   波動方程式の導出でμx = μy  εx = εyを仮定した
+                    maPxx = 1.0 / ma.Epxx;
+                    maPyy = 1.0 / ma.Epyy;
+                    maQzz = ma.Muzz -
+                        (Math.PI * Math.PI * ma.Muzz) /
+                        (k0 * k0 * ma.Epyy * WaveguideWidthForEPlane * WaveguideWidthForEPlane * ma.Muxx);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+
                 double[,] sNN = triFE.CalcSNN();
                 double[,][,] sNuNv = triFE.CalcSNuNv();
                 double[,] sNxNx = sNuNv[0, 0];
@@ -102,8 +131,8 @@ namespace IvyFEM
                         {
                             continue;
                         }
-                        double a = (1.0 / ma.Muxx) * sNyNy[row, col] + (1.0 / ma.Muyy) * sNxNx[row, col] -
-                            (k0 * k0 * ma.Epzz) * sNN[row, col];
+                        double a = maPxx * sNyNy[row, col] + maPyy * sNxNx[row, col] -
+                            (k0 * k0 * maQzz) * sNN[row, col];
 
                         A[rowNodeId, colNodeId] += (System.Numerics.Complex)a;
                     }
@@ -123,6 +152,8 @@ namespace IvyFEM
                 var eigenFEM = new EMWaveguide1DEigenFEM(World, QuantityId, portId);
                 eigenFEMs[portId] = eigenFEM;
 
+                eigenFEM.WaveguideType = WaveguideType;
+                eigenFEM.WaveguideWidthForEPlane = WaveguideWidthForEPlane;
                 eigenFEM.Frequency = Frequency;
                 eigenFEM.Solve();
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
