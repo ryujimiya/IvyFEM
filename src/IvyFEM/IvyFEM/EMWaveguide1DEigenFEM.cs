@@ -31,15 +31,25 @@ namespace IvyFEM
             PortId = portId;
         }
 
-        private double GetBarEpForEPlane(double k0)
+        private uint GetMaId0()
         {
-            uint maId0 = 1;
+            IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+            uint feId0 = feIds[0];
+            LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+            uint maId0 = lineFE.MaterialId;
+            return maId0;
+        }
+
+        private double GetEpRatioForEPlane(double k0)
+        {
+            uint maId0 = GetMaId0();
             DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
 
             // εyの式
-            double barEp = (ma0.Epyy -
-                Math.PI * Math.PI / (
-                k0 * k0 * WaveguideWidthForEPlane * WaveguideWidthForEPlane * ma0.Muxx)) /
+            double barEp = (
+                ma0.Epyy -
+                Math.PI * Math.PI / (k0 * k0 * WaveguideWidthForEPlane * WaveguideWidthForEPlane * ma0.Muxx)
+                ) /
                 ma0.Epyy;
             if (Math.Abs(barEp) < Constants.PrecisionLowerLimit)
             {
@@ -261,16 +271,16 @@ namespace IvyFEM
             // 波数
             double k0 = omega / Constants.C0;
 
-            uint maId0 = 1;
+            uint maId0 = GetMaId0();
             DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
-            double barEp = 0; // for EPlane
+            double epRatio = 0; // for EPlane
             if (WaveguideType == EMWaveguideType.HPlane2D)
             {
 
             }
             else if (WaveguideType == EMWaveguideType.EPlane2D)
             {
-                barEp = GetBarEpForEPlane(k0);
+                epRatio = GetEpRatioForEPlane(k0);
             }
             else
             {
@@ -303,7 +313,7 @@ namespace IvyFEM
                 {
                     d = System.Numerics.Complex.Sqrt(
                         omega * Constants.Ep0 * 
-                        System.Numerics.Complex.Conjugate(barEp * ma0.Epyy * (1.0 / ma0.Muyy)) /
+                        System.Numerics.Complex.Conjugate(epRatio * ma0.Epyy * (1.0 / ma0.Muyy)) /
                         (((System.Numerics.Complex)beta.Magnitude) * work2));
                 }
                 else
@@ -322,7 +332,7 @@ namespace IvyFEM
             // 波数
             double k0 = omega / Constants.C0;
 
-            uint maId0 = 1;
+            uint maId0 = GetMaId0();
             DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
             double barEp = 0; // for EPlane
             if (WaveguideType == EMWaveguideType.HPlane2D)
@@ -331,7 +341,7 @@ namespace IvyFEM
             }
             else if (WaveguideType == EMWaveguideType.EPlane2D)
             {
-                barEp = GetBarEpForEPlane(k0);
+                barEp = GetEpRatioForEPlane(k0);
             }
             else
             {
@@ -401,16 +411,16 @@ namespace IvyFEM
             // 波数
             double k0 = omega / Constants.C0;
 
-            uint maId0 = 1;
+            uint maId0 = GetMaId0();
             DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
-            double barEp = 0; // for EPlane
+            double epRatio = 0; // for EPlane
             if (WaveguideType == EMWaveguideType.HPlane2D)
             {
 
             }
             else if (WaveguideType == EMWaveguideType.EPlane2D)
             {
-                barEp = GetBarEpForEPlane(k0);
+                epRatio = GetEpRatioForEPlane(k0);
             }
             else
             {
@@ -437,7 +447,7 @@ namespace IvyFEM
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {
                     b = (beta.Magnitude / (omega * Constants.Ep0 *
-                        System.Numerics.Complex.Conjugate(ma0.Epyy * barEp * (1.0 / ma0.Muyy))
+                        System.Numerics.Complex.Conjugate(ma0.Epyy * epRatio * (1.0 / ma0.Muyy))
                         )) * work1;
 
                 }
