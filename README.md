@@ -31,8 +31,9 @@
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
-　　　　電磁気学　：H面導波管の伝達問題  
-　　　　　　　　　　E面導波管の伝達問題  
+　　　　電磁気学　：H面導波路の伝達問題  
+　　　　　　　　　　E面導波路の伝達問題  
+　　　　　　　　　　H面導波路の時間領域FEM（Givoli-Neta-Patlashenkoの高次ABC）  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
 　　　　　　　　　　（正方格子、三角形格子）（誘電体ロッド型、エアホール型）  
 　　　　各種方程式：Poisson方程式  
@@ -43,9 +44,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-09-16更新）**  
+　**バイナリ（2019-09-20更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.20  
+　　IvyFEM.dll version 0.0.0.21  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -96,6 +97,8 @@
 　　![SUPG Back-step 7](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194022.jpg)  
 　　〇H面導波路の伝達問題  
 　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
+　　〇H面導波路の時間領域FEM(高次ABC)  
+　　![H面導波路の時間領域FEM(高次ABC)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190920/20190920201958.jpg)  
 　　〇フォトニック結晶導波路の伝達問題  
 　　![フォトニック結晶導波路の伝達問題(正方格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
 　　![フォトニック結晶導波路の伝達問題(三角形格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  

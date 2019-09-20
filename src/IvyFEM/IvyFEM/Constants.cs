@@ -131,6 +131,12 @@ namespace IvyFEM
         GreaterEq
     }
 
+    public enum GaussianType
+    {
+        Normal, // 素のガウシアンパルス
+        SinModulation // 正弦波変調
+    }
+
     public enum EMWaveguideType
     {
         HPlane2D,

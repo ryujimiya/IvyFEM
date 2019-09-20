@@ -91,9 +91,11 @@
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
     <Compile Include="DistributedPortCondition.cs" />
+    <Compile Include="EMWaveguide2DHPlaneHigherOrderABCTDFEM.cs" />
     <Compile Include="FEM.FixedCadsCondition.cs" />
     <Compile Include="FEM.TD.cs" />
     <Compile Include="FEM.SplitQuantityFixedCadsCondition.cs" />
+    <Compile Include="FFT.Functions.cs" />
     <Compile Include="Fluid2DBaseFEM.cs" />
     <Compile Include="Fluid2DBaseFEM.PressurePoissonWithBell.cs" />
     <Compile Include="Fluid2DFEM.StdGPressurePoissonWithBell.cs" />
@@ -194,6 +196,7 @@
     <Compile Include="Linear.IvyFEMEquationSolver.Double.cs" />
     <Compile Include="LoopEdgeItr.cs" />
     <Compile Include="ConstPortCondition.cs" />
+    <Compile Include="FFT.ImportedFunctions.cs" />
     <Compile Include="PCWaveguide2DEigenFEM.cs" />
     <Compile Include="PCWaveguide2DFEM.cs" />
     <Compile Include="PCWaveguidePortInfo.cs" />
@@ -305,6 +308,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="libwinpthread-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="OouraFFTDll.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
