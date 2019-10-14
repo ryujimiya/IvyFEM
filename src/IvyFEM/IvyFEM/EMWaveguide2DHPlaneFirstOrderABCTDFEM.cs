@@ -575,9 +575,8 @@ namespace IvyFEM
                         {
                             // Traveling
                             double velo0 = VelosFor2[portId];
-                            // C
                             _A[rowNodeId, colNodeId] +=
-                                (1.0 / (2.0 * dt)) * (1.0 / velo0) * Qb[rowNodeIdB, colNodeIdB];
+                                (1.0 / (2.0 * dt * velo0)) * Qb[rowNodeIdB, colNodeIdB];
                         }
                         else if (abcOrderFor1 == 1 && abcOrderFor2 == 1)
                         {
@@ -828,7 +827,7 @@ namespace IvyFEM
                         B[nodeId] += vecQb[nodeIdB];
                     }
                 }
-                else if (abcOrderFor2 >= 1 && abcOrderFor1 == 0)
+                else if (abcOrderFor2 == 1 && abcOrderFor1 == 0)
                 {
                     // Traveling
                     double velo0 = VelosFor2[portId];
