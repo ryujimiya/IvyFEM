@@ -793,8 +793,6 @@ namespace IvyFEM
             for (int portId = 0; portId < portCnt; portId++)
             {
                 var Qb = Qbs[portId];
-                var Rb = Rbs[portId];
-                var Tb = Tbs[portId];
                 int nodeCntB = Qb.RowLength;
                 int abcOrderFor1 = ABCOrdersFor1[portId];
                 int abcOrderFor2 = ABCOrdersFor2[portId];
@@ -829,7 +827,6 @@ namespace IvyFEM
                         int nodeId = World.Coord2Node(QuantityId, coId);
                         B[nodeId] += vecQb[nodeIdB];
                     }
-
                 }
                 else if (abcOrderFor2 >= 1 && abcOrderFor1 == 0)
                 {
@@ -859,6 +856,51 @@ namespace IvyFEM
                     }
                 }
                 else if (abcOrderFor1 == 1 && abcOrderFor2 == 1)
+                {
+                    // Traveling & Evanescent
+                    double[] workPzPrev = new double[nodeCntB];
+                    double[] workPzPrev2 = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        // Pz
+                        int nodeId = nodeIdB + Pz1Offsets[portId];
+                        workPzPrev[nodeIdB] = EzPzPrev[nodeId];
+                        workPzPrev2[nodeIdB] = EzPzPrev2[nodeId];
+                    }
+
+                    double[] vecQb = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        vecQb[nodeIdB] =
+                            ((1.0 - 2.0 * NewmarkBeta) * workPzPrev[nodeIdB] +
+                            NewmarkBeta * workPzPrev2[nodeIdB]);
+                    }
+                    vecQb = Qb * vecQb;
+
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        B[nodeId] += vecQb[nodeIdB];
+                    }
+
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            // Φ1
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                var Qb = Qbs[portId];
+                var Rb = Rbs[portId];
+                var Tb = Tbs[portId];
+                int nodeCntB = Qb.RowLength;
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+
+                if (abcOrderFor1 == 1 && abcOrderFor2 == 1)
                 {
                     // Traveling & Evanescent
                     double velo0 = VelosFor2[portId];
@@ -909,11 +951,6 @@ namespace IvyFEM
                         int nodeId = nodeIdB + Pz1Offsets[portId];
                         B[nodeId] += vecQb[nodeIdB] + vecRb[nodeIdB] + vecTb[nodeIdB];
                     }
-
-                }
-                else
-                {
-                    System.Diagnostics.Debug.Assert(false);
                 }
             }
 
