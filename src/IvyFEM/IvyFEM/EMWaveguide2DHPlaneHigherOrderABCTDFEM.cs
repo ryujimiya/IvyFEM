@@ -8,11 +8,20 @@ namespace IvyFEM
 {
     public class EMWaveguide2DHPlaneHigherOrderABCTDFEM : FEM
     {
+        //---------------------------------
+        // ※ポートの設定順序
+        // ABC境界、参照(観測)面、励振源の順
+        //---------------------------------
+
         public uint QuantityId { get; private set; } = 0;
         /// <summary>
         /// 吸収境界条件の次数
         /// </summary>
-        public int ABCOrder { get; set; } = 5;
+        public IList<int> ABCOrdersToSet { get; set; } = new List<int>();
+        /// <summary>
+        /// Evanescent Waveの吸収境界条件の次数(ポート単位)
+        /// </summary>
+        public IList<int> ABCOrdersForEvanescentToSet { get; set; } = new List<int>();
         /// <summary>
         /// Newmarkのβ法
         /// </summary>
@@ -30,6 +39,12 @@ namespace IvyFEM
         /// </summary>
         public double TimeDelta { get; set; } = 0.0;
         /// <summary>
+        /// ガウシアンパルス？
+        /// true: ガウシアンパルス
+        /// false: 正弦波
+        /// </summary>
+        public bool IsGaussian { get; set; } = true;
+        /// <summary>
         /// ガウシアンパルスの種別
         /// </summary>
         public GaussianType GaussianType { get; set; } = GaussianType.Normal;
@@ -46,15 +61,49 @@ namespace IvyFEM
         /// </summary>
         public double SrcFrequency { get; set; } = 0.0;
         /// <summary>
+        /// 励振を点波源で行う？
+        /// </summary>
+        public bool IsPointExcitation { get; set; } = false;
+        /// <summary>
+        /// ABCで使う速度 (default: リスト無し(defaultの速度), -1を指定してもdefaultの速度になる)
+        /// </summary>
+        public IList<double> VelocitysToSet { get; set; } = new List<double>();
+        /// <summary>
+        /// 1D固有値問題で減衰定数を用いる？
+        /// </summary>
+        public IList<bool> IsEigen1DUseDecayParameters { get; set; } = new List<bool>(); 
+        /// <summary>
+        /// 1D固有値問題のクラッド比誘電率
+        /// </summary>
+        public IList<double> Eigen1DCladdingEps { get; set; } = new List<double>();
+        /// <summary>
+        /// 減衰定数を持ってくる1D固有値問題のポート
+        /// </summary>
+        public IList<int> DecayParameterEigen1DPortIds { get; set; } = new List<int>();
+
+        /// <summary>
+        /// TEモードで実装した式をTMモードに流用するため
+        ///   TEモードの場合は μ0
+        ///   TMモードの場合は ε0
+        /// </summary>
+        public double ReplacedMu0 { get; set; } = Constants.Mu0;
+        /// <summary>
         /// 観測点の頂点ID
         /// </summary>
-        public IList<uint> RefVIds { get; private set; } = new List<uint>();
+        public IList<uint> RefVIds { get; set; } = new List<uint>();
+        /// <summary>
+        /// 観測点ポート数
+        /// </summary>
+        public int RefPortCount { get; set; } = 0;
 
+        /// <summary>
+        /// 逆行列を用いる？
+        /// </summary>
+        public bool IsUseInvMatrix { get; set; } = true;
         /// <summary>
         /// [A]
         /// </summary>
-        private IvyFEM.Lapack.DoubleMatrix A = null;
-        // 逆行列を計算するのでIvyFEM.Lapack.DoubleMatrixを使用
+        private IvyFEM.Linear.DoubleSparseMatrix A = null;
         /// <summary>
         /// {b}
         /// </summary>
@@ -85,28 +134,59 @@ namespace IvyFEM
         /// <summary>
         /// 境界の界の伝搬定数(ポート単位)
         /// </summary>
-        private IList<double> SrcBetaXs = null;
+        public IList<double> SrcBetaXs { get; private set; } = null;
         /// <summary>
         /// 境界の界のモード分布(ポート単位)
         /// </summary>
-        private IList<double[]> SrcProfiles = null;
+        public IList<double[]> SrcProfiles { get; private set; } = null;
+        /// <summary>
+        /// 境界の界の両端の減衰定数
+        /// </summary>
+        public IList<double> SrcDecayParameters { get; private set; } = null;
+
+        /// <summary>
+        /// ABC(Evanescent)の次数
+        /// </summary>
+        private IList<int> ABCOrdersFor1 = null;
+        /// <summary>
+        /// ABCの次数
+        /// </summary>
+        private IList<int> ABCOrdersFor2 = null;
+
+        /// <summary>
+        /// Evanescent Waveの減衰定数
+        /// </summary>
+        private IList<double[]> AlphasFor1 = null;
+        /// <summary>
+        /// Evanescent Wave b0_abc
+        /// </summary>
+        private IList<double> B0AbcsFor1 = null;
+        /// <summary>
+        /// Evanescent Wave b_abc
+        /// </summary>
+        private IList<double[]> BAbcsFor1 = null;
 
         /// <summary>
         /// 吸収境界波の速度リスト(ポート単位)
         /// </summary>
-        private IList<double[]> Velos = null;
+        private IList<double[]> VelosFor2 = null;
         /// <summary>
         /// 吸収境界 b0_abc
         /// </summary>
-        private IList<double> B0Abcs = null;
-        /// <summary>
-        /// 吸収境界 a_abc
-        /// </summary>
-        private IList<double[]> AAbcs = null;
+        private IList<double> B0AbcsFor2 = null;
         /// <summary>
         /// 吸収境界 b_abc
         /// </summary>
-        private IList<double[]> BAbcs = null;
+        private IList<double[]> BAbcsFor2 = null;
+
+        /// <summary>
+        /// Φ1(1)のオフセット(Evanescent)
+        /// </summary>
+        private IList<int> Pz1Offsets1 = null;
+        /// <summary>
+        /// Φ1(2)のオフセット(Traveling)
+        /// </summary>
+        private IList<int> Pz1Offsets2 = null;
 
         /// <summary>
         ///  電界（現在値）※ABC分の自由度を除いたもの
@@ -125,13 +205,9 @@ namespace IvyFEM
         /// </summary>
         private double[] EzPzPrev2 = null;
         /// <summary>
-        /// 観測点1の電界(時間変化リスト)
+        /// 観測点の電界(時間変化リスト)
         /// </summary>
-        public IList<double> TimeEzsPort1 { get; private set; } = null;
-        /// <summary>
-        /// 観測点2の電界(時間変化リスト)
-        /// </summary>
-        public IList<double> TimeEzsPort2 { get; private set; }  = null;
+        public IList<IList<double[]>> RefTimeEzsss { get; private set; } = new List<IList<double[]>>();
 
         public EMWaveguide2DHPlaneHigherOrderABCTDFEM
             (FEWorld world)
@@ -154,8 +230,25 @@ namespace IvyFEM
             }
             if (TimeIndex == 0)
             {
-                TimeEzsPort1 = new List<double>();
-                TimeEzsPort2 = new List<double>();
+                int cnt = 0;
+                if (RefVIds.Count > 0)
+                {
+                    cnt = RefVIds.Count;
+                }
+                else if (RefPortCount > 0)
+                {
+                    cnt = RefPortCount; 
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+                RefTimeEzsss.Clear();
+                for (int i = 0; i < cnt; i++)
+                {
+                    var refTimeEzss = new List<double[]>();
+                    RefTimeEzsss.Add(refTimeEzss);
+                }
             }
 
             // 時刻の取得
@@ -189,18 +282,17 @@ namespace IvyFEM
             //------------------------------------------------------------------
             // Ezを求める
             //------------------------------------------------------------------
-            //t = System.Environment.TickCount;
+            if (IsUseInvMatrix)
             {
-                ////----------------------------------
-                //double[] X;
-                //Solver.DoubleSolve(out X, A, B);
-                //EzPz = X;
-                ////----------------------------------
-
                 // 逆行列を用いる
                 EzPz = A * B;
             }
-            //System.Diagnostics.Debug.WriteLine("Solve t = " + (System.Environment.TickCount - t));
+            else
+            {
+                double[] X;
+                Solver.DoubleSolve(out X, A, B);
+                EzPz = X;
+            }
 
             // ABC分を除いた電界を取得
             Ez = new double[nodeCnt];
@@ -209,28 +301,43 @@ namespace IvyFEM
                 Ez[nodeId] = EzPz[nodeId];
             }
 
-            // 観測点
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1; // 励振分を引く
-            for (int portId = 0; portId < portCnt; portId++)
+            if (RefVIds.Count > 0)
             {
-                uint vId = RefVIds[portId];
-                IList<int> coIds = World.GetCoordIdsFromCadId(QuantityId, vId, CadElementType.Vertex);
-                System.Diagnostics.Debug.Assert(coIds.Count == 1);
-                int coId = coIds[0];
-                int nodeId = World.Coord2Node(QuantityId, coId);
-                double fValue = Ez[nodeId];
-                if (portId == 0)
+                // 観測点
+                for (int refIndex = 0; refIndex < RefVIds.Count; refIndex++)
                 {
-                    TimeEzsPort1.Add(fValue);
+                    uint vId = RefVIds[refIndex];
+                    IList<int> coIds = World.GetCoordIdsFromCadId(QuantityId, vId, CadElementType.Vertex);
+                    System.Diagnostics.Debug.Assert(coIds.Count == 1);
+                    int coId = coIds[0];
+                    int nodeId = World.Coord2Node(QuantityId, coId);
+                    double fValue = Ez[nodeId];
+                    double[] fValues = new double[] { fValue };
+                    var refTimeEzss = RefTimeEzsss[refIndex];
+                    refTimeEzss.Add(fValues);
                 }
-                else if (portId == 1)
+            }
+            else if (RefPortCount > 0)
+            {
+                int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
+                for (int refIndex = 0; refIndex < RefPortCount; refIndex++)
                 {
-                    TimeEzsPort2.Add(fValue);
+                    int portId = portCnt + refIndex;
+                    int nodeCntB = (int)World.GetPortNodeCount(QuantityId, (uint)portId);
+                    double[] fValues = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        fValues[nodeIdB] = Ez[nodeId];
+                    }
+                    var refTimeEzss = RefTimeEzsss[refIndex];
+                    refTimeEzss.Add(fValues);
                 }
-                else
-                {
-                    System.Diagnostics.Debug.Assert(false);
-                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
             }
 
             if ((TimeIndex + 1) % 50 == 0)
@@ -242,12 +349,15 @@ namespace IvyFEM
         private void CalcA()
         {
             System.Diagnostics.Debug.Assert(TimeIndex == 0);
-            A = null;
+
+            IvyFEM.Lapack.DoubleMatrix _A;
+            _A = null;
             Qbs = new List<IvyFEM.Lapack.DoubleMatrix>();
             Rbs = new List<IvyFEM.Lapack.DoubleMatrix>();
             Tbs = new List<IvyFEM.Lapack.DoubleMatrix>();
             SrcBetaXs = new List<double>();
             SrcProfiles = new List<double[]>();
+            SrcDecayParameters = new List<double>();
             EzPz = null;
             EzPzPrev = null;
             EzPzPrev2 = null;
@@ -269,31 +379,29 @@ namespace IvyFEM
             // 波数
             double srcK0 = 2.0 * Math.PI / srcWaveLength;
 
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1; // ポート3を除く(励振源)
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
 
-            // 境界の界に導波路開口条件を追加
-            for (int portId = 0; portId < (portCnt + 1); portId++)
+            System.Diagnostics.Debug.Assert(
+                IsEigen1DUseDecayParameters.Count == 0 ||
+                IsEigen1DUseDecayParameters.Count == (portCnt + RefPortCount + 1));
+            for (int portId = 0; portId < (portCnt + RefPortCount + 1); portId++)
             {
-                IvyFEM.Lapack.DoubleMatrix ryy1D = null;
-                IvyFEM.Lapack.DoubleMatrix txx1D = null;
-                IvyFEM.Lapack.DoubleMatrix uzz1D = null;
-                System.Numerics.Complex[] betas = null;
-                System.Numerics.Complex[][] eVecs = null;
-                var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
-                eigen1DFEM.Frequency = srcFreq;
-                eigen1DFEM.Solve();
-                ryy1D = eigen1DFEM.Ryy;
-                txx1D = eigen1DFEM.Txx;
-                uzz1D = eigen1DFEM.Uzz;
-                betas = eigen1DFEM.Betas;
-                eVecs = eigen1DFEM.EzEVecs;
+                IvyFEM.Lapack.DoubleMatrix ryy1D;
+                IvyFEM.Lapack.DoubleMatrix txx1D;
+                IvyFEM.Lapack.DoubleMatrix uzz1D;
+                System.Numerics.Complex[] betas;
+                System.Numerics.Complex[][] eVecs;
+                double alpha;
+                CalcEigen(portId, srcFreq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+
                 int nodeCntB = ryy1D.RowLength;
                 Qbs.Add(ryy1D);
                 Rbs.Add(txx1D);
                 Tbs.Add(uzz1D);
 
+                System.Diagnostics.Debug.WriteLine("port = {0} mode Count = {1}", portId, betas.Length);
                 // 基本モード
-                uint iMode = 0;
+                int iMode = 0;
                 System.Numerics.Complex beta = betas[iMode];
                 System.Numerics.Complex[] fVec = eVecs[iMode];
                 // 実数部を取得する
@@ -306,10 +414,35 @@ namespace IvyFEM
                 }
                 SrcBetaXs.Add(betaReal);
                 SrcProfiles.Add(fVecReal);
+                SrcDecayParameters.Add(alpha);
             }
 
             /////////////////////////////////////////////////////////
-
+            //------------------------------------------------------
+            // ABC次数
+            //------------------------------------------------------
+            System.Diagnostics.Debug.Assert(
+                ABCOrdersToSet.Count == 0 || ABCOrdersToSet.Count == portCnt);
+            System.Diagnostics.Debug.Assert(
+                ABCOrdersForEvanescentToSet.Count == 0 || ABCOrdersForEvanescentToSet.Count == portCnt);
+            ABCOrdersFor1 = new List<int>();
+            ABCOrdersFor2 = new List<int>();
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                int abcOrderFor1 = 0;
+                if (ABCOrdersForEvanescentToSet.Count == portCnt)
+                {
+                    abcOrderFor1 = ABCOrdersForEvanescentToSet[portId];
+                }
+                int abcOrderFor2 = 0;
+                if (ABCOrdersToSet.Count == portCnt)
+                {
+                    abcOrderFor2 = ABCOrdersToSet[portId];
+                }
+                System.Diagnostics.Debug.Assert(abcOrderFor1 >= 1 || abcOrderFor2 >= 1);
+                ABCOrdersFor1.Add(abcOrderFor1);
+                ABCOrdersFor2.Add(abcOrderFor2);
+            }
             //------------------------------------------------------
             // 電界
             //-----------------------------------------------------
@@ -319,7 +452,20 @@ namespace IvyFEM
             {
                 int nodeCntB = (int)World.GetPortNodeCount(QuantityId, (uint)portId);
                 System.Diagnostics.Debug.Assert(Qbs[portId].RowLength == nodeCntB);
-                nodeCntPlusABC += nodeCntB * (ABCOrder - 1);
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                if (abcOrderFor1 >= 1)
+                {
+                    nodeCntPlusABC += nodeCntB * (abcOrderFor1 - 1);
+                }
+                if (abcOrderFor1 >= 1 && abcOrderFor2 >= 1)
+                {
+                    nodeCntPlusABC += nodeCntB;
+                }
+                if (abcOrderFor2 >= 1)
+                {
+                    nodeCntPlusABC += nodeCntB * (abcOrderFor2 - 1);
+                }
             }
             EzPz = new double[nodeCntPlusABC];
             EzPzPrev = new double[nodeCntPlusABC];
@@ -328,69 +474,213 @@ namespace IvyFEM
             //------------------------------------------------------
             // 全体係数行列の作成
             //------------------------------------------------------
-            A = new IvyFEM.Lapack.DoubleMatrix(nodeCntPlusABC, nodeCntPlusABC);
+            _A = new IvyFEM.Lapack.DoubleMatrix(nodeCntPlusABC, nodeCntPlusABC);
             double dt = TimeDelta;
             for (int rowNodeId = 0; rowNodeId < nodeCnt; rowNodeId++)
             {
                 for (int colNodeId = 0; colNodeId < nodeCnt; colNodeId++)
                 {
-                    A[rowNodeId, colNodeId] =
+                    _A[rowNodeId, colNodeId] =
                         (1.0 / (dt * dt)) * M[rowNodeId, colNodeId] +
                         NewmarkBeta * K[rowNodeId, colNodeId];
                 }
             }
 
+            ////////////////////////////////////////////////////////////////////////////////////////
             // 吸収境界パラメータ
-            Velos = new List<double[]>();
-            B0Abcs = new List<double>();
-            AAbcs = new List<double[]>();
-            BAbcs = new List<double[]>();
-
+            AlphasFor1 = new List<double[]>();
+            B0AbcsFor1 = new List<double>();
+            BAbcsFor1 = new List<double[]>();
             for (int portId = 0; portId < portCnt; portId++)
             {
-                double srcBetaX = SrcBetaXs[portId];
-                double vpx = srcOmega / srcBetaX;
-                double[] velo = new double[ABCOrder];
-                for (int order = 0; order < ABCOrder; order++)
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int portId0 = -1;
+                System.Diagnostics.Debug.Assert(
+                    DecayParameterEigen1DPortIds.Count == 0 ||
+                    DecayParameterEigen1DPortIds.Count == portCnt);
+                if (DecayParameterEigen1DPortIds.Count == portCnt)
                 {
-                    if (GaussianType == GaussianType.Normal)
-                    {
-                        velo[order] = Constants.C0; // ガウシアンパルスの場合
-                    }
-                    else if (GaussianType == GaussianType.SinModulation)
-                    {
-                        velo[order] = vpx; // 正弦波変調ガウシアンパルスの場合
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.Assert(false);
-                    }
+                    portId0 = DecayParameterEigen1DPortIds[portId];
                 }
-                Velos.Add(velo);
+                else
+                {
+                    portId0 = portCnt; // 最後のポート(励振源)を採用
+                }
+                double alpha0 = 0;
+                if (portId0 == -1)
+                {
+                    alpha0 = 0;
+                }
+                else
+                {
+                    alpha0 = SrcDecayParameters[portId0];
+                }
+                double[] alpha =  new double[abcOrderFor1];
+                for (int order = 0; order < abcOrderFor1; order++)
+                {
+                    alpha[order] = alpha0;
+                }
+                AlphasFor1.Add(alpha);
             }
             for (int portId = 0; portId < portCnt; portId++)
             {
-                double[] velo = Velos[portId];
-                double B0Abc = 1.0 / velo[0];
-                double[] AAbc = new double[ABCOrder - 1]; // 一様媒質の場合
-                double[] BAbc = new double[ABCOrder - 1];
-                for (int order = 0; order < (ABCOrder - 1); order++)
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                double[] alpha = AlphasFor1[portId];
+                double B0Abc = alpha.Length > 0 ? alpha[0] : 0.0;
+                double[] BAbc = new double[(abcOrderFor1 >= 1 ? (abcOrderFor1 - 1) : 0)];
+                for (int order = 0; order < abcOrderFor1 - 1; order++)
                 {
-                    AAbc[order] = 1.0 / (velo[order] * velo[order]) - 1.0 / (Constants.C0 * Constants.C0);
+                    BAbc[order] = alpha[order] + alpha[order + 1];
+                }
+                B0AbcsFor1.Add(B0Abc);
+                BAbcsFor1.Add(BAbc);
+            }
+
+            VelosFor2 = new List<double[]>();
+            B0AbcsFor2 = new List<double>();
+            BAbcsFor2 = new List<double[]>();
+
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] velo = new double[abcOrderFor2];
+                for (int order = 0; order < abcOrderFor2; order++)
+                {
+                    double velo0 = -1.0;
+                    if (VelocitysToSet.Count == portCnt)
+                    {
+                        velo0 = VelocitysToSet[portId];
+                    }
+                    if (velo0 < 0) // velo0: -1
+                    {
+                        if (GaussianType == GaussianType.Normal)
+                        {
+                            velo0 = Constants.C0; // ガウシアンパルスの場合
+                        }
+                        else if (GaussianType == GaussianType.SinModulation)
+                        {
+                            double srcBetaX = SrcBetaXs[portId];
+                            double[] srcProfile = SrcProfiles[portId];
+                            double vpx = srcOmega / srcBetaX;
+                            velo0 = vpx; // 正弦波変調ガウシアンパルスの場合
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Assert(false);
+                        }
+                    }
+                    velo[order] = velo0;
+                }
+                VelosFor2.Add(velo);
+            }
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] velo = VelosFor2[portId];
+                double B0Abc = velo.Length > 0 ? 1.0 / velo[0] : 0.0;
+                double[] BAbc = new double[(abcOrderFor2 >= 1 ? (abcOrderFor2 - 1) : 0)];
+                for (int order = 0; order < (abcOrderFor2 - 1); order++)
+                {
                     BAbc[order] = 1.0 / velo[order] + 1.0 / velo[order + 1];
                 }
-                B0Abcs.Add(B0Abc);
-                AAbcs.Add(AAbc);
-                BAbcs.Add(BAbc);
+                B0AbcsFor2.Add(B0Abc);
+                BAbcsFor2.Add(BAbc);
             }
 
-            // 吸収境界
+            ////////////////////////////////////////////////////////////////////////////////////////
+            // Φ1の開始位置
+            Pz1Offsets1 = new List<int>();
+            Pz1Offsets2 = new List<int>();
             for (int portId = 0; portId < portCnt; portId++)
             {
-                double B0Abc = B0Abcs[portId];
+                int offset1 = 0;
+                if (portId == 0)
+                {
+                    offset1 = nodeCnt;
+                }
+                else
+                {
+                    int nodeCntBPrevPort = (int)World.GetPortNodeCount(QuantityId, (uint)(portId - 1));
+                    int abcOrderFor1PrevPort = ABCOrdersFor1[portId - 1];
+                    int abcOrderFor2PrevPort = ABCOrdersFor2[portId - 1];
 
+                    offset1 = Pz1Offsets1[portId - 1];
+                    if (abcOrderFor1PrevPort >= 1)
+                    {
+                        offset1 += nodeCntBPrevPort * (abcOrderFor1PrevPort - 1);
+                    }
+                    if (abcOrderFor2PrevPort >= 1 && abcOrderFor1PrevPort >= 1)
+                    {
+                        offset1 += nodeCntBPrevPort;
+                    }
+                    if (abcOrderFor2PrevPort >= 1)
+                    {
+                        offset1 += nodeCntBPrevPort * (abcOrderFor2PrevPort - 1);
+                    }
+                }
+                int offset2 = offset1;
+                {
+                    int nodeCntB = (int)World.GetPortNodeCount(QuantityId, (uint)portId);
+                    int abcOrderFor1 = ABCOrdersFor1[portId];
+                    int abcOrderFor2 = ABCOrdersFor2[portId];
+                    if (abcOrderFor1 >= 1)
+                    {
+                        offset2 += nodeCntB * (abcOrderFor1 - 1);
+                    }
+                    if (abcOrderFor2 >= 1 && abcOrderFor1 >= 1)
+                    {
+                        offset2 += nodeCntB;
+                    }
+                }
+                Pz1Offsets1.Add(offset1);
+                Pz1Offsets2.Add(offset2);
+            }
+
+            ////////////////////////////////////////////////////////////////////////////////////////
+            // 吸収境界
+            // Ez
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
                 var Qb = Qbs[portId];
                 int nodeCntB = Qb.RowLength;
+                // Ez - Ez
+                for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
+                {
+                    // Ez
+                    int rowCoId = World.PortNode2Coord(QuantityId, (uint)portId, rowNodeIdB);
+                    int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
+
+                    for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
+                    {
+                        // Ez
+                        int colCoId = World.PortNode2Coord(QuantityId, (uint)portId, colNodeIdB);
+                        int colNodeId = World.Coord2Node(QuantityId, colCoId);
+
+                        if (abcOrderFor1 >= 1)
+                        {
+                            // Evanescent
+                            double B0AbcFor1 = B0AbcsFor1[portId];
+                            _A[rowNodeId, colNodeId] +=
+                                NewmarkBeta * B0AbcFor1  * Qb[rowNodeIdB, colNodeIdB];
+                        }
+                        else if (abcOrderFor2 >= 1 && abcOrderFor1 == 0)
+                        {
+                            // Traveling
+                            double B0AbcFor2 = B0AbcsFor2[portId];
+                            // C
+                            _A[rowNodeId, colNodeId] +=
+                                (B0AbcFor2 / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Assert(false);
+                        }
+                    }
+                }
+
+                // Ez - Φ1
                 for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
                 {
                     int rowCoId = World.PortNode2Coord(QuantityId, (uint)portId, rowNodeIdB);
@@ -398,84 +688,130 @@ namespace IvyFEM
 
                     for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
                     {
-                        int colCoId = World.PortNode2Coord(QuantityId, (uint)portId, colNodeIdB);
-                        int colNodeId = World.Coord2Node(QuantityId, colCoId);
-
-                        // C
-                        A[rowNodeId, colNodeId] +=
-                            (B0Abc / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
-                    }
-                }
-            }
-
-            // Φ1の開始位置
-            int[] Pz1NodeIds = new int[portCnt];
-            for (int portId = 0; portId < portCnt; portId++)
-            {
-                if (portId == 0)
-                {
-                    Pz1NodeIds[portId] = nodeCnt;
-                }
-                else
-                {
-                    int nodeCntBPrevPort = (int)World.GetPortNodeCount(QuantityId, (uint)(portId - 1));
-                    Pz1NodeIds[portId] =
-                        Pz1NodeIds[portId - 1] + nodeCntBPrevPort * (ABCOrder - 1);
-                }
-            }
-
-            // Ez - Φ1
-            if (ABCOrder > 1)
-            {
-                for (int portId = 0; portId < portCnt; portId++)
-                {
-                    var Qb = Qbs[portId];
-                    int nodeCntB = Qb.RowLength;
-
-                    for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
-                    {
-                        int rowCoId = World.PortNode2Coord(QuantityId, (uint)portId, rowNodeIdB);
-                        int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
-
-                        for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
+                        if (abcOrderFor1 >= 1)
                         {
-                            // Φ1
-                            int colNodeId1 = colNodeIdB + Pz1NodeIds[portId];
-                            // G
-                            A[rowNodeId, colNodeId1] = -1.0 * NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
+                            // Evanescent
+                            if (abcOrderFor1 >= 2)
+                            {
+                                // Φ1(1)
+                                int colNodeId1 = colNodeIdB + Pz1Offsets1[portId];
+                                _A[rowNodeId, colNodeId1] += -NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
+                            }
+                        }
+                        else if (abcOrderFor2 >= 1 && abcOrderFor1 == 0)
+                        {
+                            // Traveling
+                            if (abcOrderFor2 >= 2)
+                            {
+                                System.Diagnostics.Debug.Assert(Pz1Offsets1[portId] == Pz1Offsets2[portId]);
+                                // Φ1(2)
+                                int colNodeId1 = colNodeIdB + Pz1Offsets2[portId];
+                                // G
+                                _A[rowNodeId, colNodeId1] += -NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.Assert(false);
                         }
                     }
                 }
             }
 
-            // Φ1 ～ Φ(ABC_order - 1)
+            ////////////////////////////////////////////////////////////////////////////////////////
+            // Evanescent Wave
+            // Φ1(1) ～ Φ(ABC_order -1)(1)
             for (int portId = 0; portId < portCnt; portId++)
             {
                 var Qb = Qbs[portId];
                 var Rb = Rbs[portId];
                 var Tb = Tbs[portId];
-                double[] velo = Velos[portId];
-                //double B0Abc = B0Abcs[portId];
-                double[] AAbc = AAbcs[portId]; // 一様媒質のとき
-                double[] BAbc = BAbcs[portId];
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] alphaFor1 = AlphasFor1[portId];
+                double[] BAbcFor1 = BAbcsFor1[portId];
                 int nodeCntB = Qb.RowLength;
 
                 // Φ(order)に関する式
-                for (int order = 0; order < (ABCOrder - 1); order++)
+                for (int order = 0; order < (abcOrderFor1 - 1); order++)
                 {
                     for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
                     {
                         // order
-                        int rowNodeId1 = rowNodeIdB + nodeCntB * order + Pz1NodeIds[portId];
+                        int rowNodeId1 = rowNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
 
                         for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
                         {
+                            // 媒質定数がy方向に変化する場合 
                             int colNodeId1 = 0;
                             // Φ(order)
-                            colNodeId1 = colNodeIdB + nodeCntB * order + Pz1NodeIds[portId];
-                            // Cj
-                            A[rowNodeId1, colNodeId1] =
-                                (BAbc[order] / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
+                            colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
+                            _A[rowNodeId1, colNodeId1] += NewmarkBeta * BAbcFor1[order] * Qb[rowNodeIdB, colNodeIdB];
+                            // Φ(order-1)
+                            if (order == 0)
+                            {
+                                // Φ0 (Ez)
+                                int colCoId = World.PortNode2Coord(QuantityId, (uint)portId, colNodeIdB);
+                                colNodeId1 = World.Coord2Node(QuantityId, colCoId);
+                            }
+                            else
+                            {
+                                colNodeId1 = colNodeIdB + nodeCntB * (order - 1) + Pz1Offsets1[portId];
+                            }
+                            _A[rowNodeId1, colNodeId1] +=
+                                -NewmarkBeta * alphaFor1[order] * alphaFor1[order] * Qb[rowNodeIdB, colNodeIdB] +
+                                (1.0 / (Constants.C0 * Constants.C0 * dt * dt)) * Tb[rowNodeIdB, colNodeIdB] +
+                                NewmarkBeta * Rb[rowNodeIdB, colNodeIdB];
+                            // Φ(order + 1)
+                            colNodeId1 = 0;
+                            if (order == (abcOrderFor1 - 2) && abcOrderFor2 == 0)
+                            {
+                                // なし
+                            }
+                            else
+                            {
+                                colNodeId1 = colNodeIdB + nodeCntB * (order + 1) + Pz1Offsets1[portId];
+                                _A[rowNodeId1, colNodeId1] +=
+                                    -1.0 * NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
+                            }
+                        }
+                    }
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////
+            // Φ(ABCOrder - 1)(1) = Φ0(2)に関する式
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                var Qb = Qbs[portId];
+                var Rb = Rbs[portId];
+                var Tb = Tbs[portId];
+                double[] alpha = AlphasFor1[portId];
+                double B0ABCFor2 = B0AbcsFor2[portId];
+                double[] veloFor2 = VelosFor2[portId];
+                int nodeCntB = Qb.RowLength;
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+
+                // Φ(ABCOrder - 1)(1) = Φ0(2)
+                if (abcOrderFor1 >= 1 && abcOrderFor2 >= 1)
+                {
+                    int order = abcOrderFor1 - 1;
+                    for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
+                    {
+                        // order
+                        int rowNodeId1 = rowNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
+
+                        for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
+                        {
+                            // 媒質定数がy方向に変化する場合
+                            int colNodeId1 = 0;
+                            // Φ(order)
+                            colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
+
+                            _A[rowNodeId1, colNodeId1] +=
+                                (B0ABCFor2 / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB] +
+                                NewmarkBeta * alpha[order] * Qb[rowNodeIdB, colNodeIdB];
 
                             // Φ(order-1)
                             colNodeId1 = 0;
@@ -487,34 +823,22 @@ namespace IvyFEM
                             }
                             else
                             {
-                                colNodeId1 = colNodeIdB + nodeCntB * (order - 1) + Pz1NodeIds[portId];
+                                colNodeId1 = colNodeIdB + nodeCntB * (order - 1) + Pz1Offsets1[portId];
                             }
-                            // 一様媒質の場合
-                            A[rowNodeId1, colNodeId1] =
-                                // Pj
-                                -(AAbc[order] / (dt * dt)) * Qb[rowNodeIdB, colNodeIdB] +
-                                // Qj
-                                // Note: Rb + λQb (λ = 0)
+                            _A[rowNodeId1, colNodeId1] +=
+                                -NewmarkBeta * alpha[order] * alpha[order] * Qb[rowNodeIdB, colNodeIdB] +
+                                1.0 * (1.0 / (Constants.C0 * Constants.C0 * dt * dt)) * Tb[rowNodeIdB, colNodeIdB] +
                                 NewmarkBeta * Rb[rowNodeIdB, colNodeIdB];
-                            /*
-                            // 媒質定数がy方向に変化する場合
-                            A[rowNodeId1, colNodeId1] =
-                                -1.0 * (1.0 / (velo[order] * velo[order] * dt * dt)) * Qb[rowNodeIdB, colNodeIdB]
-                                + 1.0 * (1.0 / (Constants.C0 * Constants.C0 * dt * dt)) * Tb[rowNodeIdB, colNodeIdB]
-                                + NewmarkBeta * Rb[rowNodeIdB, colNodeIdB];
-                            */
 
                             // Φ(order + 1)
-                            colNodeId1 = 0;
-                            if (order == (ABCOrder - 2))
+                            if (abcOrderFor2 <= 1)
                             {
-                                // なし
+
                             }
                             else
                             {
-                                colNodeId1 = colNodeIdB + nodeCntB * (order + 1) + Pz1NodeIds[portId];
-                                // Rj
-                                A[rowNodeId1, colNodeId1] =
+                                colNodeId1 = colNodeIdB + nodeCntB * (order + 1) + Pz1Offsets1[portId];
+                                _A[rowNodeId1, colNodeId1] +=
                                     -1.0 * NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
                             }
                         }
@@ -522,13 +846,85 @@ namespace IvyFEM
                 }
             }
 
-            // 逆行列を計算
-            System.Diagnostics.Debug.WriteLine("calc [A]-1");
-            A = IvyFEM.Lapack.DoubleMatrix.Inverse(A);
-            System.Diagnostics.Debug.WriteLine("calc [A]-1 done");
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+            // Traveling Wave
+            // Φ1(2) ～ Φ(ABC_order - 1)(2)
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                var Qb = Qbs[portId];
+                var Rb = Rbs[portId];
+                var Tb = Tbs[portId];
+                double[] veloFor2 = VelosFor2[portId];
+                double[] BAbcFor2 = BAbcsFor2[portId];
+                int nodeCntB = Qb.RowLength;
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
 
-            System.Diagnostics.Debug.WriteLine("ABCOrder:{0}", ABCOrder);
-            System.Diagnostics.Debug.WriteLine("dt:{0}", TimeDelta);
+                // Φ(order)に関する式
+                for (int order = 0; order < (abcOrderFor2 - 1); order++)
+                {
+                    for (int rowNodeIdB = 0; rowNodeIdB < nodeCntB; rowNodeIdB++)
+                    {
+                        // order
+                        int rowNodeId1 = rowNodeIdB + nodeCntB * order + Pz1Offsets2[portId];
+
+                        for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
+                        {
+                            int colNodeId1 = 0;
+                            // Φ(order)
+                            colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets2[portId];
+
+                            // Cj
+                            _A[rowNodeId1, colNodeId1] +=
+                                (BAbcFor2[order] / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
+
+                            // Φ(order-1)
+                            colNodeId1 = 0;
+                            if (order == 0 && abcOrderFor1 <= 1)
+                            {
+                                // Φ0 (Ez)
+                                int colCoId = World.PortNode2Coord(QuantityId, (uint)portId, colNodeIdB);
+                                colNodeId1 = World.Coord2Node(QuantityId, colCoId);
+                            }
+                            else
+                            {
+                                colNodeId1 = colNodeIdB + nodeCntB * (order - 1) + Pz1Offsets2[portId];
+                            }
+                            // 媒質定数がy方向に変化する場合
+                            _A[rowNodeId1, colNodeId1] +=
+                                -1.0 * (1.0 / (veloFor2[order] * veloFor2[order] * dt * dt)) * Qb[rowNodeIdB, colNodeIdB] +
+                                1.0 * (1.0 / (Constants.C0 * Constants.C0 * dt * dt)) * Tb[rowNodeIdB, colNodeIdB] +
+                                NewmarkBeta * Rb[rowNodeIdB, colNodeIdB];
+
+                            // Φ(order + 1)
+                            colNodeId1 = 0;
+                            if (order == (abcOrderFor2 - 2))
+                            {
+
+                                // なし
+                            }
+                            else
+                            {
+                                colNodeId1 = colNodeIdB + nodeCntB * (order + 1) + Pz1Offsets2[portId];
+                                // Rj
+                                _A[rowNodeId1, colNodeId1] +=
+                                    -1.0 * NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (IsUseInvMatrix)
+            {
+                // 逆行列を計算
+                System.Diagnostics.Debug.WriteLine("calc [A]-1");
+                _A = IvyFEM.Lapack.DoubleMatrix.Inverse(_A);
+                System.Diagnostics.Debug.WriteLine("calc [A]-1 done");
+
+            }
+
+            A = (IvyFEM.Linear.DoubleSparseMatrix)_A;
         }
 
         private void CalcKM()
@@ -588,6 +984,48 @@ namespace IvyFEM
             }
         }
 
+        private void CalcEigen(
+            int portId, double srcFreq,
+            out IvyFEM.Lapack.DoubleMatrix ryy1D,
+            out IvyFEM.Lapack.DoubleMatrix txx1D,
+            out IvyFEM.Lapack.DoubleMatrix uzz1D,
+            out System.Numerics.Complex[] betas,
+            out System.Numerics.Complex[][] eVecs,
+            out double alpha)
+        {
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
+            alpha = 0;
+            if (IsEigen1DUseDecayParameters.Count == portCnt &&
+                IsEigen1DUseDecayParameters[portId])
+            {
+                // 減衰定数を考慮した固有値問題
+                var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
+                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.Frequency = srcFreq;
+                eigen1DFEM.Solve();
+                ryy1D = eigen1DFEM.Ryy;
+                txx1D = eigen1DFEM.Txx;
+                uzz1D = eigen1DFEM.Uzz;
+                betas = eigen1DFEM.Betas;
+                eVecs = eigen1DFEM.EzEVecs;
+                alpha = eigen1DFEM.DecayParameter;
+            }
+            else
+            {
+                // 通常の固有値問題
+                var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.Frequency = srcFreq;
+                eigen1DFEM.Solve();
+                ryy1D = eigen1DFEM.Ryy;
+                txx1D = eigen1DFEM.Txx;
+                uzz1D = eigen1DFEM.Uzz;
+                betas = eigen1DFEM.Betas;
+                eVecs = eigen1DFEM.EzEVecs;
+            }
+        }
+
         private void CalcB()
         {
             double dt = TimeDelta;
@@ -613,89 +1051,142 @@ namespace IvyFEM
                     B[i] = value;
                 }
             }
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1;  // 励振源分引く
-            // 吸収境界
-            // Φ1の開始位置
-            int[] Pz1NodeIds = new int[portCnt];
-            for (int portId = 0; portId < portCnt; portId++)
-            {
-                if (portId == 0)
-                {
-                    Pz1NodeIds[portId] = nodeCnt;
-                }
-                else
-                {
-                    int nodeCntBPrevPort = (int)World.GetPortNodeCount(QuantityId, (uint)(portId - 1));
-                    Pz1NodeIds[portId] = Pz1NodeIds[portId - 1] + nodeCntBPrevPort * (ABCOrder - 1);
-                }
-            }            
-            
-            // Ez - Φ1
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1;  // 参照面、励振源分引く
+            ////////////////////////////////////////////////////////////////////////////////
+            // 吸収境界            
+            // Ez
             for (int portId = 0; portId < portCnt; portId++)
             {
                 var Qb = Qbs[portId];
                 int nodeCntB = Qb.RowLength;
-                double B0Abc = B0Abcs[portId];
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
 
-                double[] workEzPrev2 = new double[nodeCntB];
-                double[] workPzOrder2Prev = new double[nodeCntB];
-                double[] workPzOrder2Prev2 = new double[nodeCntB];
-                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
-                {
-                    int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
-                    int nodeId = World.Coord2Node(QuantityId, coId);
-                    workEzPrev2[nodeIdB] = EzPzPrev2[nodeId];
-                }
                 
-                if (ABCOrder > 1)
+                if (abcOrderFor1 >= 1)
                 {
+                    // Evanescent
+                    double B0AbcFor1 = B0AbcsFor1[portId];
+
+                    double[] workEzPrev = new double[nodeCntB];
+                    double[] workEzPrev2 = new double[nodeCntB];
+                    double[] workPzOrder2Prev = new double[nodeCntB];
+                    double[] workPzOrder2Prev2 = new double[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        // Φ1
-                        int nodeId = nodeIdB + Pz1NodeIds[portId];
-                        workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
-                        workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
+                        // Ez
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        workEzPrev[nodeIdB] = EzPzPrev[nodeId];
+                        workEzPrev2[nodeIdB] = EzPzPrev2[nodeId];
                     }
-                }
-
-                double[] vecQb = new double[nodeCntB];
-                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
-                {
-                    // C
-                    vecQb[nodeIdB] = (B0Abc / (2.0 * dt)) * workEzPrev2[nodeIdB];
-                    if (ABCOrder > 1)
+                    if (abcOrderFor1 >= 2)
                     {
-                        vecQb[nodeIdB] +=
-                            // G
-                            (1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
-                            NewmarkBeta * workPzOrder2Prev2[nodeIdB];
+                        for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                        {
+                            // Φ1(1)
+                            int nodeId = nodeIdB + Pz1Offsets1[portId];
+                            workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
+                            workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
+                        }
+                    }
+
+                    double[] vecQb = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        vecQb[nodeIdB] = -1.0 * B0AbcFor1 * 
+                            ((1.0 - 2.0 * NewmarkBeta) * workEzPrev[nodeIdB] +
+                            NewmarkBeta * workEzPrev2[nodeIdB]);
+                        if (abcOrderFor2 >= 2)
+                        {
+                            vecQb[nodeIdB] +=
+                                ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
+                                NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
+                        }
+                    }
+                    vecQb = Qb * vecQb;
+
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        B[nodeId] += vecQb[nodeIdB];
+                    }
+
+                }
+                else if (abcOrderFor2 >= 1 && abcOrderFor1 == 0)
+                {
+                    // Traveling
+                    double B0AbcFor2 = B0AbcsFor2[portId];
+
+                    double[] workEzPrev2 = new double[nodeCntB];
+                    double[] workPzOrder2Prev = new double[nodeCntB];
+                    double[] workPzOrder2Prev2 = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        // Ez
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        workEzPrev2[nodeIdB] = EzPzPrev2[nodeId];
+                    }
+                    if (abcOrderFor2 >= 2)
+                    {
+                        System.Diagnostics.Debug.Assert(Pz1Offsets1[portId] == Pz1Offsets2[portId]);
+                        for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                        {
+                            // Φ1(2)
+                            int nodeId = nodeIdB + Pz1Offsets2[portId];
+                            workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
+                            workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
+                        }
+                    }
+
+                    double[] vecQb = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        // C
+                        vecQb[nodeIdB] = (B0AbcFor2 / (2.0 * dt)) * workEzPrev2[nodeIdB];
+                        if (abcOrderFor2 >= 2)
+                        {
+                            vecQb[nodeIdB] +=
+                                // G
+                                ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
+                                NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
+                        }
+                    }
+                    vecQb = Qb * vecQb;
+
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        B[nodeId] += vecQb[nodeIdB];
                     }
                 }
-                vecQb = Qb * vecQb;
-
-                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                else
                 {
-                    int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
-                    int nodeId = World.Coord2Node(QuantityId, coId);
-                    B[nodeId] += vecQb[nodeIdB];
+                    System.Diagnostics.Debug.Assert(false);
                 }
             }
 
-            // Φ1 ～ Φ(ABC_order - 1)
+            ////////////////////////////////////////////////////////////////////////////////
+            // Evanescent Wave
+            // Φ1(1) ～ Φ(ABC_order - 1)(1)
             for (int portId = 0; portId < portCnt; portId++)
             {
                 var Qb = Qbs[portId];
                 var Rb = Rbs[portId];
                 var Tb = Tbs[portId];
-                double[] velo = Velos[portId];
-                //double B0Abc = B0Abcs[portId];
-                double[] AAbc = AAbcs[portId]; // 一様媒質の場合
-                double[] BAbc = BAbcs[portId];
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] alphaFor1 = AlphasFor1[portId];
+                double[] BAbcFor1 = BAbcsFor1[portId];
                 int nodeCntB = Qb.RowLength;
 
                 // Φorderに関する式
-                for (int order = 0; order < (ABCOrder - 1); order++)
+                for (int order = 0; order < (abcOrderFor1 - 1); order++)
                 {
+                    double[] workPzOrder0Prev = new double[nodeCntB];
                     double[] workPzOrder0Prev2 = new double[nodeCntB];
                     double[] workPzOrder1Prev = new double[nodeCntB];
                     double[] workPzOrder1Prev2 = new double[nodeCntB];
@@ -705,26 +1196,26 @@ namespace IvyFEM
                     {
                         int nodeId = 0;
                         // Φorder
-                        nodeId = nodeIdB + nodeCntB * (order) + Pz1NodeIds[portId];
+                        nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets1[portId];
+                        workPzOrder0Prev[nodeIdB] = EzPzPrev[nodeId];
                         workPzOrder0Prev2[nodeIdB] = EzPzPrev2[nodeId];
 
                         // Φorder-1
-                        nodeId = 0;
                         if (order == 0)
                         {
                             // Φ0 (Ez)
-                            int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
-                            nodeId = World.Coord2Node(QuantityId, coId);
+                            int colCoId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                            nodeId = World.Coord2Node(QuantityId, colCoId);
                         }
                         else
                         {
-                            nodeId = nodeIdB + nodeCntB * (order - 1) + Pz1NodeIds[portId];
+                            nodeId = nodeIdB + nodeCntB * (order - 1) + Pz1Offsets1[portId];
                         }
                         workPzOrder1Prev[nodeIdB] = EzPzPrev[nodeId];
                         workPzOrder1Prev2[nodeIdB] = EzPzPrev2[nodeId];
 
                         // Φ(order + 1)
-                        if (order == (ABCOrder - 2))
+                        if (order == (abcOrderFor1 - 2) && abcOrderFor2 == 0)
                         {
                             // なし
                             workPzOrder2Prev[nodeIdB] = 0.0;
@@ -732,7 +1223,7 @@ namespace IvyFEM
                         }
                         else
                         {
-                            nodeId = nodeIdB + nodeCntB * (order + 1) + Pz1NodeIds[portId];
+                            nodeId = nodeIdB + nodeCntB * (order + 1) + Pz1Offsets1[portId];
                             workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
                             workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
                         }
@@ -742,52 +1233,223 @@ namespace IvyFEM
                     double[] vecTb = new double[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        // 一様媒質の場合
-                        vecQb[nodeIdB] =
-                            // Cj
-                            (BAbc[order] / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
-                            // Pj
-                            (AAbc[order] / (dt * dt)) * (
-                            -2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]) +
-                            // Rj
-                            ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
-                            NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
-                        /*
                         // 媒質定数がy方向に変化する場合 
                         vecQb[nodeIdB] =
-                            (BAbc[order] / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
-                            (1.0 / (velo[order] * velo[order] * dt * dt)) * 
-                            (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]) +
-                            ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
-                            NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
-                        */
+                            -BAbcFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder0Prev[nodeIdB] +
+                            workPzOrder0Prev2[nodeIdB]) +
+                            alphaFor1[order] * alphaFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
+                            workPzOrder1Prev2[nodeIdB]) +
+                            1.0 * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
+                            workPzOrder2Prev2[nodeIdB]);
 
-                        /*
-                        // 一様媒質の場合
-                        vecTb[nodeIdB] = 0;
-                        */
-                        /*
-                        // 媒質定数がy方向に変化する場合
                         vecTb[nodeIdB] =
                             (-1.0 / (Constants.C0 * Constants.C0 * dt * dt)) *
                             (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]);
-                        */
 
-                        // 共用
                         vecRb[nodeIdB] =
-                            // Qj
-                            -1.0 * (
-                            (1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
+                            -1.0 * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
                             NewmarkBeta * workPzOrder1Prev2[nodeIdB]);
                     }
                     vecQb = Qb * vecQb;
-                    vecRb = Rb * vecRb;
                     // Note: Rb + λQb (λ = 0)
+                    vecRb = Rb * vecRb;
+                    vecTb = Tb * vecTb;
 
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        int nodeId = nodeIdB + nodeCntB * (order) + Pz1NodeIds[portId];
-                        B[nodeId] = vecQb[nodeIdB] + vecTb[nodeIdB] + vecRb[nodeIdB];
+                        int nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets1[portId];
+                        B[nodeId] += vecQb[nodeIdB] + vecTb[nodeIdB] + vecRb[nodeIdB];
+                    }
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////
+            // Φ(ABCOrder - 1)(1) = Φ0(2)に関する式
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                var Qb = Qbs[portId];
+                var Rb = Rbs[portId];
+                var Tb = Tbs[portId];
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] alphaFor1 = AlphasFor1[portId];
+                double[] veloFor2 = VelosFor2[portId];
+                double B0ABCFor2 = B0AbcsFor2[portId];
+                int nodeCntB = Qb.RowLength;
+                int order = abcOrderFor1 - 1;
+                if (abcOrderFor1 >= 1 && abcOrderFor2 > 0)
+                {
+                    double[] workPzOrder0Prev = new double[nodeCntB];
+                    double[] workPzOrder0Prev2 = new double[nodeCntB];
+                    double[] workPzOrder1Prev = new double[nodeCntB];
+                    double[] workPzOrder1Prev2 = new double[nodeCntB];
+                    double[] workPzOrder2Prev = new double[nodeCntB];
+                    double[] workPzOrder2Prev2 = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int nodeId = 0;
+                        // Φorder
+                        nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets1[portId];
+                        workPzOrder0Prev[nodeIdB] = EzPzPrev[nodeId];
+                        workPzOrder0Prev2[nodeIdB] = EzPzPrev2[nodeId];
+
+                        // Φorder-1
+                        nodeId = 0;
+                        if (order == 0 && abcOrderFor1 <= 1)
+                        {
+                            // Φ0 (Ez)
+                            int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                            nodeId = World.Coord2Node(QuantityId, coId);
+                        }
+                        else
+                        {
+                            nodeId = nodeIdB + nodeCntB * (order - 1) + Pz1Offsets1[portId];
+                        }
+                        workPzOrder1Prev[nodeIdB] = EzPzPrev[nodeId];
+                        workPzOrder1Prev2[nodeIdB] = EzPzPrev2[nodeId];
+
+                        // Φ(order + 1)
+                        if (abcOrderFor2 <= 1)
+                        {
+                            workPzOrder2Prev[nodeIdB] = 0.0;
+                            workPzOrder2Prev2[nodeIdB] = 0.0;
+                        }
+                        else
+                        {
+                            nodeId = nodeIdB + nodeCntB * (order + 1) + Pz1Offsets1[portId];
+                            workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
+                            workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
+                        }
+                    }
+                    double[] vecQb = new double[nodeCntB];
+                    double[] vecRb = new double[nodeCntB];
+                    double[] vecTb = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        double alpha0 = alphaFor1[0];
+                        // 媒質定数がy方向に変化する場合 
+                        vecQb[nodeIdB] =
+                            -(B0ABCFor2 / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
+                            -alphaFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder0Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder0Prev2[nodeIdB]) +
+                            alphaFor1[order] * alphaFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder1Prev2[nodeIdB]) +
+                            ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
+
+                        vecTb[nodeIdB] =
+                            (-1.0 / (Constants.C0 * Constants.C0 * dt * dt)) *
+                            (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]);
+
+                        vecRb[nodeIdB] =
+                            -1.0 * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder1Prev2[nodeIdB]);
+                    }
+                    vecQb = Qb * vecQb;
+                    // Note: Rb + λQb (λ = 0)
+                    vecRb = Rb * vecRb;
+                    vecTb = Tb * vecTb;
+
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets1[portId];
+                        B[nodeId] += vecQb[nodeIdB] + vecTb[nodeIdB] + vecRb[nodeIdB];
+                    }
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////////////
+            // Traveling Wave
+            // Φ1(2) ～ Φ(ABC_order - 1)(2)
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                var Qb = Qbs[portId];
+                var Rb = Rbs[portId];
+                var Tb = Tbs[portId];
+                int abcOrderFor1 = ABCOrdersFor1[portId];
+                int abcOrderFor2 = ABCOrdersFor2[portId];
+                double[] veloFor2 = VelosFor2[portId];
+                double[] BAbcFor2 = BAbcsFor2[portId];
+                double[] alpha = AlphasFor1[portId];
+                int nodeCntB = Qb.RowLength;
+
+                // Φorderに関する式
+                for (int order = 0; order < (abcOrderFor2 - 1); order++)
+                {
+                    double[] workPzOrder0Prev = new double[nodeCntB];
+                    double[] workPzOrder0Prev2 = new double[nodeCntB];
+                    double[] workPzOrder1Prev = new double[nodeCntB];
+                    double[] workPzOrder1Prev2 = new double[nodeCntB];
+                    double[] workPzOrder2Prev = new double[nodeCntB];
+                    double[] workPzOrder2Prev2 = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int nodeId = 0;
+                        // Φorder
+                        nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets2[portId];
+                        workPzOrder0Prev[nodeIdB] = EzPzPrev[nodeId];
+                        workPzOrder0Prev2[nodeIdB] = EzPzPrev2[nodeId];
+
+                        // Φorder-1
+                        nodeId = 0;
+                        if (order == 0 && abcOrderFor1 <= 1)
+                        {
+                            // Φ0 (Ez)
+                            int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                            nodeId = World.Coord2Node(QuantityId, coId);
+                        }
+                        else
+                        {
+                            nodeId = nodeIdB + nodeCntB * (order - 1) + Pz1Offsets2[portId];
+                        }
+                        workPzOrder1Prev[nodeIdB] = EzPzPrev[nodeId];
+                        workPzOrder1Prev2[nodeIdB] = EzPzPrev2[nodeId];
+
+                        // Φ(order + 1)
+                        if (order == (abcOrderFor2 - 2))
+                        {
+                            // なし
+                            workPzOrder2Prev[nodeIdB] = 0.0;
+                            workPzOrder2Prev2[nodeIdB] = 0.0;
+                        }
+                        else
+                        {
+                            nodeId = nodeIdB + nodeCntB * (order + 1) + Pz1Offsets2[portId];
+                            workPzOrder2Prev[nodeIdB] = EzPzPrev[nodeId];
+                            workPzOrder2Prev2[nodeIdB] = EzPzPrev2[nodeId];
+                        }
+                    }
+                    double[] vecQb = new double[nodeCntB];
+                    double[] vecRb = new double[nodeCntB];
+                    double[] vecTb = new double[nodeCntB];
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        // 媒質定数がy方向に変化する場合 
+                        vecQb[nodeIdB] =
+                            (BAbcFor2[order] / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
+                            (1.0 / (veloFor2[order] * veloFor2[order] * dt * dt)) *
+                            (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]) +
+                            ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
+
+                        vecTb[nodeIdB] =
+                            (-1.0 / (Constants.C0 * Constants.C0 * dt * dt)) *
+                            (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]);
+
+                        vecRb[nodeIdB] =
+                            // Qj
+                            -1.0 * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
+                            NewmarkBeta * workPzOrder1Prev2[nodeIdB]);
+                    }
+                    vecQb = Qb * vecQb;
+                    // Note: Rb + λQb (λ = 0)
+                    vecRb = Rb * vecRb;
+                    vecTb = Tb * vecTb;
+
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int nodeId = nodeIdB + nodeCntB * (order) + Pz1Offsets2[portId];
+                        B[nodeId] += vecQb[nodeIdB] + vecTb[nodeIdB] + vecRb[nodeIdB];
                     }
                 }
             }
@@ -796,15 +1458,27 @@ namespace IvyFEM
             // 励振源
             //--------------------------------------------------------------
             {
-                int portId = portCnt; // ポートリストの最後の要素が励振境界
+                int portId = portCnt + RefPortCount; // ポートリストの最後の要素が励振境界
                 var Qb = Qbs[portId];
                 int nodeCntB = Qb.RowLength;
                 double srcBetaX = SrcBetaXs[portId];
-                double[] srcProfile = SrcProfiles[portId];
+                double[] srcProfile = null;
+                if (IsPointExcitation)
+                {
+                    // 中央に点波源を置く
+                    srcProfile = new double[nodeCntB];
+                    // Note: 節点は境界に沿って順に並んでいる(FEWorldでそのようになっている)
+                    srcProfile[nodeCntB / 2] = 1.0;
 
-                double srcF1 = 0.0;
-                double srcF2 = 0.0;
-                double srcF0 = 0.0;
+                }
+                else
+                {
+                    srcProfile = SrcProfiles[portId];
+                }
+
+                double srcU0 = 0.0;
+                double srcU1 = 0.0;
+                double srcU2 = 0.0;
 
                 int n = TimeIndex;
                 // 周波数
@@ -812,107 +1486,122 @@ namespace IvyFEM
                 // 角周波数
                 double srcOmega = 2.0 * Math.PI * srcFreq;
 
-                // ガウシアンパルス
-                if ((n * dt) <= (2.0 * GaussianT0 + dt))
+                if (IsGaussian)
                 {
                     if (GaussianType == GaussianType.Normal)
                     {
                         // ガウシアンパルス
                         // Note: veloはC0
-                        srcF1 = Math.Exp(-1.0 * ((n + 1) * dt - GaussianT0) * ((n + 1) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
-                        srcF2 = Math.Exp(-1.0 * ((n - 1) * dt - GaussianT0) * ((n - 1) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
-                        srcF0 = Math.Exp(-1.0 * ((n) * dt - GaussianT0) * ((n) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
+                        if ((n * dt) <= (2.0 * GaussianT0 + Constants.PrecisionLowerLimit))
+                        {
+                            srcU0 = Math.Exp(-1.0 * ((n) * dt - GaussianT0) * ((n) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                            srcU1 = Math.Exp(-1.0 * ((n - 1) * dt - GaussianT0) * ((n - 1) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                            srcU2 = Math.Exp(-1.0 * ((n + 1) * dt - GaussianT0) * ((n + 1) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                        }
                     }
                     else if (GaussianType == GaussianType.SinModulation)
                     {
                         // 正弦波変調ガウシアンパルス
                         // Note: veloはvpx
-                        // 正弦波変調ガウシアンパルス
-                        srcF1 = Math.Cos(srcOmega * ((n + 1) * dt - GaussianT0)) *
-                            Math.Exp(-1.0 * ((n + 1) * dt - GaussianT0) * ((n + 1) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
-                        srcF2 = Math.Cos(srcOmega * ((n - 1) * dt - GaussianT0)) *
-                            Math.Exp(-1.0 * ((n - 1) * dt - GaussianT0) * ((n - 1) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
-                        srcF0 = Math.Cos(srcOmega * ((n) * dt - GaussianT0)) *
-                            Math.Exp(-1.0 * ((n) * dt - GaussianT0) * ((n) * dt - GaussianT0) /
-                            (2.0 * GaussianTp * GaussianTp));
+                        if ((n * dt) <= (2.0 * GaussianT0 + Constants.PrecisionLowerLimit))
+                        {
+                            srcU0 = Math.Sin(srcOmega * ((n) * dt - GaussianT0)) *
+                                Math.Exp(-1.0 * ((n) * dt - GaussianT0) * ((n) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                            srcU1 = Math.Sin(srcOmega * ((n - 1) * dt - GaussianT0)) *
+                                Math.Exp(-1.0 * ((n - 1) * dt - GaussianT0) * ((n - 1) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                            srcU2 = Math.Sin(srcOmega * ((n + 1) * dt - GaussianT0)) *
+                                Math.Exp(-1.0 * ((n + 1) * dt - GaussianT0) * ((n + 1) * dt - GaussianT0) /
+                                (2.0 * GaussianTp * GaussianTp));
+                        }
                     }
                     else
                     {
                         System.Diagnostics.Debug.Assert(false);
                     }
                 }
-                /*
-                // 正弦波
-                srcF1 = Math.Sin(srcOmega * (n + 1) * dt);
-                srcF2 = Math.Sin(srcOmega * (n - 1) * dt);
-                srcF0 = Math.Sin(srcOmega * (n) * dt);
-                */
-                //System.Diagnostics.Debug.WriteLine("Input: srcF2 = {0}", srcF2);
-
-                // 境界積分
-                // dF/dt (F = Ez)
-                double[] srcFt = new double[nodeCntB];
-                System.Diagnostics.Debug.Assert(srcProfile.Length == nodeCntB);
-                for (int i = 0; i < nodeCntB; i++)
+                else
                 {
-                    double normalizeFactor = -1.0;
-                    srcFt[i] = normalizeFactor * srcProfile[i] * (srcF1 - srcF2) / (2.0 * dt);
-                }
-                double vpx = srcOmega / srcBetaX;
-                double[] vecQb = new double[nodeCntB];
-                for (int i = 0; i < nodeCntB; i++)
-                {
-                    vecQb[i] = (-2.0 / vpx) * srcFt[i];
-                }
-                vecQb = Qb * vecQb;
-                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
-                {
-                    int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
-                    int nodeId = World.Coord2Node(QuantityId, coId);
-                    B[nodeId] += vecQb[nodeIdB];
+                    // 正弦波
+                    srcU0 = Math.Sin(srcOmega * (n) * dt);
+                    srcU1 = Math.Sin(srcOmega * (n - 1) * dt);
+                    srcU2 = Math.Sin(srcOmega * (n + 1) * dt);
                 }
 
-                /*
-                // 領域積分
-                double[] srcFt2 = new double[nodeCnt];
-                double[] srcF = new double[nodeCnt];
-                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                 {
-                    int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
-                    int nodeId = World.Coord2Node(QuantityId, coId);
-                    double normalizeFactor = -srcOmega * Constants.Mu0 / srcBetaX;
-                    srcF[nodeId] = normalizeFactor * srcProfile[nodeIdB] * srcF0;
-                    srcFt2[nodeId] = 
-                        normalizeFactor * srcProfile[nodeIdB] *
-                        (srcF1 - 2.0 * srcF0 + srcF2) / (dt * dt);
+                    double[] srcUt = new double[nodeCntB];
+                    double vpx = srcOmega / srcBetaX;
+                    System.Diagnostics.Debug.Assert(srcProfile.Length == nodeCntB);
+                    for (int i = 0; i < nodeCntB; i++)
+                    {
+                        srcUt[i] = srcProfile[i] * (srcU2 - srcU1) / (2.0 * dt);
+                    }
+                    double[] work = IvyFEM.Lapack.Functions.dscal(srcUt, (-2.0 / vpx));
+                    double[] vecQb = Qb * work;
+                    for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                    {
+                        int coId = World.PortNode2Coord(QuantityId, (uint)portId, nodeIdB);
+                        int nodeId = World.Coord2Node(QuantityId, coId);
+                        B[nodeId] += vecQb[nodeIdB];
+                    }
                 }
-                double[] vecM = M * srcFt2;
-                double[] vecK = K * srcF;
-                for (int i = 0; i < nodeCnt; i++)
-                {
-                    B[i] += vecM[i] + vecK[i];
-                }
-                */
             }
         }
 
         /// <summary>
-        /// Sパラメータの計算
+        /// Sパラメータの計算 freqs[iFreq] Sss[portId][iFreq]
         /// </summary>
         /// <returns></returns>
         public void CalcSParameter(
-            IList<double> TimeEzsPort1Inc,
-            out IList<double> freqs, out IList<System.Numerics.Complex[]> Sss)
+            System.Numerics.Complex[] freqDomainAmpsInc,
+            out double[] freqs,
+            out IList<System.Numerics.Complex[]> freqDomainAmpss,
+            out IList<System.Numerics.Complex[]> Sss)
         {
-            int dataCnt = TimeEzsPort1Inc.Count;
-            double dt = TimeDelta;
-            // 周波数のリスト
             freqs = null;
+            freqDomainAmpss = null;
+            Sss = null;
+
+            if (RefVIds.Count > 0)
+            {
+                CalcSParameterAtRefPoints(freqDomainAmpsInc, out freqs, out freqDomainAmpss, out Sss);
+            }
+            else if (RefPortCount > 0)
+            {
+                CalcSParameterAtRefPorts(freqDomainAmpsInc, out freqs, out freqDomainAmpss, out Sss);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+        }
+
+        private void CalcSParameterAtRefPoints(
+            System.Numerics.Complex[] freqDomainAmpsInc,
+            out double[] freqs,
+            out IList<System.Numerics.Complex[]> freqDomainAmpss,
+            out IList<System.Numerics.Complex[]> Sss)
+        {
+            System.Diagnostics.Debug.Assert(RefVIds.Count > 0);
+            double[][] datasRefs = new double[RefVIds.Count][];
+            for (int refIndex = 0; refIndex < RefVIds.Count; refIndex++)
+            {
+                int timeCnt = RefTimeEzsss[refIndex].Count;
+                double[] datasRef = new double[timeCnt];
+                for (int timeIndex = 0; timeIndex < timeCnt; timeIndex++)
+                {
+                    System.Diagnostics.Debug.Assert(RefTimeEzsss[refIndex][timeIndex].Length == 1);
+                    datasRef[timeIndex] = RefTimeEzsss[refIndex][timeIndex][0];
+                }
+                datasRefs[refIndex] = datasRef;
+            }
+
+            int dataCnt = datasRefs[0].Length;
+            double dt = TimeDelta;
 
             double[] times = new double[dataCnt];
             for (int i = 0; i < dataCnt; i++)
@@ -920,100 +1609,185 @@ namespace IvyFEM
                 times[i] = i * dt;
             }
 
-            // 散乱パラメータを計算する
-            double[] datasPort1Inc = TimeEzsPort1Inc.ToArray();
-            double[] datasPort1 = TimeEzsPort1.ToArray();
-            double[] datasPort2 = TimeEzsPort2.ToArray();
-            System.Numerics.Complex[] S11s = null;
-            System.Numerics.Complex[] S21s = null;
+            ////////////////////////////////////////////////////////////////////
+            // FFT
+            freqs = null;
+            freqDomainAmpss = new List<System.Numerics.Complex[]>();
+            for (int refIndex = 0; refIndex < RefVIds.Count; refIndex++)
             {
+                double[] datas = datasRefs[refIndex];
                 double[] _freqs;
-                _CalcSParameter(
-                    times,
-                    datasPort1Inc,
-                    datasPort1,
-                    datasPort2,
-                    out _freqs,
-                    out S11s,
-                    out S21s
-                    );
-                freqs = _freqs.ToList();
-            }
-
-            // ポート数
-            //  励振面の分を引く
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1;
-            // 散乱パラメータ(各周波数に対するS11とS21)のリスト
-            System.Diagnostics.Debug.Assert(freqs.Count == dataCnt);
-            Sss = new List<System.Numerics.Complex[]>();
-            for (int i = 0; i < dataCnt; i++)
-            {
-                System.Numerics.Complex[] Ss = new System.Numerics.Complex[portCnt];
-                for (int portId = 0; portId < portCnt; portId++)
+                System.Numerics.Complex[] freqDomainAmps;
+                IvyFEM.FFT.Functions.DoFFT(times, datas, out _freqs, out freqDomainAmps);
+                if (refIndex == 0)
                 {
-
-                    System.Numerics.Complex value = 0;
-                    if (portId == 0)
-                    {
-                        value = S11s[i];
-                    }
-                    else if (portId == 1)
-                    {
-                        value = S21s[i];
-                    }
-                    Ss[portId] = value;
+                    freqs = _freqs;
                 }
-                // 格納
-                Sss.Add(Ss);
+                freqDomainAmpss.Add(freqDomainAmps);
+            }
+
+            System.Diagnostics.Debug.Assert(freqs != null && freqs.Length == dataCnt);
+            System.Numerics.Complex[] _freqDomainAmpsInc =
+                freqDomainAmpsInc != null ? freqDomainAmpsInc : freqDomainAmpss[0];
+
+            // 散乱パラメータを計算する
+            Sss = new List<System.Numerics.Complex[]>();
+            for (int refIndex = 0; refIndex < RefVIds.Count; refIndex++)
+            {
+                System.Numerics.Complex[] Sp1s = new System.Numerics.Complex[dataCnt];
+                // Sss: Sss[port][freq]
+                Sss.Add(Sp1s);
+                System.Numerics.Complex[] freqDomainDatas = freqDomainAmpss[refIndex];
+
+                for (int i = 0; i < dataCnt; i++)
+                {
+                    System.Numerics.Complex dataInc = _freqDomainAmpsInc[i];
+                    System.Numerics.Complex data = freqDomainDatas[i];
+                    System.Numerics.Complex Sp1 = 0;
+                    if (refIndex == 0)
+                    {
+                        Sp1 = (data - dataInc) / dataInc;
+                    }
+                    else
+                    {
+                        Sp1 = data / dataInc;
+                    }
+
+                    Sp1s[i] = Sp1;
+                }
             }
         }
 
-        private bool _CalcSParameter(
-            double[] times,
-            double[] datasPort1Inc,
-            double[] datasPort1,
-            double[] datasPort2,
+        private void CalcSParameterAtRefPorts(
+            System.Numerics.Complex[] freqDomainAmpsInc,
             out double[] freqs,
-            out System.Numerics.Complex[] S11s,
-            out System.Numerics.Complex[] S21s
-            )
+            out IList<System.Numerics.Complex[]> freqDomainAmpss,
+            out IList<System.Numerics.Complex[]> Sss)
         {
-            int dataCnt = times.Length;
-
-            // 入射波
-            double[] freqsInc = null;
-            System.Numerics.Complex[] freqDomainDatasInc = null;
-            IvyFEM.FFT.Functions.DoFFT(times, datasPort1Inc, out freqsInc, out freqDomainDatasInc);
-
-            // 反射波
-            double[] workDatasR = new double[dataCnt];
-            for (int i = 0; i < dataCnt; i++)
+            System.Diagnostics.Debug.Assert(RefPortCount > 0);
+            double[][][] datasRefs = new double[RefPortCount][][];
+            for (int refIndex = 0; refIndex < RefPortCount; refIndex++)
             {
-                workDatasR[i] = datasPort1[i] - datasPort1Inc[i];
-            }
-            double[] freqsR = null;
-            System.Numerics.Complex[] freqDomainDatasR = null;
-            IvyFEM.FFT.Functions.DoFFT(times, workDatasR, out freqsR, out freqDomainDatasR);
-
-            // 透過波
-            double[] freqsT = null;
-            System.Numerics.Complex[] freqDomainDatasT = null;
-            IvyFEM.FFT.Functions.DoFFT(times, datasPort2, out freqsT, out freqDomainDatasT);
-
-            freqs = freqsInc;
-            System.Diagnostics.Debug.Assert(freqs.Length == dataCnt);
-            S11s = new System.Numerics.Complex[dataCnt];
-            S21s = new System.Numerics.Complex[dataCnt];
-            for (int i = 0; i < dataCnt; i++)
-            {
-                System.Numerics.Complex S11 = freqDomainDatasR[i] / freqDomainDatasInc[i];
-                System.Numerics.Complex S21 = freqDomainDatasT[i] / freqDomainDatasInc[i];
-                S11s[i] = S11;
-                S21s[i] = S21;
+                int timeCnt = RefTimeEzsss[refIndex].Count;
+                int nodeCntB = RefTimeEzsss[refIndex][0].Length;
+                double[][] datasRef = new double[nodeCntB][];
+                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                {
+                    datasRef[nodeIdB] = new double[timeCnt];
+                    for (int timeIndex = 0; timeIndex < timeCnt; timeIndex++)
+                    {
+                        datasRef[nodeIdB][timeIndex] = RefTimeEzsss[refIndex][timeIndex][nodeIdB];
+                    }
+                }
+                datasRefs[refIndex] = datasRef;
             }
 
-            return true;
+            int dataCnt = datasRefs[0][0].Length;
+            double dt = TimeDelta;
+
+            double[] times = new double[dataCnt];
+            for (int i = 0; i < dataCnt; i++)
+            {
+                times[i] = i * dt;
+            }
+
+            ////////////////////////////////////////////////////////////////////
+            // FFT
+            freqs = null;
+            freqDomainAmpss = new List<System.Numerics.Complex[]>();
+
+            for (int refIndex = 0; refIndex < RefPortCount; refIndex++)
+            {
+                double[][] datass = datasRefs[refIndex];
+                int nodeCntB = datass.Length;
+                System.Diagnostics.Debug.Assert(datass[0].Length == dataCnt);
+                System.Numerics.Complex[][] freqDomainDatass = new System.Numerics.Complex[dataCnt][];
+                for (int freqIndex = 0; freqIndex < dataCnt; freqIndex++)
+                {
+                    freqDomainDatass[freqIndex] = new System.Numerics.Complex[nodeCntB];
+                }
+                for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
+                {
+                    double[] datas = datass[nodeIdB];
+                    double[] _freqs;
+                    System.Numerics.Complex[] _freqDomainDatas;
+                    IvyFEM.FFT.Functions.DoFFT(times, datas, out _freqs, out _freqDomainDatas);
+                    System.Diagnostics.Debug.Assert(_freqs.Length == dataCnt);
+                    if (refIndex == 0 && nodeIdB == 0)
+                    {
+                        freqs = _freqs;
+                    }
+                    for (int freqIndex = 0; freqIndex < dataCnt; freqIndex++)
+                    {
+                        System.Numerics.Complex data = _freqDomainDatas[freqIndex];
+                        freqDomainDatass[freqIndex][nodeIdB] = data;
+                    }
+                }
+
+                // モード振幅の計算
+                int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面、励振源を引く
+                System.Numerics.Complex[] freqDomainAmps = new System.Numerics.Complex[dataCnt];
+                for (int freqIndex = 0; freqIndex < dataCnt; freqIndex++)
+                {
+                    // 周波数
+                    double freq = freqs[freqIndex];
+                    // 角周波数
+                    double omega = 2.0 * Math.PI * freq;
+                    int portId = portCnt + refIndex;
+                    // モード
+                    IvyFEM.Lapack.DoubleMatrix ryy1D;
+                    IvyFEM.Lapack.DoubleMatrix txx1D;
+                    IvyFEM.Lapack.DoubleMatrix uzz1D;
+                    System.Numerics.Complex[] betas;
+                    System.Numerics.Complex[][] eVecs;
+                    double alpha;
+                    CalcEigen(portId, freq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+
+                    // 振幅分布
+                    System.Numerics.Complex[] freqEz = freqDomainDatass[freqIndex];
+                    // モード振幅の算出
+                    int iMode = 0; // 基本モード
+                    System.Numerics.Complex beta = betas[iMode];
+                    System.Numerics.Complex[] eVec = eVecs[iMode];
+                    var ryy1DZ = (IvyFEM.Lapack.ComplexMatrix)ryy1D;
+                    var vec1 = ryy1DZ * IvyFEM.Lapack.Utils.Conjugate(eVec);
+                    System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, freqEz);
+                    System.Numerics.Complex b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                    freqDomainAmps[freqIndex] = b;
+                }
+                freqDomainAmpss.Add(freqDomainAmps);
+            }
+
+            System.Diagnostics.Debug.Assert(freqs != null && freqs.Length == dataCnt);
+            System.Numerics.Complex[] _freqDomainAmpsInc =
+                freqDomainAmpsInc != null ? freqDomainAmpsInc : freqDomainAmpss[0];
+
+            // 散乱パラメータを計算する
+            Sss = new List<System.Numerics.Complex[]>();
+            for (int refIndex = 0; refIndex < RefPortCount; refIndex++)
+            {
+                System.Numerics.Complex[] Sp1s = new System.Numerics.Complex[dataCnt];
+                // Sss: Sss[port][freq]
+                Sss.Add(Sp1s);
+                System.Numerics.Complex[] freqDomainDatas = freqDomainAmpss[refIndex];
+
+                for (int i = 0; i < dataCnt; i++)
+                {
+                    System.Numerics.Complex dataInc = _freqDomainAmpsInc[i];
+                    System.Numerics.Complex data = freqDomainDatas[i];
+                    System.Numerics.Complex Sp1 = 0;
+                    if (refIndex == 0)
+                    {
+                        Sp1 = (data - dataInc) / dataInc;
+                    }
+                    else
+                    {
+                        Sp1 = data / dataInc;
+                    }
+
+                    Sp1s[i] = Sp1;
+                }
+            }
         }
-
     }
 }

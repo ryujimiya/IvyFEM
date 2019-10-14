@@ -180,21 +180,8 @@ namespace IvyFEM.Lapack
 
         public static ComplexMatrix Inverse(ComplexMatrix A)
         {
-            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
-            int n = A.RowLength;
-            ComplexMatrix workA = new ComplexMatrix(A);
-            ComplexMatrix workB = new ComplexMatrix(n, n);
-            workB.Identity(); // 単位行列
-            System.Numerics.Complex[] a = workA.Buffer;
-            System.Numerics.Complex[] b = workB.Buffer;
-            // [A][X] = [B]
-            //  [B]の内容が書き換えられるので、matXを新たに生成せず、Bを出力に指定している
-            int xRow = 0;
-            int xCol = 0;
-            IvyFEM.Lapack.Functions.zgesv(out b, out xRow, out xCol, a, n, n, b, n, n);
-
-            bool alloc = false; // 指定したバッファを使用する
-            ComplexMatrix X = new ComplexMatrix(b, xRow, xCol, alloc);
+            //ComplexMatrix X = Utils.ComplexInverse1(A);
+            ComplexMatrix X = Utils.ComplexInverse2(A);
             return X;
         }
 

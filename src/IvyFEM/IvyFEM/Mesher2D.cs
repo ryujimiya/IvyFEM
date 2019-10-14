@@ -28,10 +28,9 @@ namespace IvyFEM
     public class Mesher2D
     {
         public CadObject2D Cad2D { get; private set; } = null;
-        private HashSet<uint> CutMeshLCadIds = new HashSet<uint>();
+        private IList<uint> CutMeshLoopCadIds = new List<uint>();
         private uint MeshingMode;
-        private double ELen;
-        private uint ESize;
+        private IList<double> ELens = new List<double>();
 
         private IList<MeshTypeLoc> TypeLocs = new List<MeshTypeLoc>(); 
 
@@ -44,21 +43,19 @@ namespace IvyFEM
 
         public Mesher2D()
         {
-            MeshingMode = 1;
-            ELen = 0.1;
-            ESize = 1000;
+            MeshingMode = 2;
         }
 
         public Mesher2D(CadObject2D cad2D)
         {
             Cad2D = cad2D;
             MeshingMode = 0;
-            ELen = 1;
-            ESize = 1000;
+            double eLen = 1;
             IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
             for (uint i = 0; i < lIds.Count; i++)
             {
-                CutMeshLCadIds.Add(lIds[(int)i]);
+                CutMeshLoopCadIds.Add(lIds[(int)i]);
+                ELens.Add(eLen);
             }
 
             Meshing(Cad2D);
@@ -68,13 +65,13 @@ namespace IvyFEM
         {
             Cad2D = cad2D;
             MeshingMode = 2;
-            ELen = eLen;
-            ESize = 1000;
+            uint eSize = 1000;
 
             IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
             for (int i = 0; i < lIds.Count; i++)
             {
-                CutMeshLCadIds.Add(lIds[i]);
+                CutMeshLoopCadIds.Add(lIds[i]);
+                ELens.Add(eLen);
             }
 
             Meshing(Cad2D);
@@ -83,10 +80,9 @@ namespace IvyFEM
         public Mesher2D(Mesher2D src)
         {
             Clear();
-            CutMeshLCadIds = new HashSet<uint>(src.CutMeshLCadIds);
+            CutMeshLoopCadIds = new List<uint>(src.CutMeshLoopCadIds);
             MeshingMode = src.MeshingMode;
-            ELen = src.ELen;
-            ESize = src.ESize;
+            ELens = new List<double>(src.ELens);
 
             TypeLocs = new List<MeshTypeLoc>();
             foreach (var srcTypeLoc in src.TypeLocs)
@@ -104,10 +100,9 @@ namespace IvyFEM
 
         public void Clear()
         {
-            CutMeshLCadIds.Clear();
+            CutMeshLoopCadIds.Clear();
             MeshingMode = 1;
-            ELen = 0.1;
-            ESize = 1000;
+            ELens.Clear();
             ClearMeshData();
         }
 
@@ -123,30 +118,45 @@ namespace IvyFEM
             Vec2Ds.Clear();
         }
 
-        public void AddCutMeshLCadId(uint lCadId)
+        public void AddCutMeshLoopCadId(uint lCadId, double eLen)
         {
-            CutMeshLCadIds.Add(lCadId);
+            if (CutMeshLoopCadIds.Contains(lCadId))
+            {
+                return;
+            }
+            CutMeshLoopCadIds.Add(lCadId);
+            ELens.Add(eLen);
         }
 
-        public bool IsCutMeshLCadId(uint lCadId)
+        public bool IsCutMeshLoopCadId(uint lCadId)
         {
-            return CutMeshLCadIds.Contains(lCadId);
+            return CutMeshLoopCadIds.Contains(lCadId);
         }
 
-        public void RemoveCutMeshLCadId(uint lCadId)
+        public void RemoveCutMeshLoopCadId(uint lCadId)
         {
-            CutMeshLCadIds.Remove(lCadId);
+            int index = CutMeshLoopCadIds.IndexOf(lCadId);
+            if (index == -1)
+            {
+                return;
+            }
+            CutMeshLoopCadIds.RemoveAt(index);
+            ELens.RemoveAt(index);
         }
 
-        public void ClearCutMeshLCadIds()
+        public void ClearCutMeshLoopCadIds()
         {
-            CutMeshLCadIds.Clear();
+            CutMeshLoopCadIds.Clear();
         }
 
-        public IList<uint> GetCutMeshLCadIds()
+        public IList<uint> GetCutMeshLoopCadIds()
         {
-            IList<uint> aIdL = CutMeshLCadIds.ToList();
-            return aIdL;
+            return CutMeshLoopCadIds.ToList(); // copy
+        }
+
+        public IList<double> GetCutMeshLoopCadELens()
+        {
+            return ELens.ToList(); // copy
         }
 
         public IList<MeshTriArray2D> GetTriArrays()
@@ -425,17 +435,17 @@ namespace IvyFEM
             return true;
         }
 
-        public void SetMeshingModeElemLength(double len)
+        public void SetMeshingModeElemLength()
         {
             MeshingMode = 2;
-            ELen = len;
         }
 
-        public void SetMeshingModeElemSize(uint eSize)
+        /*
+        public void SetMeshingModeElemSize()
         {
             MeshingMode = 1;
-            ESize = eSize;
         }
+        */
 
         public bool Meshing(CadObject2D cad2D)
         {
@@ -443,7 +453,7 @@ namespace IvyFEM
 
             IList<uint> cutLIds = new List<uint>();
             {
-                foreach (uint lId in CutMeshLCadIds)
+                foreach (uint lId in CutMeshLoopCadIds)
                 {
                     if (!cad2D.IsElementId(CadElementType.Loop, lId))
                     {
@@ -456,13 +466,13 @@ namespace IvyFEM
             {
                 return Tessellation(cad2D, cutLIds);
             }
-            else if (MeshingMode == 1)
-            {
-                return MeshingElemSize(cad2D, ESize, cutLIds);
-            }
             else if (MeshingMode == 2)
             {
-                return MeshingElemLength(cad2D, ELen, cutLIds);
+                return MeshingElemLength(cad2D, cutLIds, ELens);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
             }
             return false;
         }
@@ -2051,28 +2061,41 @@ namespace IvyFEM
             }
         }
 
-        private bool MeshingElemSize(CadObject2D cad2D, uint eSize, IList<uint> loopIds)
+        /*
+        private bool MeshingElemSize(CadObject2D cad2D, IList<uint> loopIds, IList<uint> eSizes)
         {
-            System.Diagnostics.Debug.Assert(eSize != 0);
-            if (eSize == 0)
-            {
-                return false;
-            }
+            System.Diagnostics.Debug.Assert(loopIds.Count == eSizes.Count);
 
             double area = 0;
+            IList<double> eLens = new List<double>();
             for (int iLId = 0; iLId < loopIds.Count; iLId++)
             {
                 uint lId = loopIds[iLId];
+                uint eSize = eSizes[iLId];
                 area += cad2D.GetLoopArea(lId);
-            }
-            double elen = Math.Sqrt(area / (double)eSize) * 1.4;
-            return MeshingElemLength(cad2D, elen, loopIds);
-        }
 
-        private bool MeshingElemLength(CadObject2D cad2D, double len, IList<uint> loopIds)
+                System.Diagnostics.Debug.Assert(eSize != 0);
+                double elen = Math.Sqrt(area / (double)eSize) * 1.4;
+                eLens.Add(elen);
+            }
+            return MeshingElemLength(cad2D, loopIds, eLens);
+        }
+        */
+
+        private bool MeshingElemLength(CadObject2D cad2D, IList<uint> loopIds, IList<double> eLens)
         {
+            if (eLens.Count == 1)
+            {
+                // 互換性のため
+                double eLen = eLens[0];
+                for (int i = 1; i < loopIds.Count; i++)
+                {
+                    eLens.Add(eLen);
+                }
+            }
+            System.Diagnostics.Debug.Assert(loopIds.Count == eLens.Count);
+
             ClearMeshData();
-            System.Diagnostics.Debug.Assert(len > 0.0);
 
             {
                 // ループに使われているVtxをメッシュに生成してフラグを0から1に立てる
@@ -2139,6 +2162,7 @@ namespace IvyFEM
             {
                 // ループに必要な辺を作る
                 uint lId = loopIds[iLId];
+                double eLen = eLens[iLId];
                 for (LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
                     for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
@@ -2154,7 +2178,7 @@ namespace IvyFEM
                             // 既にこの辺はMeshに存在
                             continue;
                         }
-                        MakeMeshEdge(cad2D, eId, len);
+                        MakeMeshEdge(cad2D, eId, eLen);
                         System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                     }
                 }
@@ -2164,8 +2188,9 @@ namespace IvyFEM
             { 
                 // ループを作る
                 uint lId = loopIds[iLId];
-
-                MakeMeshLoop(cad2D, lId, len);
+                double eLen = eLens[iLId];
+                System.Diagnostics.Debug.Assert(eLen > 0.0);
+                MakeMeshLoop(cad2D, lId, eLen);
 
                 System.Diagnostics.Debug.Assert(CheckMesh() == 0);
             }
@@ -2629,14 +2654,14 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(nl >= 0);
                     uint ind;
                     uint lId;
-                    CutMeshLCadIds.Clear();
+                    CutMeshLoopCadIds.Clear();
                     for (uint il = 0; il < nl; il++)
                     {
                         values = arch.GetValues();
                         ind = uint.Parse(values[0]);
                         lId = uint.Parse(values[1]);
                         System.Diagnostics.Debug.Assert(ind == il);
-                        CutMeshLCadIds.Add(lId);
+                        CutMeshLoopCadIds.Add(lId);
                     }
                 }
                 {
@@ -2651,9 +2676,28 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(ntmp0 >= 0 && ntmp0 < 3);
                     MeshingMode = (uint)ntmp0;
                     System.Diagnostics.Debug.Assert(ntmp1 > 0);
-                    ESize = (uint)ntmp1;
+                    uint eSize = (uint)ntmp1;
                     System.Diagnostics.Debug.Assert(dtmp0 > 0);
-                    ELen = dtmp0;
+                    double eLen0 = dtmp0;
+                    if (eLen0 >= 0.0)
+                    {
+                        // 単一メッシュの形式
+                        ELens.Clear();
+                        ELens.Add(eLen0);
+                    }
+                    else
+                    {
+                        // eLen0 == -1のとき
+                        values = arch.GetValues();
+                        System.Diagnostics.Debug.Assert(values.Length == CutMeshLoopCadIds.Count);
+                        ELens.Clear();
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            double eLen = double.Parse(values[i]);
+                            ELens.Add(eLen);
+                        }
+                    }
+
                 }
                 if (isOnlyCadMshLink)
                 {
@@ -2924,11 +2968,11 @@ namespace IvyFEM
                 {
                     arch.WriteDepthClassName("setIdLCad_CutMesh");
 
-                    line = string.Format("{0}", CutMeshLCadIds.Count);
+                    line = string.Format("{0}", CutMeshLoopCadIds.Count);
                     arch.WriteLine(line);
 
                     int icnt = 0;
-                    foreach (uint lId in CutMeshLCadIds)
+                    foreach (uint lId in CutMeshLoopCadIds)
                     {
                         line = string.Format("{0} {1}", icnt, lId);
                         arch.WriteLine(line);
@@ -2936,8 +2980,26 @@ namespace IvyFEM
                     }
                 }
 
-                line = string.Format("{0} {0} {0}", MeshingMode, ESize, ELen);
-                arch.WriteLine(line);
+                {
+                    // 旧型式のデータ
+                    // -1をセットする
+                    uint eSize0 = 0;
+                    double eLen0 = -1.0;
+                    line = string.Format("{0} {0} {0}", MeshingMode, eSize0, eLen0);
+                    arch.WriteLine(line);
+
+                    // 分解能をループ毎に指定できるようにしたバージョン
+                    line = "";
+                    for (int i = 0; i < ELens.Count; i++)
+                    {
+                        double eLen = ELens[i];
+                        if (i != 0)
+                        {
+                            line += " ";
+                        }
+                        line += string.Format("{0}", eLen);
+                    }
+                }
 
                 if (isOnlyCadMshLink)
                 { // 

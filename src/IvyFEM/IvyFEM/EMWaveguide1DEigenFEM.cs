@@ -12,6 +12,12 @@ namespace IvyFEM
         public uint PortId { get; private set; } = 0;
         public EMWaveguideType WaveguideType { get; set; } = EMWaveguideType.HPlane2D;
         public double WaveguideWidthForEPlane { get; set; } = 0;
+        /// <summary>
+        /// TEモードで実装した式をTMモードに流用するため
+        ///   TEモードの場合は μ0
+        ///   TMモードの場合は ε0
+        /// </summary>
+        public double ReplacedMu0 { get; set; } = Constants.Mu0;
 
         public IvyFEM.Lapack.DoubleMatrix Txx { get; private set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Ryy { get; private set; } = null;
@@ -306,7 +312,7 @@ namespace IvyFEM
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
                     d = System.Numerics.Complex.Sqrt(
-                        (System.Numerics.Complex)(omega * Constants.Mu0) /
+                        (System.Numerics.Complex)(omega * ReplacedMu0) /
                         (((System.Numerics.Complex)beta.Magnitude) * work2));
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
@@ -367,7 +373,7 @@ namespace IvyFEM
                         System.Numerics.Complex value = 0;
                         if (WaveguideType == EMWaveguideType.HPlane2D)
                         {
-                            value = (System.Numerics.Complex.ImaginaryOne / (omega * Constants.Mu0)) *
+                            value = (System.Numerics.Complex.ImaginaryOne / (omega * ReplacedMu0)) *
                                 beta * beta.Magnitude *
                                 vec1[row] * vec2[col];
 
@@ -428,7 +434,6 @@ namespace IvyFEM
             }
 
             int modeCnt = betas.Length;
-            int nodeCnt = ezEVecs[0].Length;
             System.Numerics.Complex[] S = new System.Numerics.Complex[modeCnt];
 
             for (int iMode = 0; iMode < modeCnt; iMode++)
@@ -442,7 +447,7 @@ namespace IvyFEM
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
 
-                    b = (beta.Magnitude / (omega * Constants.Mu0)) * work1;
+                    b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {

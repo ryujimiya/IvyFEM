@@ -33,7 +33,8 @@
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　電磁気学　：H面導波路の伝達問題  
 　　　　　　　　　　E面導波路の伝達問題  
-　　　　　　　　　　H面導波路の時間領域FEM（Givoli-Neta-Patlashenkoの高次ABC）  
+　　　　　　　　　　H面導波路の時間領域FEM  
+　　　　　　　　　　（Givoli-Neta-Patlashenkoの高次ABC）（Evanescent Wave ABC）  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
 　　　　　　　　　　（正方格子、三角形格子）（誘電体ロッド型、エアホール型）  
 　　　　各種方程式：Poisson方程式  
@@ -44,9 +45,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-09-20更新）**  
+　**バイナリ（2019-10-14更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.21  
+　　IvyFEM.dll version 0.0.0.22  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

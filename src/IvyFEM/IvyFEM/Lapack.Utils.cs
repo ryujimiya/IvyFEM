@@ -37,5 +37,79 @@ namespace IvyFEM.Lapack
             System.Numerics.Complex[] normalized = IvyFEM.Lapack.Functions.zscal(X, 1.0 / norm);
             return normalized;
         }
+
+        public static DoubleMatrix DoubleInverse1(DoubleMatrix A)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
+            int n = A.RowLength;
+            DoubleMatrix workA = new DoubleMatrix(A);
+            DoubleMatrix workB = new DoubleMatrix(n, n);
+            workB.Identity(); // 単位行列
+            double[] a = workA.Buffer;
+            double[] b = workB.Buffer;
+            // [A][X] = [B]
+            //  [B]の内容が書き換えられるので、matXを新たに生成せず、Bを出力に指定している
+            int xRow = 0;
+            int xCol = 0;
+            IvyFEM.Lapack.Functions.dgesv(out b, out xRow, out xCol, a, n, n, b, n, n);
+
+            bool alloc = false; // 指定したバッファを使用する
+            DoubleMatrix X = new DoubleMatrix(b, xRow, xCol, alloc);
+            return X;
+        }
+
+        public static ComplexMatrix ComplexInverse1(ComplexMatrix A)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
+            int n = A.RowLength;
+            ComplexMatrix workA = new ComplexMatrix(A);
+            ComplexMatrix workB = new ComplexMatrix(n, n);
+            workB.Identity(); // 単位行列
+            System.Numerics.Complex[] a = workA.Buffer;
+            System.Numerics.Complex[] b = workB.Buffer;
+            // [A][X] = [B]
+            //  [B]の内容が書き換えられるので、matXを新たに生成せず、Bを出力に指定している
+            int xRow = 0;
+            int xCol = 0;
+            IvyFEM.Lapack.Functions.zgesv(out b, out xRow, out xCol, a, n, n, b, n, n);
+
+            bool alloc = false; // 指定したバッファを使用する
+            ComplexMatrix X = new ComplexMatrix(b, xRow, xCol, alloc);
+            return X;
+        }
+
+        public static DoubleMatrix DoubleInverse2(DoubleMatrix A)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
+            int n = A.RowLength;
+            double[] LU = null;
+            int[] piv = null;
+            // LU分解
+            IvyFEM.Lapack.Functions.dgetrf(out LU, out piv, A.Buffer, n, n);
+            // 逆行列を求める
+            double[] _X = null;
+            IvyFEM.Lapack.Functions.dgetri(out _X, piv, LU, n, n);
+
+            bool alloc = false; // 指定したバッファを使用する
+            DoubleMatrix X = new DoubleMatrix(_X, n, n, alloc);
+            return X;
+        }
+
+        public static ComplexMatrix ComplexInverse2(ComplexMatrix A)
+        {
+            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
+            int n = A.RowLength;
+            System.Numerics.Complex[] LU = null;
+            int[] piv = null;
+            // LU分解
+            IvyFEM.Lapack.Functions.zgetrf(out LU, out piv, A.Buffer, n, n);
+            // 逆行列を求める
+            System.Numerics.Complex[] _X = null;
+            IvyFEM.Lapack.Functions.zgetri(out _X, piv, LU, n, n);
+
+            bool alloc = false; // 指定したバッファを使用する
+            ComplexMatrix X = new ComplexMatrix(_X, n, n, alloc);
+            return X;
+        }
     }
 }

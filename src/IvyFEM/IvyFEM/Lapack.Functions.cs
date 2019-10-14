@@ -448,6 +448,72 @@ namespace IvyFEM.Lapack
         ////////////////////////////////////////////////////////////////
         // LAPACKE
         ////////////////////////////////////////////////////////////////
+        public static int dgetrf(out double[] X, out int[] piv, double[] A, int aRow, int aCol)
+        {
+            int m = aRow;
+            int n = aCol;
+
+            X = new double[A.Length];
+            A.CopyTo(X, 0);
+            // A = P*L*U; the unit diagonal elements of L are not stored.
+
+            int lda = m;
+            int[] ipiv = new int[Math.Min(m, n)];
+            // The pivot indices; for 1 <= i <= min(M,N), 
+            // row i of the matrix was interchanged with row IPIV(i).
+
+            int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dgetrf(
+                MatrixLayout.ColMajor,
+                m, n, X, lda, ipiv);
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            // ipiv: 1 <= i <= min(M,N), row i
+            piv = new int[ipiv.Length];
+            for (int i = 0; i < piv.Length; i++)
+            {
+                piv[i] = ipiv[i] - 1;
+            }
+            return ret;
+        }
+
+        public static int dgetri(out double[] X, int[] piv, double[] A, int aRow, int aCol)
+        {
+            if (aRow != aCol)
+            {
+                throw new ArgumentException();
+            }
+            int n = aRow;
+
+            X = new double[A.Length];
+            A.CopyTo(X, 0);
+            // A = P*L*U; the unit diagonal elements of L are not stored.
+
+            int lda = n;
+            int[] ipiv = new int[piv.Length];
+            // The pivot indices; for 1 <= i <= min(M,N), 
+            // row i of the matrix was interchanged with row IPIV(i).
+            // ipiv: 1 <= i <= min(M,N), row i
+            for (int i = 0; i < piv.Length; i++)
+            {
+                ipiv[i] = piv[i] + 1;
+            }
+
+            int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dgetri(
+                MatrixLayout.ColMajor,
+                n, X, lda, ipiv);
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            return ret;
+        }
+
         public static int dgbsv(out double[] X, out int xRow, out int xCol,
                          double[]  A, int aRow, int aCol, int subdia, int superdia,
                          double[]  B, int bRow, int bCol)
@@ -627,38 +693,6 @@ namespace IvyFEM.Lapack
             X = C;
             xRow = bRow;
             xCol = bCol;
-            return ret;
-        }
-
-        public static int dgetrf(out double[] X, out int[] piv, double[] A, int aRow, int aCol)
-        {
-            int m = aRow;
-            int n = aCol;
-
-            X = new double[A.Length];
-            A.CopyTo(X, 0);
-            // A = P*L*U; the unit diagonal elements of L are not stored.
-
-            int lda = m;
-            int[] ipiv = new int[Math.Min(m, n)];
-            // The pivot indices; for 1 <= i <= min(M,N), 
-            // row i of the matrix was interchanged with row IPIV(i).
-
-            int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dgetrf(
-                MatrixLayout.ColMajor,
-                m, n, X, lda, ipiv);
-            if (ret != 0)
-            {
-                throw new InvalidOperationException("Error occurred: ret = " + ret);
-                //return ret;
-            }
-
-            // ipiv: 1 <= i <= min(M,N), row i
-            piv = new int[ipiv.Length];
-            for (int i = 0; i < piv.Length; i++)
-            {
-                piv[i] = ipiv[i] - 1;
-            }
             return ret;
         }
 
@@ -898,6 +932,88 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
+        public static int zgetrf(out System.Numerics.Complex[] X, out int[] piv,
+            System.Numerics.Complex[] A, int aRow, int aCol)
+        {
+            int m = aRow;
+            int n = aCol;
+
+            X = new System.Numerics.Complex[A.Length];
+            A.CopyTo(X, 0);
+            // A = P*L*U; the unit diagonal elements of L are not stored.
+
+            int lda = m;
+            int[] ipiv = new int[Math.Min(m, n)];
+            // The pivot indices; for 1 <= i <= min(M,N), 
+            // row i of the matrix was interchanged with row IPIV(i).
+
+            int ret = 0;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* XP = &X[0])
+                {
+                    ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_zgetrf(
+                        MatrixLayout.ColMajor,
+                        m, n, XP, lda, ipiv);
+                }
+            }
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            // ipiv: 1 <= i <= min(M,N), row i
+            piv = new int[ipiv.Length];
+            for (int i = 0; i < piv.Length; i++)
+            {
+                piv[i] = ipiv[i] - 1;
+            }
+            return ret;
+        }
+
+        public static int zgetri(
+            out System.Numerics.Complex[] X, int[] piv, System.Numerics.Complex[] A, int aRow, int aCol)
+        {
+            if (aRow != aCol)
+            {
+                throw new ArgumentException();
+            }
+            int n = aRow;
+
+            X = new System.Numerics.Complex[A.Length];
+            A.CopyTo(X, 0);
+            // A = P*L*U; the unit diagonal elements of L are not stored.
+
+            int lda = n;
+            int[] ipiv = new int[piv.Length];
+            // The pivot indices; for 1 <= i <= min(M,N), 
+            // row i of the matrix was interchanged with row IPIV(i).
+            // ipiv: 1 <= i <= min(M,N), row i
+            for (int i = 0; i < piv.Length; i++)
+            {
+                ipiv[i] = piv[i] + 1;
+            }
+
+            int ret = 0;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* XP = &X[0])
+                {
+                    ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_zgetri(
+                        MatrixLayout.ColMajor,
+                        n, XP, lda, ipiv);
+                }
+            }
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            return ret;
+        }
+
         public static int zgbsv(out System.Numerics.Complex[] X, out int xRow, out int xCol,
                          System.Numerics.Complex[] A, int aRow, int aCol, int subdia, int superdia,
                          System.Numerics.Complex[] B, int bRow, int bCol)
@@ -1003,46 +1119,6 @@ namespace IvyFEM.Lapack
             xRow = bRow;
             xCol = bCol;
 
-            return ret;
-        }
-
-        public static int zgetrf(out System.Numerics.Complex[] X, out int[] piv,
-            System.Numerics.Complex[] A, int aRow, int aCol)
-        {
-            int m = aRow;
-            int n = aCol;
-
-            X = new System.Numerics.Complex[A.Length];
-            A.CopyTo(X, 0);
-            // A = P*L*U; the unit diagonal elements of L are not stored.
-
-            int lda = m;
-            int[] ipiv = new int[Math.Min(m, n)];
-            // The pivot indices; for 1 <= i <= min(M,N), 
-            // row i of the matrix was interchanged with row IPIV(i).
-
-            int ret = 0;
-            unsafe
-            {
-                fixed (System.Numerics.Complex* XP = &X[0])
-                {
-                    ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_zgetrf(
-                        MatrixLayout.ColMajor,
-                        m, n, XP, lda, ipiv);
-                }
-            }
-            if (ret != 0)
-            {
-                throw new InvalidOperationException("Error occurred: ret = " + ret);
-                //return ret;
-            }
-
-            // ipiv: 1 <= i <= min(M,N), row i
-            piv = new int[ipiv.Length];
-            for (int i = 0; i < piv.Length; i++)
-            {
-                piv[i] = ipiv[i] - 1;
-            }
             return ret;
         }
 

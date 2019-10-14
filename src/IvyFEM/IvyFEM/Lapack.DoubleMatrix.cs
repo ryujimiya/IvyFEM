@@ -167,21 +167,8 @@ namespace IvyFEM.Lapack
 
         public static DoubleMatrix Inverse(DoubleMatrix A)
         {
-            System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
-            int n = A.RowLength;
-            DoubleMatrix workA = new DoubleMatrix(A);
-            DoubleMatrix workB = new DoubleMatrix(n, n);
-            workB.Identity(); // 単位行列
-            double[] a = workA.Buffer;
-            double[] b = workB.Buffer;
-            // [A][X] = [B]
-            //  [B]の内容が書き換えられるので、matXを新たに生成せず、Bを出力に指定している
-            int xRow = 0;
-            int xCol = 0;
-            IvyFEM.Lapack.Functions.dgesv(out b, out xRow, out xCol, a, n, n, b, n, n);
-
-            bool alloc = false; // 指定したバッファを使用する
-            DoubleMatrix X = new DoubleMatrix(b, xRow, xCol, alloc);
+            //DoubleMatrix X = Utils.DoubleInverse1(A);
+            DoubleMatrix X = Utils.DoubleInverse2(A);
             return X;
         }
 

@@ -14,6 +14,12 @@ namespace IvyFEM
         ///  E面導波路の場合の導波管幅a(図面で言うと高さ方向の幅)
         /// </summary>
         public double WaveguideWidthForEPlane { get; set; } = 0;
+        /// <summary>
+        /// TEモードで実装した式をTMモードに流用するため
+        ///   TEモードの場合は μ0
+        ///   TMモードの場合は ε0
+        /// </summary>
+        public double ReplacedMu0 = Constants.Mu0;
 
         // Solve
         // input
@@ -154,6 +160,7 @@ namespace IvyFEM
 
                 eigenFEM.WaveguideType = WaveguideType;
                 eigenFEM.WaveguideWidthForEPlane = WaveguideWidthForEPlane;
+                eigenFEM.ReplacedMu0 = ReplacedMu0;
                 eigenFEM.Frequency = Frequency;
                 eigenFEM.Solve();
                 System.Numerics.Complex[] betas = eigenFEM.Betas;

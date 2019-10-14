@@ -15,7 +15,6 @@ namespace IvyFEM.FFT
         /// <param name="timeDomainDatas"></param>
         /// <param name="freqs"></param>
         /// <param name="freqDomaindatas"></param>
-        /// <param name="powers"></param>
         public static void DoFFT(
             double[] times,
             double[] timeDomainDatas,
