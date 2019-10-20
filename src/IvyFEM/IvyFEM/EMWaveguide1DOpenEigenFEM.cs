@@ -6,16 +6,8 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class EMWaveguide1DOpenEigenFEM : FEM
+    public class EMWaveguide1DOpenEigenFEM : EMWaveguide1DEigenBaseFEM
     {
-        public uint QuantityId { get; private set; } = 0;
-        public uint PortId { get; private set; } = 0;
-        /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
-        /// </summary>
-        public double ReplacedMu0 { get; set; } = Constants.Mu0;
         /// <summary>
         /// クラッドの比誘電率
         /// </summary>
@@ -25,22 +17,11 @@ namespace IvyFEM
         /// </summary>
         public double DecayParameter { get; set; } = 0.0;
 
-        public IvyFEM.Lapack.DoubleMatrix Txx { get; private set; } = null;
-        public IvyFEM.Lapack.DoubleMatrix Ryy { get; private set; } = null;
-        public IvyFEM.Lapack.DoubleMatrix Uzz { get; private set; } = null;
 
-        // Solve
-        // Input
-        public double Frequency { get; set; }
-        // Output
-        public System.Numerics.Complex[] Betas { get; private set; }
-        public System.Numerics.Complex[][] EzEVecs { get; private set; }
-
-        public EMWaveguide1DOpenEigenFEM(FEWorld world, uint quantityId, uint portId)
+        public EMWaveguide1DOpenEigenFEM(FEWorld world, uint quantityId, uint portId) :
+            base(world, quantityId, portId)
         {
-            World = world;
-            QuantityId = quantityId;
-            PortId = portId;
+
         }
 
         private void CalcMatrixs()
@@ -329,7 +310,7 @@ namespace IvyFEM
                 eVals[iMode] = beta;
 
                 var eVec = eVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var work = RyyZ * eVec;
                 var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work);
                 System.Numerics.Complex d = 
@@ -342,7 +323,7 @@ namespace IvyFEM
             }
         }
 
-        public IvyFEM.Lapack.ComplexMatrix CalcBoundaryMatrix(
+        public override IvyFEM.Lapack.ComplexMatrix CalcBoundaryMatrix(
             double omega, System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs)
         {
             int nodeCnt = ezEVecs[0].Length;
@@ -353,7 +334,7 @@ namespace IvyFEM
             {
                 var beta = betas[iMode];
                 var ezEVec = ezEVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * ezEVec;
                 var vec2 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
 
@@ -372,12 +353,12 @@ namespace IvyFEM
             return X;
         }
 
-        public System.Numerics.Complex[] CalcIncidentVec(
+        public override System.Numerics.Complex[] CalcIncidentVec(
             System.Numerics.Complex beta0, System.Numerics.Complex[] ezEVec0)
         {
             System.Numerics.Complex[] I = null;
 
-            var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+            var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
             var vec1 = RyyZ * ezEVec0;
             var a1 = System.Numerics.Complex.ImaginaryOne * 2.0 * beta0;
             vec1 = IvyFEM.Lapack.Functions.zscal(vec1, a1);
@@ -385,7 +366,7 @@ namespace IvyFEM
             return I;
         }
 
-        public System.Numerics.Complex[] CalcSMatrix(double omega, int incidentModeId,
+        public override System.Numerics.Complex[] CalcSMatrix(double omega, int incidentModeId,
             System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs,
             System.Numerics.Complex[] Ez)
         {
@@ -396,7 +377,7 @@ namespace IvyFEM
             {
                 var beta = betas[iMode];
                 var ezEVec = ezEVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
                 System.Numerics.Complex b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
@@ -408,6 +389,24 @@ namespace IvyFEM
             }
 
             return S;
+        }
+
+        public override System.Numerics.Complex CalcModeAmp(double omega, int modeIndex,
+            System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs,
+            System.Numerics.Complex[] Ez)
+        {
+            System.Numerics.Complex b = 0;
+
+            {
+                int iMode = modeIndex;
+                var beta = betas[iMode];
+                var ezEVec = ezEVecs[iMode];
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
+                var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
+                System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
+                b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+            }
+            return b;
         }
     }
 }

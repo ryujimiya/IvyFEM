@@ -41,9 +41,9 @@ namespace IvyFEM.Lapack
             Copy(src);
         }
 
-        public static explicit operator DoubleMatrix(IvyFEM.Linear.DoubleSparseMatrix sparseM)
+        public DoubleMatrix(IvyFEM.Linear.DoubleSparseMatrix sparseM)
         {
-            DoubleMatrix m = new DoubleMatrix(sparseM.RowLength, sparseM.ColumnLength);
+            Resize(sparseM.RowLength, sparseM.ColumnLength);
             for (int row = 0; row < sparseM.RowLength; row++)
             {
                 var colIndexValues = sparseM.RowColIndexValues[row];
@@ -51,10 +51,9 @@ namespace IvyFEM.Lapack
                 {
                     int col = pair.Key;
                     double value = pair.Value;
-                    m[row, col] = value;
+                    this[row, col] = value;
                 }
             }
-            return m;
         }
 
         public void Resize(int rowLength, int columnLength)

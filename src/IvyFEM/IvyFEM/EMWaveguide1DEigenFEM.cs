@@ -6,35 +6,15 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class EMWaveguide1DEigenFEM : FEM
+    public class EMWaveguide1DEigenFEM : EMWaveguide1DEigenBaseFEM
     {
-        public uint QuantityId { get; private set; } = 0;
-        public uint PortId { get; private set; } = 0;
         public EMWaveguideType WaveguideType { get; set; } = EMWaveguideType.HPlane2D;
         public double WaveguideWidthForEPlane { get; set; } = 0;
-        /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
-        /// </summary>
-        public double ReplacedMu0 { get; set; } = Constants.Mu0;
 
-        public IvyFEM.Lapack.DoubleMatrix Txx { get; private set; } = null;
-        public IvyFEM.Lapack.DoubleMatrix Ryy { get; private set; } = null;
-        public IvyFEM.Lapack.DoubleMatrix Uzz { get; private set; } = null;
 
-        // Solve
-        // Input
-        public double Frequency { get; set; }
-        // Output
-        public System.Numerics.Complex[] Betas { get; private set; }
-        public System.Numerics.Complex[][] EzEVecs { get; private set; }
-
-        public EMWaveguide1DEigenFEM(FEWorld world, uint quantityId, uint portId)
+        public EMWaveguide1DEigenFEM(FEWorld world, uint quantityId, uint portId) :
+            base(world, quantityId, portId)
         {
-            World = world;
-            QuantityId = quantityId;
-            PortId = portId;
         }
 
         private uint GetMaId0()
@@ -305,7 +285,7 @@ namespace IvyFEM
                 eVals[iMode] = beta;
 
                 var eVec = eVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var work = RyyZ * eVec;
                 var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work);
                 System.Numerics.Complex d = 0;
@@ -332,7 +312,7 @@ namespace IvyFEM
             }
         }
 
-        public IvyFEM.Lapack.ComplexMatrix CalcBoundaryMatrix(
+        public override IvyFEM.Lapack.ComplexMatrix CalcBoundaryMatrix(
             double omega, System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs)
         {
             // 波数
@@ -362,7 +342,7 @@ namespace IvyFEM
             {
                 var beta = betas[iMode];
                 var ezEVec = ezEVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * ezEVec;
                 var vec2 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
 
@@ -397,12 +377,12 @@ namespace IvyFEM
             return X;
         }
 
-        public System.Numerics.Complex[] CalcIncidentVec(
+        public override System.Numerics.Complex[] CalcIncidentVec(
             System.Numerics.Complex beta0, System.Numerics.Complex[] ezEVec0)
         {
             System.Numerics.Complex[] I = null;
 
-            var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+            var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
             var vec1 = RyyZ * ezEVec0;
             var a1 = System.Numerics.Complex.ImaginaryOne * 2.0 * beta0;
             vec1 = IvyFEM.Lapack.Functions.zscal(vec1, a1);
@@ -410,7 +390,7 @@ namespace IvyFEM
             return I;
         }
 
-        public System.Numerics.Complex[] CalcSMatrix(double omega, int incidentModeId,
+        public override System.Numerics.Complex[] CalcSMatrix(double omega, int incidentModeId,
             System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs,
             System.Numerics.Complex[] Ez)
         {
@@ -440,7 +420,7 @@ namespace IvyFEM
             {
                 var beta = betas[iMode];
                 var ezEVec = ezEVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)Ryy;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
                 System.Numerics.Complex b = 0;
@@ -468,6 +448,57 @@ namespace IvyFEM
             }
 
             return S;
+        }
+
+        public override System.Numerics.Complex CalcModeAmp(double omega, int modeIndex,
+            System.Numerics.Complex[] betas, System.Numerics.Complex[][] ezEVecs,
+            System.Numerics.Complex[] Ez)
+        {
+            System.Numerics.Complex b = 0;
+
+            // 波数
+            double k0 = omega / Constants.C0;
+
+            uint maId0 = GetMaId0();
+            DielectricMaterial ma0 = World.GetMaterial(maId0) as DielectricMaterial;
+            double epRatio = 0; // for EPlane
+            if (WaveguideType == EMWaveguideType.HPlane2D)
+            {
+
+            }
+            else if (WaveguideType == EMWaveguideType.EPlane2D)
+            {
+                epRatio = GetEpRatioForEPlane(k0);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+
+            {
+                int iMode = modeIndex;
+                var beta = betas[iMode];
+                var ezEVec = ezEVecs[iMode];
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
+                var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
+                System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
+                if (WaveguideType == EMWaveguideType.HPlane2D)
+                {
+
+                    b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                }
+                else if (WaveguideType == EMWaveguideType.EPlane2D)
+                {
+                    b = (beta.Magnitude / (omega * Constants.Ep0 *
+                        System.Numerics.Complex.Conjugate(ma0.Epyy * epRatio * (1.0 / ma0.Muyy))
+                        )) * work1;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            return b;
         }
     }
 }

@@ -14,8 +14,8 @@ namespace IvyFEM.Linear
         {
             bool success = false;
             using (IvyFEM.Lis.LisInitializer LisInitializer = new IvyFEM.Lis.LisInitializer())
-            using (IvyFEM.Lis.LisMatrix lisA = (IvyFEM.Lis.LisMatrix)A)
-            using (IvyFEM.Lis.LisVector lisB = (IvyFEM.Lis.LisVector)B)
+            using (IvyFEM.Lis.LisMatrix lisA = new IvyFEM.Lis.LisMatrix(A))
+            using (IvyFEM.Lis.LisVector lisB = new IvyFEM.Lis.LisVector(B))
             using (IvyFEM.Lis.LisVector lisX = new IvyFEM.Lis.LisVector())
             using (IvyFEM.Lis.LisSolver lisSolver = new IvyFEM.Lis.LisSolver())
             {
@@ -51,8 +51,8 @@ namespace IvyFEM.Linear
         {
             bool success = false;
             using (IvyFEM.Lis.LisInitializer LisInitializer = new IvyFEM.Lis.LisInitializer())
-            using (IvyFEM.Lis.LisMatrix lisA = (IvyFEM.Lis.LisMatrix)A)
-            using (IvyFEM.Lis.LisVector lisB = (IvyFEM.Lis.LisVector)B)
+            using (IvyFEM.Lis.LisMatrix lisA = new IvyFEM.Lis.LisMatrix(A))
+            using (IvyFEM.Lis.LisVector lisB = new IvyFEM.Lis.LisVector(B))
             using (IvyFEM.Lis.LisVector lisX = new IvyFEM.Lis.LisVector())
             using (IvyFEM.Lis.LisSolver lisSolver = new IvyFEM.Lis.LisSolver())
             {

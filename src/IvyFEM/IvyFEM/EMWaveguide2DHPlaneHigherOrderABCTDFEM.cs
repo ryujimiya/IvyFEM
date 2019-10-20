@@ -251,9 +251,11 @@ namespace IvyFEM
                 }
             }
 
-            // 時刻の取得
             if (TimeIndex == 0)
             {
+                //--------------------------------------------------------------
+                // 全体行列
+                //--------------------------------------------------------------
                 //t = System.Environment.TickCount;
                 CalcA();
                 //System.Diagnostics.Debug.WriteLine("CalcA t = " + (System.Environment.TickCount - t));
@@ -392,7 +394,10 @@ namespace IvyFEM
                 System.Numerics.Complex[] betas;
                 System.Numerics.Complex[][] eVecs;
                 double alpha;
-                CalcEigen(portId, srcFreq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+                EMWaveguide1DEigenBaseFEM eigen1DBaseFEM;
+                CalcEigen(
+                    portId, srcFreq,
+                    out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha, out eigen1DBaseFEM);
 
                 int nodeCntB = ryy1D.RowLength;
                 Qbs.Add(ryy1D);
@@ -444,7 +449,7 @@ namespace IvyFEM
                 ABCOrdersFor2.Add(abcOrderFor2);
             }
             //------------------------------------------------------
-            // 電界
+            // 節点数
             //-----------------------------------------------------
             int nodeCnt = (int)World.GetNodeCount(QuantityId);
             int nodeCntPlusABC = nodeCnt;
@@ -467,6 +472,9 @@ namespace IvyFEM
                     nodeCntPlusABC += nodeCntB * (abcOrderFor2 - 1);
                 }
             }
+            //------------------------------------------------------
+            // 電界
+            //-----------------------------------------------------
             EzPz = new double[nodeCntPlusABC];
             EzPzPrev = new double[nodeCntPlusABC];
             EzPzPrev2 = new double[nodeCntPlusABC];
@@ -669,7 +677,6 @@ namespace IvyFEM
                         {
                             // Traveling
                             double B0AbcFor2 = B0AbcsFor2[portId];
-                            // C
                             _A[rowNodeId, colNodeId] +=
                                 (B0AbcFor2 / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
                         }
@@ -706,7 +713,6 @@ namespace IvyFEM
                                 System.Diagnostics.Debug.Assert(Pz1Offsets1[portId] == Pz1Offsets2[portId]);
                                 // Φ1(2)
                                 int colNodeId1 = colNodeIdB + Pz1Offsets2[portId];
-                                // G
                                 _A[rowNodeId, colNodeId1] += -NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
                             }
                         }
@@ -742,7 +748,6 @@ namespace IvyFEM
 
                         for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
                         {
-                            // 媒質定数がy方向に変化する場合 
                             int colNodeId1 = 0;
                             // Φ(order)
                             colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
@@ -804,7 +809,6 @@ namespace IvyFEM
 
                         for (int colNodeIdB = 0; colNodeIdB < nodeCntB; colNodeIdB++)
                         {
-                            // 媒質定数がy方向に変化する場合
                             int colNodeId1 = 0;
                             // Φ(order)
                             colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets1[portId];
@@ -873,8 +877,6 @@ namespace IvyFEM
                             int colNodeId1 = 0;
                             // Φ(order)
                             colNodeId1 = colNodeIdB + nodeCntB * order + Pz1Offsets2[portId];
-
-                            // Cj
                             _A[rowNodeId1, colNodeId1] +=
                                 (BAbcFor2[order] / (2.0 * dt)) * Qb[rowNodeIdB, colNodeIdB];
 
@@ -890,7 +892,6 @@ namespace IvyFEM
                             {
                                 colNodeId1 = colNodeIdB + nodeCntB * (order - 1) + Pz1Offsets2[portId];
                             }
-                            // 媒質定数がy方向に変化する場合
                             _A[rowNodeId1, colNodeId1] +=
                                 -1.0 * (1.0 / (veloFor2[order] * veloFor2[order] * dt * dt)) * Qb[rowNodeIdB, colNodeIdB] +
                                 1.0 * (1.0 / (Constants.C0 * Constants.C0 * dt * dt)) * Tb[rowNodeIdB, colNodeIdB] +
@@ -906,7 +907,6 @@ namespace IvyFEM
                             else
                             {
                                 colNodeId1 = colNodeIdB + nodeCntB * (order + 1) + Pz1Offsets2[portId];
-                                // Rj
                                 _A[rowNodeId1, colNodeId1] +=
                                     -1.0 * NewmarkBeta * Qb[rowNodeIdB, colNodeIdB];
                             }
@@ -924,7 +924,7 @@ namespace IvyFEM
 
             }
 
-            A = (IvyFEM.Linear.DoubleSparseMatrix)_A;
+            A = new IvyFEM.Linear.DoubleSparseMatrix(_A);
         }
 
         private void CalcKM()
@@ -991,7 +991,8 @@ namespace IvyFEM
             out IvyFEM.Lapack.DoubleMatrix uzz1D,
             out System.Numerics.Complex[] betas,
             out System.Numerics.Complex[][] eVecs,
-            out double alpha)
+            out double alpha,
+            out EMWaveguide1DEigenBaseFEM eigen1DBaseFEM)
         {
             int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             alpha = 0;
@@ -1000,6 +1001,7 @@ namespace IvyFEM
             {
                 // 減衰定数を考慮した固有値問題
                 var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
                 eigen1DFEM.ReplacedMu0 = ReplacedMu0;
                 eigen1DFEM.Frequency = srcFreq;
@@ -1015,6 +1017,7 @@ namespace IvyFEM
             {
                 // 通常の固有値問題
                 var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.ReplacedMu0 = ReplacedMu0;
                 eigen1DFEM.Frequency = srcFreq;
                 eigen1DFEM.Solve();
@@ -1144,12 +1147,10 @@ namespace IvyFEM
                     double[] vecQb = new double[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        // C
                         vecQb[nodeIdB] = (B0AbcFor2 / (2.0 * dt)) * workEzPrev2[nodeIdB];
                         if (abcOrderFor2 >= 2)
                         {
                             vecQb[nodeIdB] +=
-                                // G
                                 ((1.0 - 2.0 * NewmarkBeta) * workPzOrder2Prev[nodeIdB] +
                                 NewmarkBeta * workPzOrder2Prev2[nodeIdB]);
                         }
@@ -1233,7 +1234,6 @@ namespace IvyFEM
                     double[] vecTb = new double[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        // 媒質定数がy方向に変化する場合 
                         vecQb[nodeIdB] =
                             -BAbcFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder0Prev[nodeIdB] +
                             workPzOrder0Prev2[nodeIdB]) +
@@ -1327,7 +1327,6 @@ namespace IvyFEM
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
                         double alpha0 = alphaFor1[0];
-                        // 媒質定数がy方向に変化する場合 
                         vecQb[nodeIdB] =
                             -(B0ABCFor2 / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
                             -alphaFor1[order] * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder0Prev[nodeIdB] +
@@ -1424,7 +1423,6 @@ namespace IvyFEM
                     double[] vecTb = new double[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        // 媒質定数がy方向に変化する場合 
                         vecQb[nodeIdB] =
                             (BAbcFor2[order] / (2.0 * dt)) * workPzOrder0Prev2[nodeIdB] +
                             (1.0 / (veloFor2[order] * veloFor2[order] * dt * dt)) *
@@ -1437,7 +1435,6 @@ namespace IvyFEM
                             (-2.0 * workPzOrder1Prev[nodeIdB] + workPzOrder1Prev2[nodeIdB]);
 
                         vecRb[nodeIdB] =
-                            // Qj
                             -1.0 * ((1.0 - 2.0 * NewmarkBeta) * workPzOrder1Prev[nodeIdB] +
                             NewmarkBeta * workPzOrder1Prev2[nodeIdB]);
                     }
@@ -1741,18 +1738,16 @@ namespace IvyFEM
                     System.Numerics.Complex[] betas;
                     System.Numerics.Complex[][] eVecs;
                     double alpha;
-                    CalcEigen(portId, freq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+                    EMWaveguide1DEigenBaseFEM eigen1DBaseFEM;
+                    CalcEigen(
+                        portId, freq,
+                        out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha, out eigen1DBaseFEM);
 
                     // 振幅分布
                     System.Numerics.Complex[] freqEz = freqDomainDatass[freqIndex];
                     // モード振幅の算出
                     int iMode = 0; // 基本モード
-                    System.Numerics.Complex beta = betas[iMode];
-                    System.Numerics.Complex[] eVec = eVecs[iMode];
-                    var ryy1DZ = (IvyFEM.Lapack.ComplexMatrix)ryy1D;
-                    var vec1 = ryy1DZ * IvyFEM.Lapack.Utils.Conjugate(eVec);
-                    System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, freqEz);
-                    System.Numerics.Complex b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                    System.Numerics.Complex b = eigen1DBaseFEM.CalcModeAmp(omega, iMode, betas, eVecs, freqEz);
                     freqDomainAmps[freqIndex] = b;
                 }
                 freqDomainAmpss.Add(freqDomainAmps);

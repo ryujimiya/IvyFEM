@@ -34,14 +34,12 @@ namespace IvyFEM.Lapack
             Copy(src);
         }
 
-        public static explicit operator ComplexHermitianBandMatrix(ComplexMatrix denseM)
+        public ComplexHermitianBandMatrix(ComplexMatrix denseM)
         {
-            ComplexHermitianBandMatrix m = new ComplexHermitianBandMatrix();
             System.Diagnostics.Debug.Assert(denseM.RowLength == denseM.ColumnLength);
             if (denseM.RowLength != denseM.ColumnLength)
             {
                 System.Diagnostics.Debug.Assert(false);
-                return m;
             }
             int rowColLength = denseM.RowLength;
 
@@ -71,33 +69,31 @@ namespace IvyFEM.Lapack
             //    rowColLength, superdiaLength);
 
             // バッファの確保
-            m.Resize(rowColLength, superdiaLength);
+            Resize(rowColLength, superdiaLength);
             // 値をコピーする
             for (int c = 0; c < rowColLength; c++)
             {
                 // 対角成分
-                m[c, c] = denseM[c, c];
+                this[c, c] = denseM[c, c];
 
                 // superdiagonal成分
                 if (c > 0)
                 {
                     for (int r = c - 1; r >= c - superdiaLength && r >= 0; r--)
                     {
-                        m[r, c] = denseM[r, c];
+                        this[r, c] = denseM[r, c];
                     }
                 }
             }
-            return m;
         }
 
-        public static explicit operator ComplexHermitianBandMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
+        public ComplexHermitianBandMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
         {
             ComplexHermitianBandMatrix m = new ComplexHermitianBandMatrix();
             System.Diagnostics.Debug.Assert(sparseM.RowLength == sparseM.ColumnLength);
             if (sparseM.RowLength != sparseM.ColumnLength)
             {
                 System.Diagnostics.Debug.Assert(false);
-                return m;
             }
             int rowColLength = sparseM.RowLength;
 
@@ -127,23 +123,22 @@ namespace IvyFEM.Lapack
                 rowColLength, superdiaLength);
 
             // バッファの確保
-            m.Resize(rowColLength, superdiaLength);
+            Resize(rowColLength, superdiaLength);
             // 値をコピーする
             for (int c = 0; c < rowColLength; c++)
             {
                 // 対角成分
-                m[c, c] = sparseM[c, c];
+                this[c, c] = sparseM[c, c];
 
                 // superdiagonal成分
                 if (c > 0)
                 {
                     for (int r = c - 1; r >= c - superdiaLength && r >= 0; r--)
                     {
-                        m[r, c] = sparseM[r, c];
+                        this[r, c] = sparseM[r, c];
                     }
                 }
             }
-            return m;
         }
 
         public void Resize(int rowColLength, int superdiaLength)

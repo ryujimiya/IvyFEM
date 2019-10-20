@@ -48,34 +48,30 @@ namespace IvyFEM.Lis
         }
         #endregion
 
-        public static explicit operator LisVector(double[] values)
+        public LisVector(double[] values)
         {
-            LisVector v = new LisVector();
             int n = values.Length;
             int ret;
-            ret = v.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int i = 0; i < n; i++)
             {
-                ret = v.SetValue(SetValueFlag.LisInsValue, i, values[i]);
+                ret = SetValue(SetValueFlag.LisInsValue, i, values[i]);
                 System.Diagnostics.Debug.Assert(ret == 0);
             }
-            return v;
         }
 
-        public static explicit operator LisVector(System.Numerics.Complex[] values)
+        public LisVector(System.Numerics.Complex[] values)
         {
-            LisVector v = new LisVector();
             int n = values.Length;
             int ret;
-            ret = v.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int i = 0; i < n; i++)
             {
-                ret = v.SetValue(SetValueFlag.LisInsValue, i, values[i]);
+                ret = SetValue(SetValueFlag.LisInsValue, i, values[i]);
                 System.Diagnostics.Debug.Assert(ret == 0);
             }
-            return v;
         }
 
         public int SetSize(int localN, int globalN)

@@ -35,14 +35,12 @@ namespace IvyFEM.Lapack
             Copy(src);
         }
 
-        public static explicit operator ComplexBandMatrix(ComplexMatrix denseM)
+        public ComplexBandMatrix(ComplexMatrix denseM)
         {
-            ComplexBandMatrix m = new ComplexBandMatrix();
             System.Diagnostics.Debug.Assert(denseM.RowLength == denseM.ColumnLength);
             if (denseM.RowLength != denseM.ColumnLength)
             {
                 System.Diagnostics.Debug.Assert(false);
-                return m;
             }
             int rowColLength = denseM.RowLength;
 
@@ -92,19 +90,19 @@ namespace IvyFEM.Lapack
             //    rowColLength, subdiaLength, superdiaLength);
 
             // バッファの確保
-            m.Resize(rowColLength, subdiaLength, superdiaLength);
+            Resize(rowColLength, subdiaLength, superdiaLength);
             // 値をコピーする
             for (int c = 0; c < rowColLength; c++)
             {
                 // 対角成分
-                m[c, c] = denseM[c, c];
+                this[c, c] = denseM[c, c];
 
                 // subdiagonal成分
                 if (c < rowColLength - 1)
                 {
                     for (int r = c + 1; r <= c + subdiaLength && r < rowColLength; r++)
                     {
-                        m[r, c] = denseM[r, c];
+                        this[r, c] = denseM[r, c];
                     }
                 }
                 // superdiagonal成分
@@ -112,33 +110,18 @@ namespace IvyFEM.Lapack
                 {
                     for (int r = c - 1; r >= c - superdiaLength && r >= 0; r--)
                     {
-                        m[r, c] = denseM[r, c];
+                        this[r, c] = denseM[r, c];
                     }
                 }
             }
-            return m;
         }
 
-        /*
-        public static explicit operator ComplexBandMatrix(DoubleBandMatrix doubleBandM)
+        public ComplexBandMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
         {
-            ComplexBandMatrix m = new ComplexBandMatrix(doubleBandM.RowColLength, doubleBandM.SubdiaLength, doubleBandM.SuperdiaLength);
-            for (int i = 0; i < m.Buffer.Length; i++)
-            {
-                m.Buffer[i] = (System.Numerics.Complex)doubleBandM.Buffer[i];
-            }
-            return m;
-        }
-        */
-
-        public static explicit operator ComplexBandMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
-        {
-            ComplexBandMatrix m = new ComplexBandMatrix();
             System.Diagnostics.Debug.Assert(sparseM.RowLength == sparseM.ColumnLength);
             if (sparseM.RowLength != sparseM.ColumnLength)
             {
                 System.Diagnostics.Debug.Assert(false);
-                return m;
             }
             int rowColLength = sparseM.RowLength;
 
@@ -152,19 +135,19 @@ namespace IvyFEM.Lapack
             }
 
             // バッファの確保
-            m.Resize(rowColLength, subdiaLength, superdiaLength);
+            Resize(rowColLength, subdiaLength, superdiaLength);
             // 値をコピーする
             for (int c = 0; c < rowColLength; c++)
             {
                 // 対角成分
-                m[c, c] = sparseM[c, c];
+                this[c, c] = sparseM[c, c];
 
                 // subdiagonal成分
                 if (c < rowColLength - 1)
                 {
                     for (int r = c + 1; r <= c + subdiaLength && r < rowColLength; r++)
                     {
-                        m[r, c] = sparseM[r, c];
+                        this[r, c] = sparseM[r, c];
                     }
                 }
                 // superdiagonal成分
@@ -172,13 +155,12 @@ namespace IvyFEM.Lapack
                 {
                     for (int r = c - 1; r >= c - superdiaLength && r >= 0; r--)
                     {
-                        m[r, c] = sparseM[r, c];
+                        this[r, c] = sparseM[r, c];
                     }
                 }
             }
             System.Diagnostics.Debug.WriteLine("cast to band matrix: rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}",
                 rowColLength, subdiaLength, superdiaLength);
-            return m;
         }
 
         public void Resize(int rowColLength, int subdiaLength, int superdiaLength)

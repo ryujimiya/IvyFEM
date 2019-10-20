@@ -91,8 +91,10 @@
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
     <Compile Include="DistributedPortCondition.cs" />
+    <Compile Include="EMWaveguide1DEigenBaseFEM.cs" />
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneFirstOrderABCTDFEM.cs" />
+    <Compile Include="EMWaveguide2DHPlaneHigherOrderABCFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneHigherOrderABCTDFEM.cs" />
     <Compile Include="FEM.FixedCadsCondition.cs" />
     <Compile Include="FEM.TD.cs" />

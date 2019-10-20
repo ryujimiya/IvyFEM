@@ -122,11 +122,11 @@ namespace IvyFEM
                     double[] pt1 = World.GetCoord(wQuantityId, coId1);
                     double[] pt2 = World.GetCoord(wQuantityId, coId2);
                     double[] adjPt = World.GetCoord(wQuantityId, adjCoId);
-                    double hn = IvyFEM.CadUtils.TriHeight(
+                    double hn = Math.Abs(IvyFEM.CadUtils.TriHeight(
                         new OpenTK.Vector2d(adjPt[0], adjPt[1]), // 点
                         new OpenTK.Vector2d(pt1[0], pt1[1]), // 辺の点1
                         new OpenTK.Vector2d(pt2[0], pt2[1]) // 辺の点2
-                        );
+                        ));
 
                     for (int row = 0; row < elemNodeCnt; row++)
                     {

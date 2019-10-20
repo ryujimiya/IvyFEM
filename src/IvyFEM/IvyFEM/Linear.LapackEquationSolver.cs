@@ -10,6 +10,7 @@ namespace IvyFEM.Linear
     {
         public LapackEquationSolverMethod Method { get; set; } = LapackEquationSolverMethod.Default;
         public bool IsOrderingToBandMatrix { get; set; } = false;
+        public double[][] CoordsForBandMatrix { get; set; } = null;
 
         public bool DoubleSolve(out double[] X, DoubleSparseMatrix A, double[] B)
         {
@@ -74,7 +75,7 @@ namespace IvyFEM.Linear
         private bool DoubleDenseSolve(out double[] X, DoubleSparseMatrix A, double[] B)
         {
             bool success = false;
-            IvyFEM.Lapack.DoubleMatrix denseA = (IvyFEM.Lapack.DoubleMatrix)A;
+            IvyFEM.Lapack.DoubleMatrix denseA = new IvyFEM.Lapack.DoubleMatrix(A);
             int xRow;
             int xCol;
             int ret = IvyFEM.Lapack.Functions.dgesv(out X, out xRow, out xCol,
@@ -89,7 +90,7 @@ namespace IvyFEM.Linear
             out System.Numerics.Complex[] X, ComplexSparseMatrix A, System.Numerics.Complex[] B)
         {
             bool success = false;
-            IvyFEM.Lapack.ComplexMatrix denseA = (IvyFEM.Lapack.ComplexMatrix)A;
+            IvyFEM.Lapack.ComplexMatrix denseA = new IvyFEM.Lapack.ComplexMatrix(A);
             int xRow;
             int xCol;
             int ret = IvyFEM.Lapack.Functions.zgesv(out X, out xRow, out xCol,
@@ -112,8 +113,18 @@ namespace IvyFEM.Linear
             int[] indexs;
             if (IsOrderingToBandMatrix)
             {
-                bool successOrder = IvyFEM.Linear.Utils.OrderToDoubleBandMatrix(
-                    out AToSolve, out BToSolve, out indexs, A, B);
+                bool successOrder = false;
+                if (CoordsForBandMatrix != null)
+                {
+                    // 座標からバンド幅縮小を試みる
+                    successOrder = IvyFEM.Linear.Utils.OrderToDoubleBandMatrixByCoord(
+                        out AToSolve, out BToSolve, out indexs, A, B, CoordsForBandMatrix);
+                }
+                else
+                {
+                    successOrder = IvyFEM.Linear.Utils.OrderToDoubleBandMatrix(
+                        out AToSolve, out BToSolve, out indexs, A, B);
+                }
                 System.Diagnostics.Debug.Assert(successOrder);
                 if (!successOrder)
                 {
@@ -147,7 +158,7 @@ namespace IvyFEM.Linear
         private bool __DoubleBandSolve(out double[] X, DoubleSparseMatrix A, double[] B)
         {
             bool success = false;
-            IvyFEM.Lapack.DoubleBandMatrix bandA = (IvyFEM.Lapack.DoubleBandMatrix)A;
+            IvyFEM.Lapack.DoubleBandMatrix bandA = new IvyFEM.Lapack.DoubleBandMatrix(A);
             A = null;
             int xRow;
             int xCol;
@@ -170,8 +181,18 @@ namespace IvyFEM.Linear
             int[] indexs;
             if (IsOrderingToBandMatrix)
             {
-                bool successOrder = IvyFEM.Linear.Utils.OrderToComplexBandMatrix(
-                    out AToSolve, out BToSolve, out indexs, A, B);
+                bool successOrder = false;
+                if (CoordsForBandMatrix != null)
+                {
+                    // 座標からバンド幅縮小を試みる
+                    successOrder = IvyFEM.Linear.Utils.OrderToComplexBandMatrixByCoord(
+                        out AToSolve, out BToSolve, out indexs, A, B, CoordsForBandMatrix);
+                }
+                else
+                {
+                    successOrder = IvyFEM.Linear.Utils.OrderToComplexBandMatrix(
+                        out AToSolve, out BToSolve, out indexs, A, B);
+                }
                 System.Diagnostics.Debug.Assert(successOrder);
                 if (!successOrder)
                 {
@@ -206,7 +227,7 @@ namespace IvyFEM.Linear
             out System.Numerics.Complex[] X, ComplexSparseMatrix A, System.Numerics.Complex[] B)
         {
             bool success = false;
-            IvyFEM.Lapack.ComplexBandMatrix bandA = (IvyFEM.Lapack.ComplexBandMatrix)A;
+            IvyFEM.Lapack.ComplexBandMatrix bandA = new IvyFEM.Lapack.ComplexBandMatrix(A);
             A = null;
             int xRow;
             int xCol;
@@ -233,7 +254,7 @@ namespace IvyFEM.Linear
             }
 
             bool success = false;
-            IvyFEM.Lapack.DoubleSymmetricBandMatrix pbA = (IvyFEM.Lapack.DoubleSymmetricBandMatrix)A;
+            IvyFEM.Lapack.DoubleSymmetricBandMatrix pbA = new IvyFEM.Lapack.DoubleSymmetricBandMatrix(A);
             A = null;
             int xRow;
             int xCol;
@@ -258,7 +279,7 @@ namespace IvyFEM.Linear
             }
 
             bool success = false;
-            IvyFEM.Lapack.ComplexHermitianBandMatrix pbA = (IvyFEM.Lapack.ComplexHermitianBandMatrix)A;
+            IvyFEM.Lapack.ComplexHermitianBandMatrix pbA = new IvyFEM.Lapack.ComplexHermitianBandMatrix(A);
             A = null;
             int xRow;
             int xCol;

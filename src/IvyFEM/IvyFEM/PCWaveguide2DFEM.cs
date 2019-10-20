@@ -41,7 +41,7 @@ namespace IvyFEM
             int nodeCnt = (int)World.GetNodeCount(QuantityId);
             var A = new IvyFEM.Linear.ComplexSparseMatrix(nodeCnt, nodeCnt);
             var B = new System.Numerics.Complex[nodeCnt];
-            CalcAB(k0, A, B);
+            CalcA(k0, A);
             System.Diagnostics.Debug.WriteLine("CalcAB t = " + (System.Environment.TickCount - t));
 
             t = System.Environment.TickCount;
@@ -64,8 +64,8 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("CalcS t = " + (System.Environment.TickCount - t));
         }
 
-        private void CalcAB(double k0,
-            IvyFEM.Linear.ComplexSparseMatrix A, System.Numerics.Complex[] B)
+        private void CalcA(double k0,
+            IvyFEM.Linear.ComplexSparseMatrix A)
         {
             IList<uint> feIds = World.GetTriangleFEIds(QuantityId);
             foreach (uint feId in feIds)

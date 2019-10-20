@@ -48,13 +48,12 @@ namespace IvyFEM.Lis
         }
         #endregion
 
-        public static explicit operator LisMatrix(IvyFEM.Lapack.DoubleMatrix denseM)
+        public LisMatrix(IvyFEM.Lapack.DoubleMatrix denseM)
         {
-            LisMatrix A = new LisMatrix();
             int ret;
             System.Diagnostics.Debug.Assert(denseM.RowLength == denseM.ColumnLength);
             int n = denseM.RowLength;
-            ret = A.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int row = 0; row < n; row++)
             {
@@ -65,25 +64,22 @@ namespace IvyFEM.Lis
                     {
                         continue;
                     }
-                    ret = A.SetValue(SetValueFlag.LisInsValue, col, row, value);
+                    ret = SetValue(SetValueFlag.LisInsValue, col, row, value);
                     System.Diagnostics.Debug.Assert(ret == 0);
                 }
             }
-            ret = A.SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
+            ret = SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
             System.Diagnostics.Debug.Assert(ret == 0);
-            ret = A.Assemble();
+            ret = Assemble();
             System.Diagnostics.Debug.Assert(ret == 0);
-
-            return A;
         }
 
-        public static explicit operator LisMatrix(IvyFEM.Linear.DoubleSparseMatrix sparseM)
+        public LisMatrix(IvyFEM.Linear.DoubleSparseMatrix sparseM)
         {
-            LisMatrix A = new LisMatrix();
             int ret;
             System.Diagnostics.Debug.Assert(sparseM.RowLength == sparseM.ColumnLength);
             int n = sparseM.RowLength;
-            ret = A.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int row = 0; row < n; row++)
             {
@@ -94,25 +90,22 @@ namespace IvyFEM.Lis
                     {
                         continue;
                     }
-                    ret = A.SetValue(SetValueFlag.LisInsValue, col, row, value);
+                    ret = SetValue(SetValueFlag.LisInsValue, col, row, value);
                     System.Diagnostics.Debug.Assert(ret == 0);
                 }
             }
-            ret = A.SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
+            ret = SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
             System.Diagnostics.Debug.Assert(ret == 0);
-            ret = A.Assemble();
+            ret = Assemble();
             System.Diagnostics.Debug.Assert(ret == 0);
-
-            return A;
         }
 
-        public static explicit operator LisMatrix(IvyFEM.Lapack.ComplexMatrix denseM)
+        public LisMatrix(IvyFEM.Lapack.ComplexMatrix denseM)
         {
-            LisMatrix A = new LisMatrix();
             int ret;
             System.Diagnostics.Debug.Assert(denseM.RowLength == denseM.ColumnLength);
             int n = denseM.RowLength;
-            ret = A.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int row = 0; row < n; row++)
             {
@@ -123,25 +116,22 @@ namespace IvyFEM.Lis
                     {
                         continue;
                     }
-                    ret = A.SetValue(SetValueFlag.LisInsValue, col, row, value);
+                    ret = SetValue(SetValueFlag.LisInsValue, col, row, value);
                     System.Diagnostics.Debug.Assert(ret == 0);
                 }
             }
-            ret = A.SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
+            ret = SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
             System.Diagnostics.Debug.Assert(ret == 0);
-            ret = A.Assemble();
+            ret = Assemble();
             System.Diagnostics.Debug.Assert(ret == 0);
-
-            return A;
         }
 
-        public static explicit operator LisMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
+        public LisMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
         {
-            LisMatrix A = new LisMatrix();
             int ret;
             System.Diagnostics.Debug.Assert(sparseM.RowLength == sparseM.ColumnLength);
             int n = sparseM.RowLength;
-            ret = A.SetSize(0, n);
+            ret = SetSize(0, n);
             System.Diagnostics.Debug.Assert(ret == 0);
             for (int row = 0; row < n; row++)
             {
@@ -152,16 +142,14 @@ namespace IvyFEM.Lis
                     {
                         continue;
                     }
-                    ret = A.SetValue(SetValueFlag.LisInsValue, col, row, value);
+                    ret = SetValue(SetValueFlag.LisInsValue, col, row, value);
                     System.Diagnostics.Debug.Assert(ret == 0);
                 }
             }
-            ret = A.SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
+            ret = SetType(IvyFEM.Lis.MatrixType.LisMatrixCSR);
             System.Diagnostics.Debug.Assert(ret == 0);
-            ret = A.Assemble();
+            ret = Assemble();
             System.Diagnostics.Debug.Assert(ret == 0);
-
-            return A;
         }
 
         public int Assemble()

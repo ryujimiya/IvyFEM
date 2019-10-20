@@ -437,7 +437,7 @@ namespace IvyFEM
             }
 
             // 規格化定数を計算する
-            var RyyZ = (IvyFEM.Lapack.ComplexMatrix)RyyB1;
+            var RyyZ = new IvyFEM.Lapack.ComplexMatrix(RyyB1);
             for (int iMode = 0; iMode < modeCnt; iMode++)
             {
                 System.Numerics.Complex beta = defectBetas[iMode];
@@ -667,7 +667,7 @@ namespace IvyFEM
 
             // Bのバンド幅を縮小
             System.Numerics.Complex[] dummyVec1 = new System.Numerics.Complex[matLen];
-            IvyFEM.Linear.ComplexSparseMatrix sparseB1 = (IvyFEM.Linear.ComplexSparseMatrix)B;
+            IvyFEM.Linear.ComplexSparseMatrix sparseB1 = new IvyFEM.Linear.ComplexSparseMatrix(B);
             IvyFEM.Linear.ComplexSparseMatrix sparseB2;
             System.Numerics.Complex[] dummyVec2;
             int[] indexs;
@@ -694,10 +694,8 @@ namespace IvyFEM
 
             //System.Diagnostics.Debug.Assert(sparseA2.IsHermitian());
             //System.Diagnostics.Debug.Assert(sparseB2.IsHermitian());
-            IvyFEM.Lapack.ComplexHermitianBandMatrix hermiteBandA =
-                (IvyFEM.Lapack.ComplexHermitianBandMatrix)sparseA2;
-            IvyFEM.Lapack.ComplexHermitianBandMatrix hermiteBandB =
-                (IvyFEM.Lapack.ComplexHermitianBandMatrix)sparseB2;
+            var hermiteBandA = new IvyFEM.Lapack.ComplexHermitianBandMatrix(sparseA2);
+            var hermiteBandB = new IvyFEM.Lapack.ComplexHermitianBandMatrix(sparseB2);
 
             System.Numerics.Complex[][] eVecs2;
             int ret = IvyFEM.Lapack.Functions.zhbgv(
@@ -929,8 +927,6 @@ namespace IvyFEM
 
             // 複素モード、エバネセントモードの固有ベクトル計算をスキップする？ (計算時間短縮するため)
             bool isSkipCalcComplexAndEvanescentModeVec = true;
-            // 緩慢変化包絡線近似？ Φを直接解く方法なので常にfalse
-            const bool isSVEA = false; // Φを直接解く方法
             // 境界1のみの式に変換
             int innerNodeCnt = nodeCnt - bcNodeCnt * 2;
             var P11 = new IvyFEM.Lapack.DoubleMatrix(bcNodeCnt, bcNodeCnt);
@@ -1861,7 +1857,7 @@ namespace IvyFEM
                 var ezEVec = ezEVecs[iMode];
                 var ezXEVec = ezXEVecs[iMode];
 
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)RyyB1;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(RyyB1);
                 System.Diagnostics.Debug.Assert(ezEVec.Length == bcNodeCnt);
                 System.Diagnostics.Debug.Assert(ezXEVec.Length == bcNodeCnt);
                 System.Diagnostics.Debug.Assert(RyyZ.RowLength == bcNodeCnt);
@@ -1908,7 +1904,7 @@ namespace IvyFEM
             int bcNodeCnt = WgPortInfo.BcNodess[0].Count;
             System.Diagnostics.Debug.Assert(ezEVec0.Length == bcNodeCnt);
 
-            var RyyZ = (IvyFEM.Lapack.ComplexMatrix)RyyB1;
+            var RyyZ = new IvyFEM.Lapack.ComplexMatrix(RyyB1);
 
             var betaPeriodic0 = ToBetaPeriodic(beta0, periodicDistance);
             var ezEVecModify0 = new System.Numerics.Complex[bcNodeCnt];
@@ -1940,7 +1936,7 @@ namespace IvyFEM
                 var beta = betas[iMode];
                 var ezEVec = ezEVecs[iMode];
                 var ezXEVec = ezXEVecs[iMode];
-                var RyyZ = (IvyFEM.Lapack.ComplexMatrix)RyyB1;
+                var RyyZ = new IvyFEM.Lapack.ComplexMatrix(RyyB1);
                 System.Diagnostics.Debug.Assert(ezEVec.Length == bcNodeCnt);
                 System.Diagnostics.Debug.Assert(ezXEVec.Length == bcNodeCnt);
                 System.Diagnostics.Debug.Assert(RyyZ.RowLength == bcNodeCnt);

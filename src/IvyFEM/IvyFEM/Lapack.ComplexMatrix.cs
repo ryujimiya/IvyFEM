@@ -32,19 +32,18 @@ namespace IvyFEM.Lapack
             Copy(src);
         }
 
-        public static explicit operator ComplexMatrix(DoubleMatrix doubleM)
+        public ComplexMatrix(DoubleMatrix doubleM)
         {
-            ComplexMatrix m = new ComplexMatrix(doubleM.RowLength, doubleM.ColumnLength);
-            for (int i = 0; i < m.Buffer.Length; i++)
+            Resize(doubleM.RowLength, doubleM.ColumnLength);
+            for (int i = 0; i < Buffer.Length; i++)
             {
-                m.Buffer[i] = (System.Numerics.Complex)doubleM.Buffer[i];
+                Buffer[i] = (System.Numerics.Complex)doubleM.Buffer[i];
             }
-            return m;
         }
 
-        public static explicit operator ComplexMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
+        public ComplexMatrix(IvyFEM.Linear.ComplexSparseMatrix sparseM)
         {
-            ComplexMatrix m = new ComplexMatrix(sparseM.RowLength, sparseM.ColumnLength);
+            Resize(sparseM.RowLength, sparseM.ColumnLength);
             for (int row = 0; row < sparseM.RowLength; row++)
             {
                 var sparseColIndexValues = sparseM.RowColIndexValues[row];
@@ -52,10 +51,9 @@ namespace IvyFEM.Lapack
                 {
                     int col = pair.Key;
                     System.Numerics.Complex value = pair.Value;
-                    m[row, col] = value;
+                    this[row, col] = value;
                 }
             }
-            return m;
         }
 
         public void Resize(int rowLength, int columnLength)

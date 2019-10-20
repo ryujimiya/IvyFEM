@@ -27,20 +27,19 @@ namespace IvyFEM.Linear
             Copy(src);
         }
 
-        public static explicit operator DoubleSparseMatrix(IvyFEM.Lapack.DoubleMatrix denseM)
+        public DoubleSparseMatrix(IvyFEM.Lapack.DoubleMatrix denseM)
         {
-            DoubleSparseMatrix m = new DoubleSparseMatrix(denseM.RowLength, denseM.ColumnLength);
+            Resize(denseM.RowLength, denseM.ColumnLength);
             for (int row = 0; row < denseM.RowLength; row++)
             {
                 for (int col = 0; col < denseM.ColumnLength; col++)
                 {
                     if (Math.Abs(denseM[row, col]) >= IvyFEM.Constants.PrecisionLowerLimit)
                     {
-                        m[row, col] = denseM[row, col];
+                        this[row, col] = denseM[row, col];
                     }
                 }
             }
-            return m;
         }
 
         public void Resize(int rowLength, int columnLength)

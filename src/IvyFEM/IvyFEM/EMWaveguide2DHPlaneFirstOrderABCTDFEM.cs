@@ -231,9 +231,11 @@ namespace IvyFEM
                 }
             }
 
-            // 時刻の取得
             if (TimeIndex == 0)
             {
+                //--------------------------------------------------------------
+                // 全体行列
+                //--------------------------------------------------------------
                 //t = System.Environment.TickCount;
                 CalcA();
                 //System.Diagnostics.Debug.WriteLine("CalcA t = " + (System.Environment.TickCount - t));
@@ -372,7 +374,10 @@ namespace IvyFEM
                 System.Numerics.Complex[] betas;
                 System.Numerics.Complex[][] eVecs;
                 double alpha;
-                CalcEigen(portId, srcFreq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+                EMWaveguide1DEigenBaseFEM eigen1DBaseFEM;
+                CalcEigen(
+                    portId, srcFreq,
+                    out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha, out eigen1DBaseFEM);
 
                 int nodeCntB = ryy1D.RowLength;
                 Qbs.Add(ryy1D);
@@ -658,7 +663,7 @@ namespace IvyFEM
 
             }
 
-            A = (IvyFEM.Linear.DoubleSparseMatrix)_A;
+            A = new IvyFEM.Linear.DoubleSparseMatrix(_A);
         }
 
         private void CalcKM()
@@ -725,7 +730,8 @@ namespace IvyFEM
             out IvyFEM.Lapack.DoubleMatrix uzz1D,
             out System.Numerics.Complex[] betas,
             out System.Numerics.Complex[][] eVecs,
-            out double alpha)
+            out double alpha,
+            out EMWaveguide1DEigenBaseFEM eigen1DBaseFEM)
         {
             int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             alpha = 0;
@@ -734,6 +740,7 @@ namespace IvyFEM
             {
                 // 減衰定数を考慮した固有値問題
                 var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
                 eigen1DFEM.ReplacedMu0 = ReplacedMu0;
                 eigen1DFEM.Frequency = srcFreq;
@@ -749,6 +756,7 @@ namespace IvyFEM
             {
                 // 通常の固有値問題
                 var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
+                eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.ReplacedMu0 = ReplacedMu0;
                 eigen1DFEM.Frequency = srcFreq;
                 eigen1DFEM.Solve();
@@ -1240,18 +1248,16 @@ namespace IvyFEM
                     System.Numerics.Complex[] betas;
                     System.Numerics.Complex[][] eVecs;
                     double alpha;
-                    CalcEigen(portId, freq, out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha);
+                    EMWaveguide1DEigenBaseFEM eigen1DBaseFEM;
+                    CalcEigen(
+                        portId, freq,
+                        out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha, out eigen1DBaseFEM);
 
                     // 振幅分布
                     System.Numerics.Complex[] freqEz = freqDomainDatass[freqIndex];
                     // モード振幅の算出
                     int iMode = 0; // 基本モード
-                    System.Numerics.Complex beta = betas[iMode];
-                    System.Numerics.Complex[] eVec = eVecs[iMode];
-                    var ryy1DZ = (IvyFEM.Lapack.ComplexMatrix)ryy1D;
-                    var vec1 = ryy1DZ * IvyFEM.Lapack.Utils.Conjugate(eVec);
-                    System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, freqEz);
-                    System.Numerics.Complex b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                    System.Numerics.Complex b = eigen1DBaseFEM.CalcModeAmp(omega, iMode, betas, eVecs, freqEz);
                     freqDomainAmps[freqIndex] = b;
                 }
                 freqDomainAmpss.Add(freqDomainAmps);
