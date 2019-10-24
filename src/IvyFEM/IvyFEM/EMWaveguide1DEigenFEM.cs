@@ -177,13 +177,37 @@ namespace IvyFEM
                     }
                 }
             }
-
-            System.Numerics.Complex[] eVals;
-            System.Numerics.Complex[][] eVecs;
-            int ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
-                B.Buffer, B.RowLength, B.ColumnLength,
-                out eVals, out eVecs);
-            System.Diagnostics.Debug.Assert(ret == 0);
+            
+            System.Numerics.Complex[] eVals = null;
+            System.Numerics.Complex[][] eVecs = null;
+            int ret = -1;
+            try
+            {
+                ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
+                    B.Buffer, B.RowLength, B.ColumnLength,
+                    out eVals, out eVecs);
+                System.Diagnostics.Debug.Assert(ret == 0);
+            }
+            catch (Exception exception)
+            {
+                //System.Diagnostics.Debug.Assert(false);
+                System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
+                System.Diagnostics.Debug.WriteLine(exception.Message);
+                System.Diagnostics.Debug.WriteLine(exception.StackTrace);
+                ret = -1;
+            }
+            if (ret != 0)
+            {
+                // fail safe
+                // fail safe
+                int n = A.RowLength;
+                eVals = new System.Numerics.Complex[n];
+                eVecs = new System.Numerics.Complex[n][];
+                for (int iMode = 0; iMode < n; iMode++)
+                {
+                    eVecs[iMode] = new System.Numerics.Complex[n];
+                }
+            }
 
             SortEVals(eVals, eVecs);
             AdjustPhaseEVecs(eVecs);

@@ -90,9 +90,12 @@
     <Compile Include="CadObject2DDrawer.cs" />
     <Compile Include="CadObject2DDrawPart.cs" />
     <Compile Include="CadObject2DMove.cs" />
+    <Compile Include="DielectricPMLMaterial.cs" />
     <Compile Include="DistributedPortCondition.cs" />
     <Compile Include="EMWaveguide1DEigenBaseFEM.cs" />
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
+    <Compile Include="EMWaveguide2DHPlanePMLFEM.cs" />
+    <Compile Include="EMWaveguide2DHPlanePMLTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneFirstOrderABCTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneHigherOrderABCFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneHigherOrderABCTDFEM.cs" />
@@ -188,6 +191,7 @@
     <Compile Include="IFieldDrawer.cs" />
     <Compile Include="IInterpolate.cs" />
     <Compile Include="IntegrationPoints.cs" />
+    <Compile Include="Linear.BoolSparseMatrix.cs" />
     <Compile Include="Linear.Functions.Complex.COCG.cs" />
     <Compile Include="Linear.Functions.Complex.BiCGSTAB.cs" />
     <Compile Include="Linear.Functions.Complex.NoPreconBiCGSTAB.cs" />

@@ -757,12 +757,35 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("solve eigen");
             {
                 // 固有値問題を解く
-                System.Numerics.Complex[][] eVecs0;
-                int ret = IvyFEM.Lapack.Functions.dggev(
-                    A.Buffer, A.RowLength, A.ColumnLength,
-                    B.Buffer, B.RowLength, B.ColumnLength,
-                    out eVals, out eVecs0);
-                System.Diagnostics.Debug.Assert(ret == 0);
+                System.Numerics.Complex[][] eVecs0 = null;
+                int ret = -1;
+                try
+                {
+                    ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
+                        B.Buffer, B.RowLength, B.ColumnLength,
+                        out eVals, out eVecs0);
+                    System.Diagnostics.Debug.Assert(ret == 0);
+                }
+                catch (Exception exception)
+                {
+                    //System.Diagnostics.Debug.Assert(false);
+                    System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
+                    System.Diagnostics.Debug.WriteLine(exception.Message);
+                    System.Diagnostics.Debug.WriteLine(exception.StackTrace);
+                    ret = -1;
+                }
+                if (ret != 0)
+                {
+                    // fail safe
+                    // fail safe
+                    int n = A.RowLength;
+                    eVals = new System.Numerics.Complex[n];
+                    eVecs0 = new System.Numerics.Complex[n][];
+                    for (int iMode = 0; iMode < n; iMode++)
+                    {
+                        eVecs0[iMode] = new System.Numerics.Complex[n];
+                    }
+                }
 
                 // eVecs0は節点番号順に並んでいないので並び替える
                 bool isPortBc2Reverse = WgPortInfo.IsPortBc2Reverse;
@@ -856,11 +879,35 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("solve eigen");
             {
                 // 固有値問題を解く
-                System.Numerics.Complex[][] eVecs0;
-                int ret = IvyFEM.Lapack.Functions.dgeev(
-                    A.Buffer, A.RowLength, A.ColumnLength,
-                    out eVals, out eVecs0);
-                System.Diagnostics.Debug.Assert(ret == 0);
+                System.Numerics.Complex[][] eVecs0 = null;
+                int ret = -1;
+                try
+                {
+                    ret = IvyFEM.Lapack.Functions.dgeev(
+                        A.Buffer, A.RowLength, A.ColumnLength,
+                        out eVals, out eVecs0);
+                    System.Diagnostics.Debug.Assert(ret == 0);
+                }
+                catch (Exception exception)
+                {
+                    //System.Diagnostics.Debug.Assert(false);
+                    System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
+                    System.Diagnostics.Debug.WriteLine(exception.Message);
+                    System.Diagnostics.Debug.WriteLine(exception.StackTrace);
+                    ret = -1;
+                }
+                if (ret != 0)
+                {
+                    // fail safe
+                    // fail safe
+                    int n = A.RowLength;
+                    eVals = new System.Numerics.Complex[n];
+                    eVecs0 = new System.Numerics.Complex[n][];
+                    for (int iMode = 0; iMode < n; iMode++)
+                    {
+                        eVecs0[iMode] = new System.Numerics.Complex[n];
+                    }
+                }
 
                 // eVecs0は節点番号順に並んでいないので並び替える
                 // eVecs0は節点番号順に並んでいないので並び替える
@@ -1043,12 +1090,35 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("solve eigen");
             {
                 // 固有値問題を解く
-                System.Numerics.Complex[][] eVecs0;
-                int ret = IvyFEM.Lapack.Functions.dggev(
-                    A.Buffer, A.RowLength, A.ColumnLength,
-                    B.Buffer, B.RowLength, B.ColumnLength,
-                    out eVals, out eVecs0);
-                System.Diagnostics.Debug.Assert(ret == 0);
+                System.Numerics.Complex[][] eVecs0 = null;
+                int ret = -1;
+                try
+                {
+                    ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
+                        B.Buffer, B.RowLength, B.ColumnLength,
+                        out eVals, out eVecs0);
+                    System.Diagnostics.Debug.Assert(ret == 0);
+                }
+                catch (Exception exception)
+                {
+                    //System.Diagnostics.Debug.Assert(false);
+                    System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
+                    System.Diagnostics.Debug.WriteLine(exception.Message);
+                    System.Diagnostics.Debug.WriteLine(exception.StackTrace);
+                    ret = -1;
+                }
+                if (ret != 0)
+                {
+                    // fail safe
+                    // fail safe
+                    int n = A.RowLength;
+                    eVals = new System.Numerics.Complex[n];
+                    eVecs0 = new System.Numerics.Complex[n][];
+                    for (int iMode = 0; iMode < n; iMode++)
+                    {
+                        eVecs0[iMode] = new System.Numerics.Complex[n];
+                    }
+                }
 
                 int modeCnt = eVals.Length;
                 // βに変換

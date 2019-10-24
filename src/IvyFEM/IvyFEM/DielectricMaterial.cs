@@ -21,8 +21,14 @@ namespace IvyFEM
             Values = new double[len];
             for (int i = 0; i < len; i++)
             {
-                Values[i] = 1.0;
+                Values[i] = 0.0;
             }
+            Epxx = 1.0;
+            Epyy = 1.0;
+            Epzz = 1.0;
+            Muxx = 1.0;
+            Muyy = 1.0;
+            Muzz = 1.0;
         }
 
         public DielectricMaterial(DielectricMaterial src) : base(src)

@@ -157,8 +157,7 @@ namespace IvyFEM
         /// </summary>
         public EMWaveguide1DEigenBaseFEM[] EigenBaseFEM { get; private set; }
 
-        public EMWaveguide2DHPlaneHigherOrderABCFEM
-            (FEWorld world)
+        public EMWaveguide2DHPlaneHigherOrderABCFEM(FEWorld world)
         {
             World = world;
         }
@@ -867,7 +866,7 @@ namespace IvyFEM
         {
             int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             alpha = 0;
-            if (IsEigen1DUseDecayParameters.Count == portCnt &&
+            if (IsEigen1DUseDecayParameters.Count == (portCnt + RefPortCount + 1) &&
                 IsEigen1DUseDecayParameters[portId])
             {
                 // 減衰定数を考慮した固有値問題

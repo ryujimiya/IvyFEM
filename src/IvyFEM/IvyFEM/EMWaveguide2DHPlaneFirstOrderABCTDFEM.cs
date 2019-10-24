@@ -189,8 +189,7 @@ namespace IvyFEM
         /// </summary>
         public IList<IList<double[]>> RefTimeEzsss { get; private set; } = new List<IList<double[]>>();
 
-        public EMWaveguide2DHPlaneFirstOrderABCTDFEM
-            (FEWorld world)
+        public EMWaveguide2DHPlaneFirstOrderABCTDFEM(FEWorld world)
         {
             World = world;
         }
@@ -715,7 +714,6 @@ namespace IvyFEM
                         // 要素質量行列
                         double mValue = Constants.Ep0 * Constants.Mu0 * ma.Epzz * sNN[row, col];
 
-                        // clapack形式の行列格納方法で格納
                         K[rowNodeId, colNodeId] += kValue;
                         M[rowNodeId, colNodeId] += mValue;
                     }
@@ -735,7 +733,7 @@ namespace IvyFEM
         {
             int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             alpha = 0;
-            if (IsEigen1DUseDecayParameters.Count == portCnt &&
+            if (IsEigen1DUseDecayParameters.Count == (portCnt + RefPortCount + 1) &&
                 IsEigen1DUseDecayParameters[portId])
             {
                 // 減衰定数を考慮した固有値問題

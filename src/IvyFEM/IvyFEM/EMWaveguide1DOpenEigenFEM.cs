@@ -174,6 +174,7 @@ namespace IvyFEM
             int iter = 0;
             double prevBeta = k0 * Math.Sqrt(CladdingEp);
             double convRatio = 0;
+            bool success = false;
             for (iter = 0; iter < iterCnt; iter++)
             {
                 double alpha2 = prevBeta * prevBeta - k0 * k0 * CladdingEp;
@@ -183,8 +184,12 @@ namespace IvyFEM
                 }
                 DecayParameter = Math.Sqrt(alpha2);
 
-                SolveIter();
-
+                success = SolveIter();
+                if (!success)
+                {
+                    // 失敗したらすぐ抜ける
+                    break;
+                }
                 double beta = Betas[0].Real;
                 convRatio = Math.Abs((beta - prevBeta) / beta);
                 if (convRatio < 1.0e-6)
@@ -193,13 +198,25 @@ namespace IvyFEM
                 }
                 prevBeta = beta;
             }
-            System.Diagnostics.Debug.Assert(iter < iterCnt);
+            //System.Diagnostics.Debug.Assert(iter < iterCnt);
+            if (iter == iterCnt)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "EMWaveguide1DOpenEigenFEM *Not* converge: Frequency = {0} convRatio = {1}", Frequency, convRatio);
+            }
+            if (!success)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "EMWaveguide1DOpenEigenFEM failed: Frequency = {0}", Frequency);
+            }
         }
 
-        private void SolveIter()
+        private bool SolveIter()
         {
             Betas = null;
             EzEVecs = null;
+
+            bool success = false;
 
             // 角周波数
             double omega = 2.0 * Math.PI * Frequency;
@@ -222,18 +239,45 @@ namespace IvyFEM
 
             CalcOpenBoundary(k0, A, B);
 
-            System.Numerics.Complex[] eVals;
-            System.Numerics.Complex[][] eVecs;
-            int ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
-                B.Buffer, B.RowLength, B.ColumnLength,
-                out eVals, out eVecs);
-            System.Diagnostics.Debug.Assert(ret == 0);
+            System.Numerics.Complex[] eVals = null;
+            System.Numerics.Complex[][] eVecs = null;
+            int ret = -1;
+            try
+            {
+                ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
+                    B.Buffer, B.RowLength, B.ColumnLength,
+                    out eVals, out eVecs);
+                System.Diagnostics.Debug.Assert(ret == 0);
+            }
+            catch (Exception exception)
+            {
+                //System.Diagnostics.Debug.Assert(false);
+                System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
+                System.Diagnostics.Debug.WriteLine(exception.Message);
+                System.Diagnostics.Debug.WriteLine(exception.StackTrace);
+                ret = -1;
+            }
+            if (ret != 0)
+            {
+                // fail safe
+                // fail safe
+                int n = A.RowLength;
+                eVals = new System.Numerics.Complex[n];
+                eVecs = new System.Numerics.Complex[n][];
+                for (int iMode = 0; iMode < n; iMode++)
+                {
+                    eVecs[iMode] = new System.Numerics.Complex[n];
+                }
+            }
+            success = (ret == 0);
 
             SortEVals(eVals, eVecs);
             AdjustPhaseEVecs(eVecs);
             GetBetasEzVecs(omega, eVals, eVecs);
             Betas = eVals;
             EzEVecs = eVecs;
+
+            return success;
         }
 
         private void SortEVals(System.Numerics.Complex[] eVals, System.Numerics.Complex[][] eVecs)

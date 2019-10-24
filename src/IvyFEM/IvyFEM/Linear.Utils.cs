@@ -33,12 +33,12 @@ namespace IvyFEM.Linear
         }
 
         private static void GetBandMatrixSubDiaSuperDia(
-            bool[,] matPattern,
+            BoolSparseMatrix matPattern,
             out int rowcolLength,
             out int subdiaLength,
             out int superdiaLength)
         {
-            rowcolLength = matPattern.GetLength(0);
+            rowcolLength = matPattern.RowLength;
 
             // subdiaサイズ、superdiaサイズを取得する
             subdiaLength = 0;
@@ -90,11 +90,11 @@ namespace IvyFEM.Linear
             //System.Diagnostics.Debug.WriteLine("rowcolLength: {0} subdiaLength: {1} superdiaLength: {2}", rowcolLength, subdiaLength, superdiaLength);
         }
 
-        private static bool[,] GetDoubleMatrixNonzeroPattern(DoubleSparseMatrix A)
+        private static BoolSparseMatrix GetDoubleMatrixNonzeroPattern(DoubleSparseMatrix A)
         {
             System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
             int n = A.RowLength;
-            bool[,] nonzeroPattern = new bool[n, n];
+            BoolSparseMatrix nonzeroPattern = new BoolSparseMatrix(n, n);
             for (int row = 0; row < n; row++)
             {
                 foreach (var pair in A.RowColIndexValues[row])
@@ -116,8 +116,8 @@ namespace IvyFEM.Linear
 
             // バンド幅を縮小する
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetDoubleMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetDoubleMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
@@ -137,8 +137,8 @@ namespace IvyFEM.Linear
             // 非０要素出現順に節点番号を格納
             IList<int> newIndexs = new List<int>();
             Queue<int> check = new Queue<int>();
-            int[] remain = new int[matPattern.GetLength(0)];
-            for (int i = 0; i < matPattern.GetLength(0); i++)
+            int[] remain = new int[matPattern.RowLength];
+            for (int i = 0; i < matPattern.RowLength; i++)
             {
                 remain[i] = i;
             }
@@ -197,7 +197,7 @@ namespace IvyFEM.Linear
             // 改善できないこともあるのでチェックする
             bool improved = false;
             // 非０パターンを取得
-            bool[,] newMatPattern = GetDoubleMatrixNonzeroPattern(newA);
+            BoolSparseMatrix newMatPattern = GetDoubleMatrixNonzeroPattern(newA);
             // check
             {
                 int rowcolLength;
@@ -240,8 +240,8 @@ namespace IvyFEM.Linear
             out int superdiaLength)
         {
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetDoubleMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetDoubleMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             GetBandMatrixSubDiaSuperDia(matPattern, out rowcolLength, out subdiaLength, out superdiaLength);
         }
@@ -258,8 +258,8 @@ namespace IvyFEM.Linear
 
             // バンド幅を縮小する
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetDoubleMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetDoubleMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
@@ -332,7 +332,7 @@ namespace IvyFEM.Linear
             // 改善できないこともあるのでチェックする
             bool improved = false;
             // 非０パターンを取得
-            bool[,] newMatPattern = GetDoubleMatrixNonzeroPattern(newA);
+            BoolSparseMatrix newMatPattern = GetDoubleMatrixNonzeroPattern(newA);
             // check
             {
                 int rowcolLength;
@@ -368,11 +368,11 @@ namespace IvyFEM.Linear
             return improved;
         }
 
-        private static bool[,] GetComplexMatrixNonzeroPattern(ComplexSparseMatrix A)
+        private static BoolSparseMatrix GetComplexMatrixNonzeroPattern(ComplexSparseMatrix A)
         {
             System.Diagnostics.Debug.Assert(A.RowLength == A.ColumnLength);
             int n = A.RowLength;
-            bool[,] nonzeroPattern = new bool[n, n];
+            BoolSparseMatrix nonzeroPattern = new BoolSparseMatrix(n, n);
             for (int row = 0; row < n; row++)
             {
                 foreach (var pair in A.RowColIndexValues[row])
@@ -394,8 +394,8 @@ namespace IvyFEM.Linear
 
             // バンド幅を縮小する
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetComplexMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetComplexMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
@@ -415,8 +415,8 @@ namespace IvyFEM.Linear
             // 非０要素出現順に節点番号を格納
             IList<int> newIndexs = new List<int>();
             Queue<int> check = new Queue<int>();
-            int[] remain = new int[matPattern.GetLength(0)];
-            for (int i = 0; i < matPattern.GetLength(0); i++)
+            int[] remain = new int[matPattern.RowLength];
+            for (int i = 0; i < matPattern.RowLength; i++)
             {
                 remain[i] = i;
             }
@@ -475,7 +475,7 @@ namespace IvyFEM.Linear
             // 改善できないこともあるのでチェックする
             bool improved = false;
             // 非０パターンを取得
-            bool[,] newMatPattern = GetComplexMatrixNonzeroPattern(newA);
+            BoolSparseMatrix newMatPattern = GetComplexMatrixNonzeroPattern(newA);
             // check
             {
                 int rowcolLength;
@@ -518,8 +518,8 @@ namespace IvyFEM.Linear
             out int superdiaLength)
         {
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetComplexMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetComplexMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             GetBandMatrixSubDiaSuperDia(matPattern, out rowcolLength, out subdiaLength, out superdiaLength);
         }
@@ -535,8 +535,8 @@ namespace IvyFEM.Linear
 
             // バンド幅を縮小する
             // 非０要素のパターンを取得
-            bool[,] matPattern = GetComplexMatrixNonzeroPattern(A);
-            int n = matPattern.GetLength(0);
+            BoolSparseMatrix matPattern = GetComplexMatrixNonzeroPattern(A);
+            int n = matPattern.RowLength;
             // subdiagonal、superdiagonalのサイズを取得する
             int iniSubdiaLength = 0;
             int iniSuperdiaLength = 0;
@@ -609,7 +609,7 @@ namespace IvyFEM.Linear
             // 改善できないこともあるのでチェックする
             bool improved = false;
             // 非０パターンを取得
-            bool[,] newMatPattern = GetComplexMatrixNonzeroPattern(newA);
+            BoolSparseMatrix newMatPattern = GetComplexMatrixNonzeroPattern(newA);
             // check
             {
                 int rowcolLength;
