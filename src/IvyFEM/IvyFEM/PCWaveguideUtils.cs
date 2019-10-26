@@ -129,8 +129,8 @@ namespace IvyFEM
                     }
                     double x = x0 + (k * rodRadius / rodRadiusDiv) * Math.Cos(theta);
                     double y = y0 + (k * rodRadius / rodRadiusDiv) * Math.Sin(theta);
-                    uint id_v_add = cad2D.AddVertex(CadElementType.Loop, baseLoopId, new OpenTK.Vector2d(x, y)).AddVId;
-                    System.Diagnostics.Debug.Assert(id_v_add != 0);
+                    uint addVId = cad2D.AddVertex(CadElementType.Loop, baseLoopId, new OpenTK.Vector2d(x, y)).AddVId;
+                    System.Diagnostics.Debug.Assert(addVId != 0);
                 }
             }
             // ロッドの分割数調整: ロッド1/4円から超えた部分
@@ -335,15 +335,15 @@ namespace IvyFEM
         {
             uint retLoopId = 0;
 
-            OpenTK.Vector2d pt_center = cad2D.GetVertexCoord(vId1);
+            OpenTK.Vector2d centerPt = cad2D.GetVertexCoord(vId1);
             double th = 1.0e-12;
-            System.Diagnostics.Debug.Assert(Math.Abs(x0 - pt_center.X) < th);
-            System.Diagnostics.Debug.Assert(Math.Abs(y0 - pt_center.Y) < th);
+            System.Diagnostics.Debug.Assert(Math.Abs(x0 - centerPt.X) < th);
+            System.Diagnostics.Debug.Assert(Math.Abs(y0 - centerPt.Y) < th);
             // check
-            //CVector2D pt0 = cad2d.GetVertexCoord(id_v0);
+            //CVector2D pt0 = cad2d.GetVertexCoord(vId0);
             //double x_pt0 = pt0.x;
             //double y_pt0 = pt0.y;
-            //CVector2D pt2 = cad2d.GetVertexCoord(id_v2);
+            //CVector2D pt2 = cad2d.GetVertexCoord(vId2);
             //double x_pt2 = pt2.x;
             //double y_pt2 = pt2.y;
 
