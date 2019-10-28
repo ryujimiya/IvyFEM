@@ -26,13 +26,14 @@
 　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化  
 　　　　　　　　　　Vorticity / Stream Funciton定式化  
 　　　　　　　　　　　標準  
-　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※)  
+　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
-　　　　電磁気学　：H面TEモード/E面TEモード/2次元TMモード導波路の伝達問題  
-　　　　　　　　　　　周波数領域
+　　　　電磁気学　：電磁導波路の伝達問題
+　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
+　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　（固有モード展開）  
 　　　　　　　　　　　　（Givoli-Neta-Patlashenkoの高次ABC）（Evanescent Wave ABC）  
 　　　　　　　　　　　　（PML）  
@@ -40,7 +41,10 @@
 　　　　　　　　　　　　（Givoli-Neta-Patlashenkoの高次ABC）（Evanescent Wave ABC）  
 　　　　　　　　　　　　（Jiao-Jin-Michielssen-RileyのPML）  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
-　　　　　　　　　　　（正方格子、三角形格子）（誘電体ロッド型、エアホール型）  
+　　　　　　　　　　　正方格子、三角形格子
+　　　　　　　　　　　誘電体ロッド型、エアホール型  
+　　　　　　　　　　　周波数領域FEM  
+　　　　　　　　　　　　（固有モード展開）  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
@@ -91,8 +95,11 @@
 　　〇移流拡散方程式  
 　　![移流拡散](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408222735.jpg)  
 　　〇流体(Navier-Stokesの方程式)  
+　　Standard Galerkin Cavity  
 　　![Standard Galerkin Cavity](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190428/20190428094803.jpg)  
-　　![SUPG Cavity](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190512/20190512174448.jpg)  
+　　SUPG Cavity  
+　　![SUPG Cavity](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190512/20190512174448.jpg) 
+　　SUPG Back-step  
 　　![SUPG Back-step 1](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430193941.jpg)  
 　　![SUPG Back-step 2](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430193957.jpg)  
 　　![SUPG Back-step 3](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194019.jpg)  
@@ -100,11 +107,23 @@
 　　![SUPG Back-step 5](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194029.jpg)  
 　　![SUPG Back-step 6](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194025.jpg)  
 　　![SUPG Back-step 7](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194022.jpg)  
-　　〇H面導波路の伝達問題  
-　　![H面導波路の伝達問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
-　　〇H面導波路の時間領域FEM(高次ABC)  
-　　![H面導波路の時間領域FEM(高次ABC)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190920/20190920201958.jpg)  
-　　〇フォトニック結晶導波路の伝達問題  
-　　![フォトニック結晶導波路の伝達問題(正方格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
-　　![フォトニック結晶導波路の伝達問題(三角形格子)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  
+　　〇電磁導波路の周波数領域FEM(固有モード展開)  
+　　H面導波路直角コーナーベンド  
+　　![ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  
+　　遮蔽形誘電体導波路の終端  
+　　![終端](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014221852.jpg)  
+　　〇電磁導波路の周波数領域FEM(高次ABC)  
+　　開放形誘電体導波路の終端  
+　　![終端](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191020/20191020134009.jpg)  
+　　〇電磁導波路の時間領域FEM(高次ABC)  
+　　H面導波路直角コーナーベンド  
+　　![ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190920/20190920201958.jpg)  
+　　開放形誘電体導波路の終端  
+　　![終端1](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224143.jpg)  
+　　![終端2](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224410.jpg)  
+　　![終端3](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224518.jpg)  
+　　![終端4](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224619.jpg)  
+　　〇フォトニック結晶導波路の周波数領域FEM(固有モード展開)  
+　　![正方格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
+　　![三角形格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  
 　  
