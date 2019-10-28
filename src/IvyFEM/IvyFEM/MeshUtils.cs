@@ -454,7 +454,7 @@ namespace IvyFEM
             uint itri2 = (uint)tris.Count;
             uint itri3 = (uint)(tris.Count + 1);
 
-            int triCnt = tris.Count; 
+            int triCnt = tris.Count;
             for (int i = triCnt; i < triCnt + 2; i++)
             {
                 tris.Add(new MeshTri2D());

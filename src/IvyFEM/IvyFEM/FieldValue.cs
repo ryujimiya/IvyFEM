@@ -278,19 +278,19 @@ namespace IvyFEM
                 case FieldShowType.ZReal:
                     {
                         System.Numerics.Complex[] values = GetComplexValues(dt);
-                        value = values[coId * Dof].Real;
+                        value = values[coId * Dof + iDof].Real;
                     }
                     break;
                 case FieldShowType.ZImaginary:
                     {
                         System.Numerics.Complex[] values = GetComplexValues(dt);
-                        value = values[coId * Dof].Imaginary;
+                        value = values[coId * Dof + iDof].Imaginary;
                     }
                     break;
                 case FieldShowType.ZAbs:
                     {
                         System.Numerics.Complex[] values = GetComplexValues(dt);
-                        value = values[coId * Dof].Magnitude;
+                        value = values[coId * Dof + iDof].Magnitude;
                     }
                     break;
             }

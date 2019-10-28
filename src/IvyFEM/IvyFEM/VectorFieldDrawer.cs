@@ -54,6 +54,14 @@ namespace IvyFEM
             {
                 Type = VectorFieldDrawerType.SymmetricTensor2;
             }
+            else if (fv.Type == FieldValueType.ZVector2 || fv.Type == FieldValueType.ZVector3)
+            {
+                Type = VectorFieldDrawerType.Vector;
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
 
             {
                 DrawParts.Clear();

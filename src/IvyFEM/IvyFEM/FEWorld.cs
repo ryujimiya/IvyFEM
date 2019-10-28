@@ -599,13 +599,67 @@ namespace IvyFEM
                 }
                 for (int iDof = 0; iDof < dof; iDof++)
                 {
-                    bubbleValue[iDof] /= (double)elemNodeCnt; 
+                    bubbleValue[iDof] /= elemNodeCnt; 
                 }
 
                 for (int iDof = 0; iDof < dof; iDof++)
                 {
                     values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
                 }                
+            }
+        }
+
+        public void UpdateBubbleFieldValueValuesFromNodeValues(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+
+            IList<uint> feIds = GetTriangleFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                int[] coIds = triFE.NodeCoordIds;
+                uint elemNodeCnt = triFE.NodeCount;
+                System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    if (nodeId == -1)
+                    {
+                        //for (int iDof = 0; iDof < dof; iDof++)
+                        //{
+                        //    bubbleValue[iDof] += 0;
+                        //}
+                    }
+                    else
+                    {
+                        for (int iDof = 0; iDof < dof; iDof++)
+                        {
+                            bubbleValue[iDof] += nodeValues[offsetNode + nodeId * dof + iDof];
+                        }
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
             }
         }
 
@@ -661,7 +715,45 @@ namespace IvyFEM
                 }
                 for (int iDof = 0; iDof < dof; iDof++)
                 {
-                    bubbleValue[iDof] /= (double)elemNodeCnt;
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
+            }
+        }
+
+        public void UpdateBubbleFieldValueValuesFromCoordValues(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            System.Diagnostics.Debug.Assert(coCnt * dof == coordValues.Length);
+
+            IList<uint> feIds = GetTriangleFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                int[] coIds = triFE.NodeCoordIds;
+                uint elemNodeCnt = triFE.NodeCount;
+                System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        bubbleValue[iDof] += coordValues[coId * dof + iDof];
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
                 }
 
                 for (int iDof = 0; iDof < dof; iDof++)

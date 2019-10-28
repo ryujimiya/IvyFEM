@@ -934,9 +934,10 @@ namespace IvyFEM
                 }
             }
             // 境界の方向順に節点番号を振る
-            uint eId0 = portEIds[0];
+            uint eId1 = portEIds[0];
+            uint eId2 = portEIds[portEIds.Count - 1];
             IList<int> sortedCoIds;
-            SortPortCoIds(world, mesh, eId0, portCoIds, out sortedCoIds);
+            SortPortCoIds(world, mesh, eId1, eId2, portCoIds, out sortedCoIds);
             foreach (int coId in sortedCoIds)
             {
                 if (!portCo2Node.ContainsKey(coId) &&
@@ -1003,9 +1004,10 @@ namespace IvyFEM
                     }
                 }
                 // 境界の方向順に節点番号を振る
-                uint eId0 = portEIds[0];
+                uint eId1 = portEIds[0];
+                uint eId2 = portEIds[portEIds.Count - 1];
                 IList<int> sortedCoIds;
-                SortPortCoIds(world, mesh, eId0, bcCoIds, out sortedCoIds);
+                SortPortCoIds(world, mesh, eId1, eId2, bcCoIds, out sortedCoIds);
                 foreach (int coId in sortedCoIds)
                 {
                     if (!portCo2Node.ContainsKey(coId) &&
@@ -1049,26 +1051,35 @@ namespace IvyFEM
         }
 
         private void SortPortCoIds(
-            FEWorld world, Mesher2D mesh, uint eId0, IList<int> bcCoIds, out IList<int> sortedCoIds)
+            FEWorld world, Mesher2D mesh, uint eId1, uint eId2, IList<int> bcCoIds, out IList<int> sortedCoIds)
         {
             sortedCoIds = null;
 
             // 境界の方向順に節点番号を振る
-            OpenTK.Vector2d sPt;
+            OpenTK.Vector2d pt1;
             {
-                Edge2D e = mesh.Cad2D.GetEdge(eId0);
-                sPt = e.GetVertexCoord(true); // 始点の座標
+                Edge2D e = mesh.Cad2D.GetEdge(eId1);
+                pt1 = e.GetVertexCoord(true); // 始点の座標
             }
-            var coIdDistances = new List<KeyValuePair<int, double>>();
+            OpenTK.Vector2d pt2;
+            {
+                Edge2D e = mesh.Cad2D.GetEdge(eId2);
+                pt2 = e.GetVertexCoord(false); //終点の座標
+            }
+            var dir = pt2 - pt1;
+            dir.Normalize();
+
+            var coIdLineXs = new List<KeyValuePair<int, double>>();
             foreach (int coId in bcCoIds)
             {
                 double[] coord = world.GetCoord(Id, coId);
-                double distance = OpenTK.Vector2d.Distance(sPt, new OpenTK.Vector2d(coord[0], coord[1]));
-                coIdDistances.Add(new KeyValuePair<int, double>(coId, distance));
+                OpenTK.Vector2d pt = new OpenTK.Vector2d(coord[0], coord[1]);
+                double lineX = OpenTK.Vector2d.Dot(dir, pt - pt1);
+                coIdLineXs.Add(new KeyValuePair<int, double>(coId, lineX));
             }
-            coIdDistances.Sort((a, b) =>
+            coIdLineXs.Sort((a, b) =>
             {
-                // 距離を比較
+                // 座標を比較
                 double diff = a.Value - b.Value;
                 // 昇順
                 if (diff > 0)
@@ -1084,9 +1095,9 @@ namespace IvyFEM
 
             sortedCoIds = new List<int>();
             {
-                foreach (var coIdDistance in coIdDistances)
+                foreach (var coIdLineX in coIdLineXs)
                 {
-                    int coId = coIdDistance.Key;
+                    int coId = coIdLineX.Key;
                     if (sortedCoIds.IndexOf(coId) == -1)
                     {
                         sortedCoIds.Add(coId);

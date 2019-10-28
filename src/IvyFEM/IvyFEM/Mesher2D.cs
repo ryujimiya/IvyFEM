@@ -1871,11 +1871,14 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(quad0.Id == id0);
                 }
                 System.Diagnostics.Debug.Assert(maxId == FindMaxId());
+                /*
                 IList<uint> isUsedFlgs = new List<uint>();
                 for (int i = 0; i < maxId + 1; i++)
                 {
                     isUsedFlgs.Add(0);
                 }
+                */
+                uint[] isUsedFlgs = new uint[maxId + 1];
                 for (uint iVer = 0; iVer < Vertexs.Count; iVer++)
                 {
                     System.Diagnostics.Debug.Assert(isUsedFlgs[(int)Vertexs[(int)iVer].Id] == 0);
@@ -2029,11 +2032,14 @@ namespace IvyFEM
         {
             uint maxId = FindMaxId();
             ////////////////
+            /*
             TypeLocs.Clear();
             for (int i = 0; i < (maxId + 1); i++)
             {
                 TypeLocs.Add(new MeshTypeLoc());
             }
+            */
+            TypeLocs = (new MeshTypeLoc[maxId + 1]).ToList();
             ////////////////
             for (int iver = 0; iver < Vertexs.Count; iver++)
             {

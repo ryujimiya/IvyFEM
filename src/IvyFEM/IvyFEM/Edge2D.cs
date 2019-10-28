@@ -1564,6 +1564,7 @@ namespace IvyFEM
                 {
                     CurveType = CurveType.CurvePolyline;
                     uint nPt = (uint)(iEPt0 + 1);
+                    /*
                     int nCos = Coords.Count;
                     for (int i = nCos; i < nPt; i++)
                     {
@@ -1572,6 +1573,12 @@ namespace IvyFEM
                     for (uint ipt = 0; ipt < nPt; ipt++)
                     {
                         Coords[(int)ipt] = cos[(int)ipt];
+                    }
+                    */
+                    Coords.Clear();
+                    for (uint ipt = 0; ipt < nPt; ipt++)
+                    {
+                        Coords.Add(cos[(int)ipt]);
                     }
                 }
                 else
@@ -1583,6 +1590,7 @@ namespace IvyFEM
                 {
                     addEdge.CurveType = CurveType.CurvePolyline;
                     uint nPt = (uint)(cos.Count - iSPt1);
+                    /*
                     int nCos = addEdge.Coords.Count;
                     for (int i = nCos; i < nPt; i++)
                     {
@@ -1591,6 +1599,12 @@ namespace IvyFEM
                     for (uint ipt = 0; ipt < nPt; ipt++)
                     {
                         addEdge.Coords[(int)ipt] = cos[(int)ipt + iSPt1];
+                    }
+                    */
+                    addEdge.Coords.Clear();
+                    for (uint ipt = 0; ipt < nPt; ipt++)
+                    {
+                        addEdge.Coords.Add(cos[(int)ipt + iSPt1]);
                     }
                 }
                 else

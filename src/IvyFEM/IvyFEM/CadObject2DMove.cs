@@ -508,7 +508,10 @@ namespace IvyFEM
                 aIndNo = new List<uint>();
                 for (int ino = 0; ino < nno; ino++)
                 {
+                    /*
                     aIndNo[ino] = (uint)ino;
+                    */
+                    aIndNo.Add((uint)ino);
                 }
             }
 

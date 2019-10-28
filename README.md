@@ -53,9 +53,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-10-26更新）**  
+　**バイナリ（2019-10-28更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.24  
+　　IvyFEM.dll version 0.0.0.25  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
