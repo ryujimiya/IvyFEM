@@ -31,7 +31,7 @@
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
-　　　　電磁気学　：電磁導波路の伝達問題
+　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
 　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　（固有モード展開）  
@@ -41,7 +41,7 @@
 　　　　　　　　　　　　（Givoli-Neta-Patlashenkoの高次ABC）（Evanescent Wave ABC）  
 　　　　　　　　　　　　（Jiao-Jin-Michielssen-RileyのPML）  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
-　　　　　　　　　　　正方格子、三角形格子
+　　　　　　　　　　　正方格子、三角形格子  
 　　　　　　　　　　　誘電体ロッド型、エアホール型  
 　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　（固有モード展開）  
