@@ -13,7 +13,7 @@ namespace IvyFEM
         void Copy(IIdObject src);
     }
 
-    public class IdObjectArray<T> where T : IIdObject, new()
+    public class IdObjectArray<T> where T : IIdObject
     {
         private IList<uint> Index2Ids = new List<uint>();
         private IList<int> Id2Indexs = new List<int>();
@@ -24,6 +24,7 @@ namespace IvyFEM
 
         }
 
+        /*
         public IdObjectArray(IdObjectArray<T> src)
         {
             Copy(src);
@@ -36,11 +37,11 @@ namespace IvyFEM
             Objects.Clear();
             foreach (T obj in src.Objects)
             {
-                T tmpObj = new T();
-                tmpObj.Copy(obj);
-                Objects.Add(tmpObj);
+                // shallow copu
+                Objects.Add(obj);
             }
         }
+        */
 
         public void Clear()
         {
@@ -80,17 +81,15 @@ namespace IvyFEM
         {
             uint id1 = AddId(obj.Id);
             System.Diagnostics.Debug.Assert(IsObjectId(id1));
-            T tmpObj = new T();
-            tmpObj.Copy(obj);
-            tmpObj.Id = id1;
-            Objects.Add(tmpObj);
+            obj.Id = id1;
+            Objects.Add(obj);
             System.Diagnostics.Debug.Assert(Index2Ids.Count == Objects.Count);
             return id1;
         }
 
-        public bool IsObjectId(uint eId)
+        public bool IsObjectId(uint id)
         {
-            int index = GetArrayInd(eId);
+            int index = GetArrayInd(id);
             if (index != -1)
             {
                 return true;
@@ -206,16 +205,16 @@ namespace IvyFEM
             return id1;
         }
 
-        private int GetArrayInd(uint eId)
+        private int GetArrayInd(uint id)
         {
             int index = -1;
-            if (Id2Indexs.Count <= eId)
+            if (Id2Indexs.Count <= id)
             {
                 index = -1;
             }
             else
             {
-                index = Id2Indexs[(int)eId];
+                index = Id2Indexs[(int)id];
             }
             return index;
         }

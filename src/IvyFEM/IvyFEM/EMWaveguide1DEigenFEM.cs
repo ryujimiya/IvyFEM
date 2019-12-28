@@ -74,9 +74,20 @@ namespace IvyFEM
                 double maQzz = 0;
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
-                    maPxx = 1.0 / ma.Muxx;
-                    maPyy = 1.0 / ma.Muyy;
-                    maQzz = ma.Epzz;
+                    if (IsTMMode)
+                    {
+                        // TMモード
+                        maPxx = 1.0 / ma.Epxx;
+                        maPyy = 1.0 / ma.Epyy;
+                        maQzz = ma.Muzz;
+                    }
+                    else
+                    {
+                        // TEモード
+                        maPxx = 1.0 / ma.Muxx;
+                        maPyy = 1.0 / ma.Muyy;
+                        maQzz = ma.Epzz;
+                    }
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {
@@ -188,7 +199,7 @@ namespace IvyFEM
                     out eVals, out eVecs);
                 System.Diagnostics.Debug.Assert(ret == 0);
             }
-            catch (Exception exception)
+            catch (InvalidOperationException exception)
             {
                 //System.Diagnostics.Debug.Assert(false);
                 System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
@@ -220,11 +231,11 @@ namespace IvyFEM
         {
             int modeCnt = eVals.Length;
             var eValEVecs = new List<KeyValuePair<System.Numerics.Complex, System.Numerics.Complex[]>>();
-            for (int i = 0; i < modeCnt;  i++)
+            for (int i = 0; i < modeCnt; i++)
             {
                 eValEVecs.Add(new KeyValuePair<System.Numerics.Complex, System.Numerics.Complex[]>(eVals[i], eVecs[i]));
             }
-            eValEVecs.Sort((a, b) => 
+            eValEVecs.Sort((a, b) =>
             {
                 // eVal(β^2) の実部を比較
                 double diff = a.Key.Real - b.Key.Real;
@@ -315,8 +326,9 @@ namespace IvyFEM
                 System.Numerics.Complex d = 0;
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
+                    double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
                     d = System.Numerics.Complex.Sqrt(
-                        (System.Numerics.Complex)(omega * ReplacedMu0) /
+                        (System.Numerics.Complex)(omega * replacedMu0) /
                         (((System.Numerics.Complex)beta.Magnitude) * work2));
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
@@ -377,7 +389,8 @@ namespace IvyFEM
                         System.Numerics.Complex value = 0;
                         if (WaveguideType == EMWaveguideType.HPlane2D)
                         {
-                            value = (System.Numerics.Complex.ImaginaryOne / (omega * ReplacedMu0)) *
+                            double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
+                            value = (System.Numerics.Complex.ImaginaryOne / (omega * replacedMu0)) *
                                 beta * beta.Magnitude *
                                 vec1[row] * vec2[col];
 
@@ -451,7 +464,8 @@ namespace IvyFEM
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
 
-                    b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                    double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
+                    b = (beta.Magnitude / (omega * replacedMu0)) * work1;
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {
@@ -509,7 +523,8 @@ namespace IvyFEM
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
 
-                    b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                    double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
+                    b = (beta.Magnitude / (omega * replacedMu0)) * work1;
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {

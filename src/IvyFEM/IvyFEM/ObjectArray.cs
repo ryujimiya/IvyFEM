@@ -11,7 +11,7 @@ namespace IvyFEM
         void Copy(IObject src);
     }
 
-    public class ObjectArray<T> where T : IObject, new()
+    public class ObjectArray<T> where T : IObject
     {
         private IList<uint> Index2Ids = new List<uint>();
         private IList<int> Id2Indexs = new List<int>();
@@ -22,6 +22,7 @@ namespace IvyFEM
 
         }
 
+        /*
         public ObjectArray(ObjectArray<T> src)
         {
             Copy(src);
@@ -34,11 +35,11 @@ namespace IvyFEM
             Objects.Clear();
             foreach (T obj in src.Objects)
             {
-                T tmpObj = new T();
-                tmpObj.Copy(obj);
-                Objects.Add(tmpObj);
+                // shallow copy
+                Objects.Add(obj);
             }
         }
+        */
 
         public void Clear()
         {

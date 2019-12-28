@@ -15,11 +15,9 @@ namespace IvyFEM
         /// </summary>
         public double WaveguideWidthForEPlane { get; set; } = 0;
         /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
+        /// TMモード？
         /// </summary>
-        public double ReplacedMu0 = Constants.Mu0;
+        public bool IsTMMode { get; set; } = false;
 
         // Solve
         // input
@@ -97,9 +95,20 @@ namespace IvyFEM
                 double maQzz = 0;
                 if (WaveguideType == EMWaveguideType.HPlane2D)
                 {
-                    maPxx = 1.0 / ma.Muxx;
-                    maPyy = 1.0 / ma.Muyy;
-                    maQzz = ma.Epzz;
+                    if (IsTMMode)
+                    {
+                        // TMモード
+                        maPxx = 1.0 / ma.Epxx;
+                        maPyy = 1.0 / ma.Epyy;
+                        maQzz = ma.Muzz;
+                    }
+                    else
+                    {
+                        // TEモード
+                        maPxx = 1.0 / ma.Muxx;
+                        maPyy = 1.0 / ma.Muyy;
+                        maQzz = ma.Epzz;
+                    }
                 }
                 else if (WaveguideType == EMWaveguideType.EPlane2D)
                 {
@@ -159,7 +168,7 @@ namespace IvyFEM
 
                 eigenFEM.WaveguideType = WaveguideType;
                 eigenFEM.WaveguideWidthForEPlane = WaveguideWidthForEPlane;
-                eigenFEM.ReplacedMu0 = ReplacedMu0;
+                eigenFEM.IsTMMode = IsTMMode;
                 eigenFEM.Frequency = Frequency;
                 eigenFEM.Solve();
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
@@ -271,10 +280,20 @@ namespace IvyFEM
                 double maPyy2 = 0;
                 if (waveguideType == EMWaveguideType.HPlane2D)
                 {
-                    maPxx = 1.0 / ma.Muxx;
-                    maPyy = 1.0 / ma.Muyy;
-                    maQzz = ma.Epzz;
-                    // Note: TMモードのときはMuにEpが入っている
+                    if (isTMMode)
+                    {
+                        // TMモード
+                        maPxx = 1.0 / ma.Epxx;
+                        maPyy = 1.0 / ma.Epyy;
+                        maQzz = ma.Muzz;
+                    }
+                    else
+                    {
+                        // TEモード
+                        maPxx = 1.0 / ma.Muxx;
+                        maPyy = 1.0 / ma.Muyy;
+                        maQzz = ma.Epzz;
+                    }
                 }
                 else if (waveguideType == EMWaveguideType.EPlane2D)
                 {

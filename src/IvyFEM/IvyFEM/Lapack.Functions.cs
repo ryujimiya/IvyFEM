@@ -94,9 +94,9 @@ namespace IvyFEM.Lapack
         }
 
         public static void dgbmvAX(out double[] Y,
-                         double[] AB, int aRow, int aCol,
-                         int subdia, int superdia, TransposeType aTransposeType,
-                         double[] X)
+            double[] AB, int aRow, int aCol,
+            int subdia, int superdia, TransposeType aTransposeType,
+            double[] X)
         {
             if (aCol != X.Length)
             {
@@ -173,8 +173,8 @@ namespace IvyFEM.Lapack
         }
 
         public static void dgemvAX(out double[] Y,
-                         double[] A, int aRow, int aCol, TransposeType aTransposeType,
-                         double[] X)
+            double[] A, int aRow, int aCol, TransposeType aTransposeType,
+            double[] X)
         {
             if (aCol != X.Length)
             {
@@ -302,9 +302,9 @@ namespace IvyFEM.Lapack
         }
 
         public static void zgbmvAX(out System.Numerics.Complex[] Y,
-                         System.Numerics.Complex[] AB, int aRow, int aCol,
-                         int subdia, int superdia, TransposeType aTransposeType,
-                         System.Numerics.Complex[] X)
+            System.Numerics.Complex[] AB, int aRow, int aCol,
+            int subdia, int superdia, TransposeType aTransposeType,
+            System.Numerics.Complex[] X)
         {
             if (aCol != X.Length)
             {
@@ -391,8 +391,8 @@ namespace IvyFEM.Lapack
         }
 
         public static void zgemvAX(out System.Numerics.Complex[] Y,
-                         System.Numerics.Complex[] A, int aRow, int aCol, TransposeType aTransposeType,
-                         System.Numerics.Complex[] X)
+            System.Numerics.Complex[] A, int aRow, int aCol, TransposeType aTransposeType,
+            System.Numerics.Complex[] X)
         {
             if (aCol != X.Length)
             {
@@ -515,8 +515,22 @@ namespace IvyFEM.Lapack
         }
 
         public static int dgbsv(out double[] X, out int xRow, out int xCol,
-                         double[]  A, int aRow, int aCol, int subdia, int superdia,
-                         double[]  B, int bRow, int bCol)
+            double[]  A, int aRow, int aCol, int subdia, int superdia,
+            double[]  B, int bRow, int bCol)
+        {
+            double[] dirtyA = new double[A.Length];
+            A.CopyTo(dirtyA, 0);
+
+            int[] ipiv;
+            int ret = dgbsv_dirty(out X, out xRow, out xCol,
+                dirtyA, aRow, aCol, subdia, superdia,
+                B, bRow, bCol, out ipiv);
+            return ret;
+        }
+
+        public static int dgbsv_dirty(out double[] X, out int xRow, out int xCol,
+            double[] dirtyA, int aRow, int aCol, int subdia, int superdia,
+            double[] B, int bRow, int bCol, out int[] ipiv)
         {
             // DOUBLE PRECISION array, dimension (LDAB,N)
             // On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
@@ -541,15 +555,12 @@ namespace IvyFEM.Lapack
             int lda = 2 * subdia + superdia + 1;
             // The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
 
-            int[] ipiv = new int[n];
+            ipiv = new int[n];
 
             int ldb = bRow;
 
             double[] C = new double[B.Length];
             B.CopyTo(C, 0);
-
-            double[] dirtyA = new double[A.Length];
-            A.CopyTo(dirtyA, 0);
 
             int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dgbsv(
                 MatrixLayout.ColMajor,
@@ -571,12 +582,21 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
-        public static int dgeev(double[] A, int xRow, int xCol,
+        public static int dgeev(double[] A, int aRow, int aCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            double[] dirtyA = new double[A.Length];
+            A.CopyTo(dirtyA, 0);
+            int ret = dgeev_dirty(dirtyA, aRow, aCol, out eVals, out eVecs);
+            return ret;
+        }
+
+        public static int dgeev_dirty(double[] dirtyA, int aRow, int aCol,
             out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
         {
             byte jobvl = Job.DontCompute;
             byte jobvr = Job.Compute;
-            int n = xCol;
+            int n = aCol;
             int lda = n;
 
             double[] wr = new double[n];
@@ -587,9 +607,6 @@ namespace IvyFEM.Lapack
 
             int ldvr = n;
             double[] vr = new double[ldvr * n];
-
-            double[] dirtyA = new double[A.Length];
-            A.CopyTo(dirtyA, 0);
 
             int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dgeev(
                 MatrixLayout.ColMajor,
@@ -700,6 +717,19 @@ namespace IvyFEM.Lapack
             double[] B, int bRow, int bCol,
             out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
         {
+            double[] dirtyA = new double[A.Length];
+            A.CopyTo(dirtyA, 0);
+            double[] dirtyB = new double[B.Length];
+            B.CopyTo(dirtyB, 0);
+            int ret = dggev_dirty(dirtyA, aRow, aCol, dirtyB, bRow, bCol, out eVals, out eVecs);
+            return ret;
+        }
+
+        // A,Bは書き換わる
+        public static int dggev_dirty(double[] dirtyA, int aRow, int aCol,
+            double[] dirtyB, int bRow, int bCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
             byte jobvl = Job.DontCompute;
             byte jobvr = Job.Compute;
             int n = aCol;
@@ -721,12 +751,9 @@ namespace IvyFEM.Lapack
             int ldvr = n;
             double[] vr = new double[ldvr * n];
 
-            double[] dirtyA = new double[A.Length];
-            A.CopyTo(dirtyA, 0);
-
             int ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_dggev(
                 MatrixLayout.ColMajor, jobvl, jobvr,
-                n, dirtyA, lda, B, ldb,
+                n, dirtyA, lda, dirtyB, ldb,
                 alphar, alphai, beta, vl, ldvl, vr, ldvr);
             if (ret != 0)
             {
@@ -792,8 +819,8 @@ namespace IvyFEM.Lapack
         }
 
         public static int dpbsv(out double[] X, out int xRow, out int xCol,
-                         double[] A, int aRow, int aCol, int superdia,
-                         double[] B, int bRow, int bCol)
+            double[] A, int aRow, int aCol, int superdia,
+            double[] B, int bRow, int bCol)
         {
             //if UPLO = 'U', AB(KD + 1 + i - j, j) = A(i, j) for max(1, j - KD) <= i <= j;
             byte uplo = UpperLower.Upper;
@@ -883,7 +910,7 @@ namespace IvyFEM.Lapack
 
         public static int dsbgv(double[] A, int aRow, int aCol, int aSuperdia,
             double[] B, int bRow, int bCol, int bSuperdia,
-            out double[] eVals, out double[][]  eVecs )
+            out double[] eVals, out double[][]  eVecs)
         {
             byte jobz = Job.Compute;
             byte uplo = UpperLower.Upper;
@@ -929,6 +956,43 @@ namespace IvyFEM.Lapack
                     eVecs[i][j] = z[i * ldz + j];
                 }
             }
+            return ret;
+        }
+
+        public static int dgbtrs(out double[] X, out int xRow, out int xCol,
+            int[] ipiv,
+            double[] A, int aRow, int aCol, int subdia, int superdia,
+            double[] B, int bRow, int bCol)
+        {
+            byte trans = Trans.Nop;
+            int n = aRow;
+            int kl = subdia;
+            int ku = superdia;
+            int nrhs = bCol;
+            // The number of right hand sides, i.e., the number of columns
+            // of the matrix B
+            int ldab = 2 * kl + ku + 1;
+            int ldb = n;
+            double[] C = new double[B.Length];
+            B.CopyTo(C, 0);
+
+            int ret = ImportedFunctions.LAPACKE_dgbtrs(
+                MatrixLayout.ColMajor,
+                trans,
+                n, kl, ku, nrhs,
+                A, ldab, ipiv, C, ldb);
+            if (ret != 0)
+            {
+                X = null;
+                xRow = 0;
+                xCol = 0;
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            X = C;
+            xRow = bRow;
+            xCol = bCol;
             return ret;
         }
 
@@ -1015,8 +1079,22 @@ namespace IvyFEM.Lapack
         }
 
         public static int zgbsv(out System.Numerics.Complex[] X, out int xRow, out int xCol,
-                         System.Numerics.Complex[] A, int aRow, int aCol, int subdia, int superdia,
-                         System.Numerics.Complex[] B, int bRow, int bCol)
+            System.Numerics.Complex[] A, int aRow, int aCol, int subdia, int superdia,
+            System.Numerics.Complex[] B, int bRow, int bCol)
+        {
+            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
+            A.CopyTo(dirtyA, 0);
+
+            int[] ipiv;
+            int ret = zgbsv_dirty(out X, out xRow, out xCol,
+                dirtyA, aRow, aCol, subdia, superdia,
+                B, bRow, bCol, out ipiv);
+            return ret;
+        }
+
+        public static int zgbsv_dirty(out System.Numerics.Complex[] X, out int xRow, out int xCol,
+            System.Numerics.Complex[] dirtyA, int aRow, int aCol, int subdia, int superdia,
+            System.Numerics.Complex[] B, int bRow, int bCol, out int[] ipiv)
         {
             // COMPLEX*16 array, dimension (LDAB,N)
             // On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
@@ -1041,15 +1119,12 @@ namespace IvyFEM.Lapack
             int lda = 2 * subdia + superdia + 1;
             // The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
 
-            int[] ipiv = new int[n];
+            ipiv = new int[n];
 
             int ldb = bRow;
 
             System.Numerics.Complex[] C = new System.Numerics.Complex[B.Length];
             B.CopyTo(C, 0);
-
-            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
-            A.CopyTo(dirtyA, 0);
 
             int ret;
             unsafe
@@ -1080,8 +1155,8 @@ namespace IvyFEM.Lapack
         }
 
         public static int zgesv(out System.Numerics.Complex[] X, out int xRow, out int xCol,
-                         System.Numerics.Complex[] A, int aRow, int aCol,
-                         System.Numerics.Complex[] B, int bRow, int bCol)
+            System.Numerics.Complex[] A, int aRow, int aCol,
+            System.Numerics.Complex[] B, int bRow, int bCol)
         {
             int n = aRow;
             int nrhs = bCol;
@@ -1179,6 +1254,19 @@ namespace IvyFEM.Lapack
             System.Numerics.Complex[] B, int bRow, int bCol, int bSuperdia,
             out double[] eVals, out System.Numerics.Complex[][] eVecs)
         {
+            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
+            A.CopyTo(dirtyA, 0);
+            System.Numerics.Complex[] dirtyB = new System.Numerics.Complex[B.Length];
+            B.CopyTo(dirtyB, 0);
+            int ret = zhbgv_dirty(dirtyA, aRow, aCol, aSuperdia, dirtyB, bRow, bCol, bSuperdia, out eVals, out eVecs);
+            return ret;
+        }
+
+        // A,Bは書き換わる
+        public static int zhbgv_dirty(System.Numerics.Complex[] dirtyA, int aRow, int aCol, int aSuperdia,
+            System.Numerics.Complex[] dirtyB, int bRow, int bCol, int bSuperdia,
+            out double[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
             byte jobz = Job.Compute;
             byte uplo = UpperLower.Upper;
             int n = aCol;
@@ -1193,11 +1281,6 @@ namespace IvyFEM.Lapack
             int ldz = n;
             // if jobz == 'V' then N <= ldz
             System.Numerics.Complex[] z = new System.Numerics.Complex[ldz * n];
-
-            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
-            A.CopyTo(dirtyA, 0);
-            System.Numerics.Complex[] dirtyB = new System.Numerics.Complex[B.Length];
-            B.CopyTo(dirtyB, 0);
 
             int ret;
             unsafe
@@ -1236,6 +1319,77 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
+        public static int zggev(System.Numerics.Complex[] A, int aRow, int aCol,
+            System.Numerics.Complex[] B, int bRow, int bCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            byte jobvl = Job.DontCompute;
+            byte jobvr = Job.Compute;
+            int n = aCol;
+            int lda = n;
+            int ldb = n;
+            System.Numerics.Complex[] alpha = new System.Numerics.Complex[n];
+            System.Numerics.Complex[] beta = new System.Numerics.Complex[n];
+            int ldvl = n;
+            System.Numerics.Complex[] vl = new System.Numerics.Complex[ldvl * n];
+            int ldvr = n;
+            System.Numerics.Complex[] vr = new System.Numerics.Complex[ldvr * n];
+
+            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
+            A.CopyTo(dirtyA, 0);
+            System.Numerics.Complex[] dirtyB = new System.Numerics.Complex[B.Length];
+            B.CopyTo(dirtyB, 0);
+
+            int ret;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* dirtyAP = &dirtyA[0])
+                fixed (System.Numerics.Complex* dirtyBP = &dirtyB[0])
+                fixed (System.Numerics.Complex* alphaP = &alpha[0])
+                fixed (System.Numerics.Complex* betaP = &beta[0])
+                fixed (System.Numerics.Complex* vlP = &vl[0])
+                fixed (System.Numerics.Complex* vrP = &vr[0])
+                {
+                    ret =  ImportedFunctions.LAPACKE_zggev(
+                        MatrixLayout.ColMajor,
+                        jobvl, jobvr,
+                        n, dirtyAP, lda,
+                        dirtyBP, ldb,
+                        alphaP, betaP,
+                        vlP, ldvl,
+                        vrP, ldvr);
+                }
+            }
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+            eVals = new System.Numerics.Complex[n];
+            for (int i = 0; i < n; i++)
+            {
+                if (beta[i].Magnitude < 1.0e-50)
+                {
+                    eVals[i] = double.NaN;
+                }
+                else
+                {
+                    eVals[i] = alpha[i] / beta[i];
+                }
+            }
+
+            eVecs = new System.Numerics.Complex[n][];
+            for (int i = 0; i < n; i++)
+            {
+                eVecs[i] = new System.Numerics.Complex[ldvl];
+                for (int j = 0; j < ldvl; j++)
+                {
+                    eVecs[i][j] = vl[i * ldvl + j];
+                }
+            }
+            return ret;
+        }
+
         // conjugate
         public static System.Numerics.Complex[] zlacgv(System.Numerics.Complex[] X)
         {
@@ -1260,8 +1414,8 @@ namespace IvyFEM.Lapack
         }
 
         public static int zpbsv(out System.Numerics.Complex[] X, out int xRow, out int xCol,
-                         System.Numerics.Complex[] A, int aRow, int aCol, int superdia,
-                         System.Numerics.Complex[] B, int bRow, int bCol)
+            System.Numerics.Complex[] A, int aRow, int aCol, int superdia,
+            System.Numerics.Complex[] B, int bRow, int bCol)
         {
             //if UPLO = 'U', AB(KD + 1 + i - j, j) = A(i, j) for max(1, j - KD) <= i <= j;
             byte uplo = UpperLower.Upper;
@@ -1297,6 +1451,51 @@ namespace IvyFEM.Lapack
                         CP, ldb);
                 }
 
+            }
+            if (ret != 0)
+            {
+                X = null;
+                xRow = 0;
+                xCol = 0;
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            X = C;
+            xRow = bRow;
+            xCol = bCol;
+            return ret;
+        }
+
+        public static int zgbtrs(out System.Numerics.Complex[] X, out int xRow, out int xCol,
+            int[] ipiv,
+            System.Numerics.Complex[] A, int aRow, int aCol, int subdia, int superdia,
+            System.Numerics.Complex[] B, int bRow, int bCol)
+        {
+            byte trans = Trans.Nop;
+            int n = aRow;
+            int kl = subdia;
+            int ku = superdia;
+            int nrhs = bCol;
+            // The number of right hand sides, i.e., the number of columns
+            // of the matrix B
+            int ldab = 2 * kl + ku + 1;
+            int ldb = n;
+            System.Numerics.Complex[] C = new System.Numerics.Complex[B.Length];
+            B.CopyTo(C, 0);
+
+            int ret = -1;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* AP = &A[0])
+                fixed (System.Numerics.Complex* CP = &C[0])
+                {
+                    ret = ImportedFunctions.LAPACKE_zgbtrs(
+                        MatrixLayout.ColMajor,
+                        trans,
+                        n, kl, ku, nrhs,
+                        AP, ldab, ipiv, CP, ldb);
+                }
             }
             if (ret != 0)
             {

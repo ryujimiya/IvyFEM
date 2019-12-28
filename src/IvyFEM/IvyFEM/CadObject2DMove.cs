@@ -212,7 +212,7 @@ namespace IvyFEM
                     }
                 }
             }
-            catch(Exception exception)
+            catch(InvalidOperationException exception)
             {
                 ////////////////////////////////  
                 //if the operation fails
@@ -293,7 +293,7 @@ namespace IvyFEM
                     }
                 }
             }
-            catch(Exception exception)
+            catch(InvalidOperationException exception)
             {
                 ////////////////////////////////
                 // fail
@@ -333,7 +333,7 @@ namespace IvyFEM
                     }
                 }
             }
-            catch (Exception exception)
+            catch (InvalidOperationException exception)
             {
                 ////////////////////////////////
                 // fail

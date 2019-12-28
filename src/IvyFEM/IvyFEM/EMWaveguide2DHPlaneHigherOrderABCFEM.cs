@@ -14,6 +14,7 @@ namespace IvyFEM
         //---------------------------------
 
         public uint QuantityId { get; private set; } = 0;
+
         /// <summary>
         /// 吸収境界条件の次数
         /// </summary>
@@ -44,11 +45,9 @@ namespace IvyFEM
         public IList<int> DecayParameterEigen1DPortIds { get; set; } = new List<int>();
 
         /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
+        /// TMモード？
         /// </summary>
-        public double ReplacedMu0 { get; set; } = Constants.Mu0;
+        public bool IsTMMode { get; set; } = false;
         /// <summary>
         /// 観測点ポート数
         /// </summary>
@@ -375,6 +374,7 @@ namespace IvyFEM
             B0AbcsFor2 = new List<System.Numerics.Complex>();
             BAbcsFor2 = new List<System.Numerics.Complex[]>();
 
+            System.Diagnostics.Debug.Assert(BetasToSet.Count == 0 || BetasToSet.Count == portCnt);
             for (int portId = 0; portId < portCnt; portId++)
             {
                 int abcOrderFor2 = ABCOrdersFor2[portId];
@@ -823,6 +823,23 @@ namespace IvyFEM
                 Material ma0 = World.GetMaterial(triFE.MaterialId);
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (IsTMMode)
+                {
+                    // TMモード
+                    maPxx = 1.0 / ma.Epxx;
+                    maPyy = 1.0 / ma.Epyy;
+                    maQzz = ma.Muzz;
+                }
+                else
+                {
+                    // TEモード
+                    maPxx = 1.0 / ma.Muxx;
+                    maPyy = 1.0 / ma.Muyy;
+                    maQzz = ma.Epzz;
+                }
 
                 double[,] sNN = triFE.CalcSNN();
                 double[,][,] sNuNv = triFE.CalcSNuNv();
@@ -846,8 +863,8 @@ namespace IvyFEM
                         }
 
                         double a = 
-                            (1.0 / ma.Muxx) * sNyNy[row, col] + (1.0 / ma.Muyy) * sNxNx[row, col] -
-                            k0 * k0 * ma.Epzz * sNN[row, col];
+                            maPxx * sNyNy[row, col] + maPyy * sNxNx[row, col] -
+                            k0 * k0 * maQzz * sNN[row, col];
                         A[rowNodeId, colNodeId] += a;
                     }
                 }
@@ -873,7 +890,7 @@ namespace IvyFEM
                 var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
                 eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
-                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.IsTMMode = IsTMMode;
                 eigen1DFEM.Frequency = freq;
                 eigen1DFEM.Solve();
                 ryy1D = eigen1DFEM.Ryy;
@@ -888,7 +905,7 @@ namespace IvyFEM
                 // 通常の固有値問題
                 var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
                 eigen1DBaseFEM = eigen1DFEM;
-                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.IsTMMode = IsTMMode;
                 eigen1DFEM.Frequency = freq;
                 eigen1DFEM.Solve();
                 ryy1D = eigen1DFEM.Ryy;
@@ -924,8 +941,6 @@ namespace IvyFEM
                     System.Numerics.Complex[] work = new System.Numerics.Complex[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        //work[nodeIdB] = (-2.0 * System.Numerics.Complex.ImaginaryOne * betaX) * srcEVec[nodeIdB];
-                        // 符号が逆
                         work[nodeIdB] = (2.0 * System.Numerics.Complex.ImaginaryOne * betaX) * srcEVec[nodeIdB];
                     }
                     var QbZ = new IvyFEM.Lapack.ComplexMatrix(Qb);
@@ -956,10 +971,10 @@ namespace IvyFEM
                 OpenTK.Vector2d[] sePt = new OpenTK.Vector2d[2]; 
                 IList<uint> eIds = portCondition.EIds;
                 uint eId1 = eIds[0];
-                Edge2D e1 = World.Mesh.Cad2D.GetEdge(eId1);
+                Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
                 sePt[0] = e1.GetVertexCoord(true);
                 uint eId2 = eIds[eIds.Count - 1];
-                Edge2D e2 = World.Mesh.Cad2D.GetEdge(eId2);
+                Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
                 sePt[1] = e2.GetVertexCoord(false);
                 portSEPts.Add(sePt);
             }

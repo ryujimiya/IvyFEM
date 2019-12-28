@@ -49,9 +49,23 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
 
-                double maPxx = 1.0 / ma.Muxx;
-                double maPyy = 1.0 / ma.Muyy;
-                double maQzz = ma.Epzz;
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (IsTMMode)
+                {
+                    // TMモード
+                    maPxx = 1.0 / ma.Epxx;
+                    maPyy = 1.0 / ma.Epyy;
+                    maQzz = ma.Muzz;
+                }
+                else
+                {
+                    // TEモード
+                    maPxx = 1.0 / ma.Muxx;
+                    maPyy = 1.0 / ma.Muyy;
+                    maQzz = ma.Epzz;
+                }
 
                 double[,] sNN = lineFE.CalcSNN();
                 double[,] sNyNy = lineFE.CalcSNxNx();
@@ -95,7 +109,7 @@ namespace IvyFEM
                 IList<uint> eIds = portcondition.EIds;
 
                 uint eId1 = eIds[0];
-                Edge2D e1 = World.Mesh.Cad2D.GetEdge(eId1);
+                Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
                 uint vId1 = e1.GetVertexId(true); // 始点
                 IList<int> coIds1 = World.GetCoordIdsFromCadId(QuantityId, vId1, CadElementType.Vertex);
                 System.Diagnostics.Debug.Assert(coIds1.Count == 1);
@@ -103,7 +117,7 @@ namespace IvyFEM
                 cornerCoIds[0] = coId1;
 
                 uint eId2 = eIds[eIds.Count - 1];
-                Edge2D e2 = World.Mesh.Cad2D.GetEdge(eId2);
+                Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
                 uint vId2 = e2.GetVertexId(false); // 終点
                 IList<int> coIds2 = World.GetCoordIdsFromCadId(QuantityId, vId2, CadElementType.Vertex);
                 System.Diagnostics.Debug.Assert(coIds2.Count == 1);
@@ -249,7 +263,7 @@ namespace IvyFEM
                     out eVals, out eVecs);
                 System.Diagnostics.Debug.Assert(ret == 0);
             }
-            catch (Exception exception)
+            catch (InvalidOperationException exception)
             {
                 //System.Diagnostics.Debug.Assert(false);
                 System.Diagnostics.Debug.WriteLine("!!!!!!!ERROR!!!!!!!!!");
@@ -284,11 +298,11 @@ namespace IvyFEM
         {
             int modeCnt = eVals.Length;
             var eValEVecs = new List<KeyValuePair<System.Numerics.Complex, System.Numerics.Complex[]>>();
-            for (int i = 0; i < modeCnt;  i++)
+            for (int i = 0; i < modeCnt; i++)
             {
                 eValEVecs.Add(new KeyValuePair<System.Numerics.Complex, System.Numerics.Complex[]>(eVals[i], eVecs[i]));
             }
-            eValEVecs.Sort((a, b) => 
+            eValEVecs.Sort((a, b) =>
             {
                 // eVal(β^2) の実部を比較
                 double diff = a.Key.Real - b.Key.Real;
@@ -357,9 +371,10 @@ namespace IvyFEM
                 var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var work = RyyZ * eVec;
                 var work2 = IvyFEM.Lapack.Functions.zdotc(eVec, work);
+                double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
                 System.Numerics.Complex d = 
                     System.Numerics.Complex.Sqrt(
-                    (System.Numerics.Complex)(omega * ReplacedMu0) /
+                    (System.Numerics.Complex)(omega * replacedMu0) /
                     (((System.Numerics.Complex)beta.Magnitude) * work2));
 
                 eVec = IvyFEM.Lapack.Functions.zscal(eVec, d);
@@ -386,8 +401,9 @@ namespace IvyFEM
                 {
                     for (int col = 0; col < nodeCnt; col++)
                     {
+                        double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
                         System.Numerics.Complex value =
-                            (System.Numerics.Complex.ImaginaryOne / (omega * ReplacedMu0)) *
+                            (System.Numerics.Complex.ImaginaryOne / (omega * replacedMu0)) *
                             beta * beta.Magnitude *
                             vec1[row] * vec2[col];
                         X[row, col] += value;
@@ -424,7 +440,8 @@ namespace IvyFEM
                 var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
-                System.Numerics.Complex b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
+                System.Numerics.Complex b = (beta.Magnitude / (omega * replacedMu0)) * work1;
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
                     b = (-1.0) + b;
@@ -448,7 +465,8 @@ namespace IvyFEM
                 var RyyZ = new IvyFEM.Lapack.ComplexMatrix(Ryy);
                 var vec1 = RyyZ * IvyFEM.Lapack.Utils.Conjugate(ezEVec);
                 System.Numerics.Complex work1 = IvyFEM.Lapack.Functions.zdotu(vec1, Ez);
-                b = (beta.Magnitude / (omega * ReplacedMu0)) * work1;
+                double replacedMu0 = IsTMMode ? Constants.Ep0 : Constants.Mu0;
+                b = (beta.Magnitude / (omega * replacedMu0)) * work1;
             }
             return b;
         }

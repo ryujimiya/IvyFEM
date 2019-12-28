@@ -11,6 +11,7 @@ namespace IvyFEM.Linear
         public int RowLength { get; protected set; } = 0;
         public int ColumnLength { get; protected set; } = 0;
         public Dictionary<int, System.Numerics.Complex>[] RowColIndexValues { get; protected set; } = null;
+        public double PrecisionLowerLimit { get; set; } = IvyFEM.Constants.PrecisionLowerLimit;
 
         public ComplexSparseMatrix()
         {
@@ -34,7 +35,7 @@ namespace IvyFEM.Linear
             {
                 for (int col = 0; col < denseM.ColumnLength; col++)
                 {
-                    if (denseM[row, col].Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (denseM[row, col].Magnitude >= PrecisionLowerLimit)
                     {
                         this[row, col] = denseM[row, col];
                     }
@@ -91,7 +92,7 @@ namespace IvyFEM.Linear
                 }
                 if (RowColIndexValues[row].ContainsKey(col))
                 {
-                    if (value.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (value.Magnitude >= PrecisionLowerLimit)
                     {
                         RowColIndexValues[row][col] = value;
                     }
@@ -102,7 +103,7 @@ namespace IvyFEM.Linear
                 }
                 else
                 {
-                    if (value.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (value.Magnitude >= PrecisionLowerLimit)
                     {
                         RowColIndexValues[row].Add(col, value);
                     }
@@ -257,7 +258,7 @@ namespace IvyFEM.Linear
             }
         }
 
-        public bool IsHermitian()
+        public bool AssertHermitian(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isHermitian = true;
@@ -273,9 +274,10 @@ namespace IvyFEM.Linear
                         //    this[row, col] - System.Numerics.Complex.Conjugate(this[col, row]);
                         System.Numerics.Complex diff =
                             pair.Value - System.Numerics.Complex.Conjugate(this[col, row]);
-                        if (diff.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                        if (diff.Magnitude >= th)
                         {
                             isHermitian = false;
+                            System.Diagnostics.Debug.Assert(false);
                             break;
                         }
                     }
@@ -288,7 +290,7 @@ namespace IvyFEM.Linear
             return isHermitian;
         }
 
-        public bool IsSymmetric()
+        public bool AssertSymmetric(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isSymmetric = true;
@@ -302,9 +304,10 @@ namespace IvyFEM.Linear
                     {
                         //System.Numerics.Complex diff = this[row, col] - this[col, row];
                         System.Numerics.Complex diff = pair.Value - this[col, row];
-                        if (diff.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                        if (diff.Magnitude >= th)
                         {
                             isSymmetric = false;
+                            System.Diagnostics.Debug.Assert(false);
                             break;
                         }
                     }

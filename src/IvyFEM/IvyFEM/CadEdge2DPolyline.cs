@@ -79,15 +79,15 @@ namespace IvyFEM
             t = Ut[ino * 3 + 2];
         }
 
-        public void SetCadEdge(CadObject2D cad2D, uint eId, OpenTK.Vector2d pickPos)
+        public void SetCadEdge(CadObject2D cad, uint eId, OpenTK.Vector2d pickPos)
         {
             this.PickPos = pickPos;
             this.ECadId = eId;
             ClearMemory();
             IList<double> relCoPolys = new List<double>();
             {
-                System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
-                Edge2D e = cad2D.GetEdge(eId);
+                System.Diagnostics.Debug.Assert(cad.IsElementId(CadElementType.Edge, eId));
+                Edge2D e = cad.GetEdge(eId);
                 relCoPolys = e.GetCurveRelPoint();
             }
             IList<double> xys = new List<double>();
@@ -97,10 +97,10 @@ namespace IvyFEM
             {
                 xys.Add(0);
             }
-            uint sVId = cad2D.GetEdgeVertexId(eId, true);
-            uint eVId = cad2D.GetEdgeVertexId(eId, false);
-            OpenTK.Vector2d sV = cad2D.GetVertexCoord(sVId);
-            OpenTK.Vector2d eV = cad2D.GetVertexCoord(eVId);
+            uint sVId = cad.GetEdgeVertexId(eId, true);
+            uint eVId = cad.GetEdgeVertexId(eId, false);
+            OpenTK.Vector2d sV = cad.GetVertexCoord(sVId);
+            OpenTK.Vector2d eV = cad.GetVertexCoord(eVId);
             OpenTK.Vector2d hse = eV - sV;
             OpenTK.Vector2d vse = new OpenTK.Vector2d(-hse.Y, hse.X);
             xys.Add(sV.X);
@@ -154,7 +154,7 @@ namespace IvyFEM
             SetFixedBoundaryFlag((uint)PickedDivIndex + 1, 1);
         }
 
-        public void Drag(CadObject2D cad2D, OpenTK.Vector2d distPos)
+        public void Drag(CadObject2D cad, OpenTK.Vector2d distPos)
         {
             OpenTK.Vector2d del = distPos - PickPos;
             SetDisp((uint)PickedDivIndex, 0, del.X);
@@ -172,7 +172,7 @@ namespace IvyFEM
                 GetValueNode(i, out x, out y, out t);
                 xys.Add(new OpenTK.Vector2d(x, y));
             }
-            cad2D.SetCurvePolyline(ECadId, xys);
+            cad.SetCurvePolyline(ECadId, xys);
         }
 
         private void ProjectPoint(double inX, double inY,

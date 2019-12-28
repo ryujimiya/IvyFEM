@@ -95,6 +95,9 @@
     <Compile Include="EMWaveguide1DEigenBaseFEM.cs" />
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLFEM.cs" />
+    <Compile Include="PCWaveguide2DModalABCZTDFEM.cs" />
+    <Compile Include="PCWaveguide2DPMLFEM.cs" />
+    <Compile Include="PCWaveguide2DPMLTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneFirstOrderABCTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneHigherOrderABCFEM.cs" />
@@ -205,6 +208,7 @@
     <Compile Include="LoopEdgeItr.cs" />
     <Compile Include="ConstPortCondition.cs" />
     <Compile Include="FFT.ImportedFunctions.cs" />
+    <Compile Include="PCWaveguide2DEigenFEMByBeta.cs" />
     <Compile Include="PCWaveguide2DEigenFEM.cs" />
     <Compile Include="PCWaveguide2DFEM.cs" />
     <Compile Include="PCWaveguidePortInfo.cs" />

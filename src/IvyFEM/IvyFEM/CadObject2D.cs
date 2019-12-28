@@ -994,7 +994,8 @@ namespace IvyFEM
             {
                 uint crossCounter = 0;
                 bool iflg = true;
-                OpenTK.Vector2d dir = new OpenTK.Vector2d(Math.Sin(6.28 * i / 29.0), Math.Cos(6.28 * i / 29.0));
+                OpenTK.Vector2d dir = new OpenTK.Vector2d(
+                    Math.Sin(2.0 * Math.PI * i / 29.0), Math.Cos(2.0 * Math.PI * i / 29.0));
                 for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
                 {
                     uint eId;

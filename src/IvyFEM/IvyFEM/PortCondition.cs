@@ -13,6 +13,8 @@ namespace IvyFEM
         public IList<uint> LoopIdsForPeriodic { get; protected set; } = null;
         public IList<uint> BcEIdsForPeriodic1 { get; protected set; } = null;
         public IList<uint> BcEIdsForPeriodic2 { get; protected set; } = null;
+        public IList<uint> BcEIdsForPeriodic3 { get; protected set; } = null; // for photonic band
+        public IList<uint> BcEIdsForPeriodic4 { get; protected set; } = null; // for photonic band
         public FieldValueType ValueType { get; protected set; } = FieldValueType.NoValue;
         public uint Dof { get; protected set; } = 0;
         public IList<uint> FixedDofIndexs { get; protected set; } = new List<uint>();
@@ -31,6 +33,8 @@ namespace IvyFEM
             LoopIdsForPeriodic = null;
             BcEIdsForPeriodic1 = null;
             BcEIdsForPeriodic2 = null;
+            BcEIdsForPeriodic3 = null;
+            BcEIdsForPeriodic4 = null;
             ValueType = valueType;
             Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>();
@@ -50,6 +54,8 @@ namespace IvyFEM
             LoopIdsForPeriodic = null;
             BcEIdsForPeriodic1 = null;
             BcEIdsForPeriodic2 = null;
+            BcEIdsForPeriodic3 = null;
+            BcEIdsForPeriodic4 = null;
             ValueType = valueType;
             Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>(fixedDofIndexs);
@@ -67,6 +73,28 @@ namespace IvyFEM
             LoopIdsForPeriodic = lIdsForPeriodic;
             BcEIdsForPeriodic1 = eIdsForPeriodic1;
             BcEIdsForPeriodic2 = eIdsForPeriodic2;
+            BcEIdsForPeriodic3 = null;
+            BcEIdsForPeriodic4 = null;
+            ValueType = valueType;
+            Dof = FieldValue.GetDof(ValueType);
+            FixedDofIndexs = new List<uint>(fixedDofIndexs);
+            IntAdditionalParameters = new List<int>();
+            AdditionalParametersDof = additionalParametersDof;
+        }
+
+        // 周期構造導波路のポート条件(photonic band)
+        public PortCondition(
+            IList<uint> lIdsForPeriodic, IList<uint> eIdsForPeriodic1, IList<uint> eIdsForPeriodic2,
+            IList<uint> eIdsForPeriodic3, IList<uint> eIdsForPeriodic4,
+            FieldValueType valueType, IList<uint> fixedDofIndexs, uint additionalParametersDof)
+        {
+            IsPeriodic = true; // 周期構造
+            EIds = null;
+            LoopIdsForPeriodic = lIdsForPeriodic;
+            BcEIdsForPeriodic1 = eIdsForPeriodic1;
+            BcEIdsForPeriodic2 = eIdsForPeriodic2;
+            BcEIdsForPeriodic3 = eIdsForPeriodic3;
+            BcEIdsForPeriodic4 = eIdsForPeriodic4;
             ValueType = valueType;
             Dof = FieldValue.GetDof(ValueType);
             FixedDofIndexs = new List<uint>(fixedDofIndexs);
@@ -101,6 +129,16 @@ namespace IvyFEM
             if (src.BcEIdsForPeriodic2 != null)
             {
                 BcEIdsForPeriodic2 = new List<uint>(src.BcEIdsForPeriodic2);
+            }
+            BcEIdsForPeriodic3 = null;
+            if (src.BcEIdsForPeriodic3 != null)
+            {
+                BcEIdsForPeriodic3 = new List<uint>(src.BcEIdsForPeriodic3);
+            }
+            BcEIdsForPeriodic4 = null;
+            if (src.BcEIdsForPeriodic4 != null)
+            {
+                BcEIdsForPeriodic4 = new List<uint>(src.BcEIdsForPeriodic4);
             }
             ValueType = src.ValueType;
             Dof = src.Dof;

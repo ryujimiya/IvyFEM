@@ -27,10 +27,10 @@ namespace IvyFEM
             SetupMask();
         }
 
-        public CadObject2DDrawer(CadObject2D cad2D)
+        public CadObject2DDrawer(CadObject2D cad)
         {
             SetupMask();
-            UpdateCadTopologyGeometry(cad2D);
+            UpdateCadTopologyGeometry(cad);
         }
 
         private void SetupMask()
@@ -56,7 +56,7 @@ namespace IvyFEM
             }
         }
 
-        public bool UpdateCadTopologyGeometry(CadObject2D cad2D)
+        public bool UpdateCadTopologyGeometry(CadObject2D cad)
         {
             SutableRotMode = RotMode.RotMode2D;
             IList<CadObject2DDrawPart> oldDrawParts = new List<CadObject2DDrawPart>();
@@ -74,18 +74,18 @@ namespace IvyFEM
 
             int minLayer;
             int maxLayer;
-            cad2D.GetLayerMinMax(out minLayer, out maxLayer);
+            cad.GetLayerMinMax(out minLayer, out maxLayer);
             double layerHeight = 1.0 / (maxLayer - minLayer + 1);
 
             {
                 // 面をセット
-                IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
+                IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
                 for (int iLId = 0; iLId < lIds.Count; iLId++)
                 {
                     uint lId = lIds[iLId];
                     double height = 0;
                     {
-                        int layer = cad2D.GetLayer(CadElementType.Loop, lId);
+                        int layer = cad.GetLayer(CadElementType.Loop, lId);
                         height = (layer - minLayer) * layerHeight;
                     }
                     int idp0 = 0;
@@ -96,7 +96,7 @@ namespace IvyFEM
                         {
                             olddp.MeshId = 1;
                             olddp.Height = height;
-                            double[] color = cad2D.GetLoopColor(lId);
+                            double[] color = cad.GetLoopColor(lId);
                             for (int iTmp = 0; iTmp < 3; iTmp++)
                             {
                                 olddp.Color[iTmp] = (float)color[iTmp];
@@ -111,7 +111,7 @@ namespace IvyFEM
                         dp.CadId = lId;
                         dp.Type = CadElementType.Loop;
                         dp.Height = height;
-                        double[] color = cad2D.GetLoopColor(lId);
+                        double[] color = cad.GetLoopColor(lId);
                         for (int iTmp = 0; iTmp < 3; iTmp++)
                         {
                             dp.Color[iTmp] = (float)color[iTmp];
@@ -123,13 +123,13 @@ namespace IvyFEM
 
             {
                 // set edge
-                IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
+                IList<uint> eIds = cad.GetElementIds(CadElementType.Edge);
                 for (int iEId = 0; iEId < eIds.Count; iEId++)
                 {
                     uint eId = eIds[iEId];
                     double height = 0;
                     {
-                        int layer = cad2D.GetLayer(CadElementType.Edge, eId);
+                        int layer = cad.GetLayer(CadElementType.Edge, eId);
                         height += (layer - minLayer + 0.01) * layerHeight;
                     }
                     int idp0 = 0;
@@ -154,7 +154,7 @@ namespace IvyFEM
                     }
                     {
                         CadObject2DDrawPart dp = DrawParts[DrawParts.Count - 1];
-                        Edge2D edge = cad2D.GetEdge(eId);
+                        Edge2D edge = cad.GetEdge(eId);
                         dp.CtrlPoints.Clear();
                         dp.CurveType = edge.CurveType;
                         if (edge.CurveType == CurveType.CurveArc)
@@ -176,11 +176,11 @@ namespace IvyFEM
 
             { 
                 // set vertex
-                IList<uint> vIds = cad2D.GetElementIds(CadElementType.Vertex);
+                IList<uint> vIds = cad.GetElementIds(CadElementType.Vertex);
                 for (int iVId = 0; iVId < vIds.Count; iVId++)
                 {
                     uint vCadId = vIds[iVId];
-                    int layer = cad2D.GetLayer(CadElementType.Vertex, vCadId);
+                    int layer = cad.GetLayer(CadElementType.Vertex, vCadId);
                     double height = (layer - minLayer + 0.1) * layerHeight;
                     int idp0 = 0;
                     for (; idp0 < oldDrawParts.Count; idp0++)
@@ -207,20 +207,20 @@ namespace IvyFEM
 
             oldDrawParts.Clear();
 
-            UpdateCadGeometry(cad2D);
+            UpdateCadGeometry(cad);
             return true;
         }
 
-        public void UpdateCadGeometry(CadObject2D cad2D)
+        public void UpdateCadGeometry(CadObject2D cad)
         {
-            Mesher2D mesh = new Mesher2D(cad2D);
+            Mesher2D mesh = new Mesher2D(cad);
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
                 CadObject2DDrawPart dp = DrawParts[idp];
                 dp.Clear();
                 uint cadId = dp.CadId;
                 CadElementType cadType = dp.Type;
-                if (!cad2D.IsElementId(cadType, cadId))
+                if (!cad.IsElementId(cadType, cadId))
                 {
                     continue;
                 }
@@ -238,7 +238,7 @@ namespace IvyFEM
                 if (meshType == MeshType.Tri)
                 {
                     dp.SetTriArray(mesh.GetTriArrays()[loc]);
-                    double[] color = cad2D.GetLoopColor(cadId0);
+                    double[] color = cad.GetLoopColor(cadId0);
                     for (int iTmp = 0; iTmp < 3; iTmp++)
                     {
                         dp.Color[iTmp] = (float)color[iTmp];
@@ -248,7 +248,7 @@ namespace IvyFEM
                 {
                     dp.SetBarArray(mesh.GetBarArrays()[loc]);
                     System.Diagnostics.Debug.Assert(cadType == CadElementType.Edge);
-                    Edge2D edge = cad2D.GetEdge(cadId);
+                    Edge2D edge = cad.GetEdge(cadId);
                     dp.CurveType = edge.CurveType;
                     dp.CtrlPoints.Clear();
                     // 2019-03-11 エッジの色 FIX

@@ -14,6 +14,7 @@ namespace IvyFEM
         //---------------------------------
 
         public uint QuantityId { get; private set; } = 0;
+
         /// <summary>
         /// 周波数
         /// </summary>
@@ -28,11 +29,9 @@ namespace IvyFEM
         public IList<double> Eigen1DCladdingEps { get; set; } = new List<double>();
 
         /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
+        /// TMモード？
         /// </summary>
-        public double ReplacedMu0 { get; set; } = Constants.Mu0;
+        public bool IsTMMode { get; set; } = false;
 
         /// <summary>
         /// [A]
@@ -185,6 +184,13 @@ namespace IvyFEM
             }
 
             // バンド幅縮小を座標を用いて行う
+            SetupCoordsForBandMatrix();
+        }
+
+        // バンド幅縮小を座標を用いて行う
+        private void SetupCoordsForBandMatrix()
+        {
+            int nodeCnt = A.RowLength;
             if (Solver is IvyFEM.Linear.LapackEquationSolver)
             {
                 var solver = Solver as IvyFEM.Linear.LapackEquationSolver;
@@ -233,26 +239,59 @@ namespace IvyFEM
                     ma0 is DielectricPMLMaterial);
                 DielectricMaterial ma = null;
                 DielectricPMLMaterial maPML = null;
+                double epxx = 0;
+                double epyy = 0;
                 double epzz = 0;
                 double muxx = 0;
                 double muyy = 0;
+                double muzz = 0;
+                double rotAngle = 0.0;
+                OpenTK.Vector2d rotOrigin = new OpenTK.Vector2d();
                 if (ma0 is DielectricMaterial)
                 {
                     ma = ma0 as DielectricMaterial;
+                    epxx = ma.Epxx;
+                    epyy = ma.Epyy;
                     epzz = ma.Epzz;
                     muxx = ma.Muxx;
                     muyy = ma.Muyy;
+                    muzz = ma.Muzz;
                 }
                 else if (ma0 is DielectricPMLMaterial)
                 {
                     maPML = ma0 as DielectricPMLMaterial;
+                    epxx = maPML.Epxx;
+                    epyy = maPML.Epyy;
                     epzz = maPML.Epzz;
                     muxx = maPML.Muxx;
                     muyy = maPML.Muyy;
+                    muzz = maPML.Muzz;
+                    rotOrigin = maPML.RotOriginPoint;
+                    rotAngle = maPML.RotAngle;
                 }
                 else
                 {
                     System.Diagnostics.Debug.Assert(false);
+                }
+                // 回転移動
+                World.RotAngle = rotAngle;
+                World.RotOrigin = new double[] { rotOrigin.X, rotOrigin.Y };
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (IsTMMode)
+                {
+                    // TMモード
+                    maPxx = 1.0 / epxx;
+                    maPyy = 1.0 / epyy;
+                    maQzz = muzz;
+                }
+                else
+                {
+                    // TEモード
+                    maPxx = 1.0 / muxx;
+                    maPyy = 1.0 / muyy;
+                    maQzz = epzz;
                 }
 
                 // 重心を求める
@@ -277,10 +316,8 @@ namespace IvyFEM
                     bool isYDirection = false;
                     // X方向PML
                     double sigmaX = 0.0;
-                    double epxx = 0.0;
                     // Y方向PML
                     double sigmaY = 0.0;
-                    double epyy = 0.0;
 
                     isXDirection = maPML.IsXDirection();
                     isYDirection = maPML.IsYDirection();
@@ -301,18 +338,6 @@ namespace IvyFEM
                     {
                         // 方向がない?
                         System.Diagnostics.Debug.Assert(false);
-                    }
-
-                    if (maPML.IsTMMode)
-                    {
-                        // TMモードのときMuにEpが格納されている
-                        epxx = maPML.Muxx;
-                        epyy = maPML.Muyy;
-                    }
-                    else
-                    {
-                        epxx = maPML.Epxx;
-                        epyy = maPML.Epyy;
                     }
 
                     sx = 1.0 + sigmaX / (System.Numerics.Complex.ImaginaryOne * omega * Constants.Ep0 * epxx);
@@ -341,12 +366,17 @@ namespace IvyFEM
                         }
 
                         System.Numerics.Complex a = 
-                            (1.0 / muxx) * (sx / sy) * sNyNy[row, col] +
-                            (1.0 / muyy) * (sy / sx) * sNxNx[row, col] -
-                            k0 * k0 * epzz * sx * sy * sNN[row, col];
+                            maPxx * (sx / sy) * sNyNy[row, col] +
+                            maPyy * (sy / sx) * sNxNx[row, col] -
+                            k0 * k0 * maQzz * sx * sy * sNN[row, col];
                         A[rowNodeId, colNodeId] += a;
                     }
                 }
+
+                // 回転移動
+                // 後片付け
+                World.RotAngle = 0.0;
+                World.RotOrigin = null;
             }
         }
 
@@ -369,7 +399,7 @@ namespace IvyFEM
                 var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
                 eigen1DBaseFEM = eigen1DFEM;
                 eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
-                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.IsTMMode = IsTMMode;
                 eigen1DFEM.Frequency = freq;
                 eigen1DFEM.Solve();
                 ryy1D = eigen1DFEM.Ryy;
@@ -384,7 +414,7 @@ namespace IvyFEM
                 // 通常の固有値問題
                 var eigen1DFEM = new EMWaveguide1DEigenFEM(World, QuantityId, (uint)portId);
                 eigen1DBaseFEM = eigen1DFEM;
-                eigen1DFEM.ReplacedMu0 = ReplacedMu0;
+                eigen1DFEM.IsTMMode = IsTMMode;
                 eigen1DFEM.Frequency = freq;
                 eigen1DFEM.Solve();
                 ryy1D = eigen1DFEM.Ryy;
@@ -419,8 +449,6 @@ namespace IvyFEM
                     System.Numerics.Complex[] work = new System.Numerics.Complex[nodeCntB];
                     for (int nodeIdB = 0; nodeIdB < nodeCntB; nodeIdB++)
                     {
-                        //work[nodeIdB] = (-2.0 * System.Numerics.Complex.ImaginaryOne * betaX) * srcEVec[nodeIdB];
-                        // 符号が逆
                         work[nodeIdB] = (2.0 * System.Numerics.Complex.ImaginaryOne * betaX) * srcEVec[nodeIdB];
                     }
                     var QbZ = new IvyFEM.Lapack.ComplexMatrix(Qb);
@@ -450,10 +478,10 @@ namespace IvyFEM
                 OpenTK.Vector2d[] sePt = new OpenTK.Vector2d[2]; 
                 IList<uint> eIds = portCondition.EIds;
                 uint eId1 = eIds[0];
-                Edge2D e1 = World.Mesh.Cad2D.GetEdge(eId1);
+                Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
                 sePt[0] = e1.GetVertexCoord(true);
                 uint eId2 = eIds[eIds.Count - 1];
-                Edge2D e2 = World.Mesh.Cad2D.GetEdge(eId2);
+                Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
                 sePt[1] = e2.GetVertexCoord(false);
                 portSEPts.Add(sePt);
             }

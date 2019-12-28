@@ -17,8 +17,8 @@ namespace IvyFEM.Linear
             int t;
             X = null;
             //t = System.Environment.TickCount;
-            //bool isSymmetric = A.IsSymmetric();
-            //System.Diagnostics.Debug.Assert(isSymmetric);
+            //double th = 1.0e-12;
+            //bool isSymmetric = A.AssertSymmetric(th);
             //System.Diagnostics.Debug.WriteLine("  IsSymmetric t = " + (System.Environment.TickCount - t));
             //if (!isSymmetric)
             //{
@@ -59,8 +59,8 @@ namespace IvyFEM.Linear
             int t;
             X = null;
             //t = System.Environment.TickCount;
-            //bool isSymmetric = A.IsSymmetric();
-            //System.Diagnostics.Debug.Assert(isSymmetric);
+            //double th = 1.0e-12;
+            //bool isSymmetric = A.AssertSymmetric(th);
             //System.Diagnostics.Debug.WriteLine("  IsSymmetric t = " + (System.Environment.TickCount - t));
             //if (!isSymmetric)
             //{
@@ -101,8 +101,8 @@ namespace IvyFEM.Linear
             int t;
             X = null;
             //t = System.Environment.TickCount;
-            //bool isSymmetric = A.IsSymmetric();
-            //System.Diagnostics.Debug.Assert(isSymmetric);
+            //double th = 1.0e-12;
+            //bool isSymmetric = A.AssertSymmetric(th);
             //System.Diagnostics.Debug.WriteLine("  IsSymmetric t = " + (System.Environment.TickCount - t));
             //if (!isSymmetric)
             //{

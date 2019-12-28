@@ -19,9 +19,38 @@ namespace IvyFEM
 
         public void Copy(BRep src)
         {
-            UseLoopArray.Copy(src.UseLoopArray);
-            HalfEdgeArray.Copy(src.HalfEdgeArray);
-            UseVertexArray.Copy(src.UseVertexArray);
+            var ulArray = UseLoopArray;
+            var srcUlArray = src.UseLoopArray;
+            IList<uint> srcUlIds = srcUlArray.GetObjectIds();
+            ulArray.Clear();
+            foreach (uint id in srcUlIds)
+            {
+                var obj = srcUlArray.GetObject(id);
+                var tmpObj = new UseLoop(obj);
+                ulArray.AddObject(obj);
+            }
+
+            var heArray = HalfEdgeArray;
+            var srcHeArray = src.HalfEdgeArray;
+            IList<uint> srcHeIds = srcHeArray.GetObjectIds();
+            heArray.Clear();
+            foreach (uint id in srcHeIds)
+            {
+                var obj = srcHeArray.GetObject(id);
+                var tmpObj = new HalfEdge(obj);
+                heArray.AddObject(obj);
+            }
+
+            var uvArray = UseVertexArray;
+            var srcUvArray = src.UseVertexArray;
+            IList<uint> srcUvIds = srcUvArray.GetObjectIds();
+            uvArray.Clear();
+            foreach (uint id in srcUvIds)
+            {
+                var obj = srcUvArray.GetObject(id);
+                var tmpObj = new UseVertex(obj);
+                uvArray.AddObject(obj);
+            }
         }
 
         public void Clear()

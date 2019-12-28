@@ -12,11 +12,9 @@ namespace IvyFEM
         public uint PortId { get; protected set; } = 0;
 
         /// <summary>
-        /// TEモードで実装した式をTMモードに流用するため
-        ///   TEモードの場合は μ0
-        ///   TMモードの場合は ε0
+        /// TMモード？
         /// </summary>
-        public double ReplacedMu0 { get; set; } = Constants.Mu0;
+        public bool IsTMMode { get; set; } = false;
 
         public IvyFEM.Lapack.DoubleMatrix Txx { get; protected set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Ryy { get; protected set; } = null;

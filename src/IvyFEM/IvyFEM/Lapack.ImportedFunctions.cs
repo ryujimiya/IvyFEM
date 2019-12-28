@@ -183,6 +183,13 @@ namespace IvyFEM.Lapack
             double[] ab, int ldab, double[] bb, int ldbb,
             double[] w, double[] z, int ldz);
 
+        [DllImport("liblapacke.dll")]
+        public static extern int LAPACKE_dgbtrs(
+            MatrixLayout matrix_layout,
+            byte trans,
+            int n, int kl, int ku, int nrhs,
+            double[] ab, int ldab, int[] ipiv, double[] b, int ldb);
+
         // complex
         [DllImport("liblapacke.dll")]
         public static extern unsafe int LAPACKE_zgetrf(
@@ -226,6 +233,16 @@ namespace IvyFEM.Lapack
             double[] w, System.Numerics.Complex* z, int ldz);
 
         [DllImport("liblapacke.dll")]
+        public static extern unsafe int LAPACKE_zggev(
+            MatrixLayout matrix_layout,
+            byte jobvl, byte jobvr,
+            int n, System.Numerics.Complex* a, int lda,
+            System.Numerics.Complex* b, int ldb,
+            System.Numerics.Complex* alpha, System.Numerics.Complex* beta,
+            System.Numerics.Complex* vl, int ldvl,
+            System.Numerics.Complex* vr, int ldvr);
+
+        [DllImport("liblapacke.dll")]
         public static extern unsafe int LAPACKE_zlacgv(int n, System.Numerics.Complex* x, int incx);
 
         [DllImport("liblapacke.dll")]
@@ -234,5 +251,12 @@ namespace IvyFEM.Lapack
             byte uplo, int n, int kd, int nrhs,
             System.Numerics.Complex* ab, int ldab,
             System.Numerics.Complex* b, int ldb);
+
+        [DllImport("liblapacke.dll")]
+        public static extern unsafe int LAPACKE_zgbtrs(
+            MatrixLayout matrix_layout,
+            byte trans, 
+            int n, int kl, int ku, int nrhs,
+            System.Numerics.Complex* ab, int ldab, int[] ipiv, System.Numerics.Complex* b, int ldb);
     }
 }

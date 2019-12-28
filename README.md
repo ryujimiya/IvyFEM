@@ -40,11 +40,20 @@
 　　　　　　　　　　　時間領域FEM  
 　　　　　　　　　　　　（Givoli-Neta-Patlashenkoの高次ABC）（Evanescent Wave ABC）  
 　　　　　　　　　　　　（Jiao-Jin-Michielssen-RileyのPML）  
+　　　　　　　　　　フォトニック結晶の固有値問題  
+　　　　　　　　　　　正方格子、三角形格子  
+　　　　　　　　　　　誘電体ロッド型、エアホール型  
+　　　　　　　　　　　フォトニックバンドギャップ  
+　　　　　　　　　　　フォトニック結晶導波路  
 　　　　　　　　　　フォトニック結晶導波路の伝達問題  
 　　　　　　　　　　　正方格子、三角形格子  
 　　　　　　　　　　　誘電体ロッド型、エアホール型  
 　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　（固有モード展開）  
+　　　　　　　　　　　　（PML）  
+　　　　　　　　　　　時間領域FEM  
+　　　　　　　　　　　　（Jiao-Jin-Michielssen-RileyのPML）  
+　　　　　　　　　　　　（固有モード展開複素ABC(Modal ABCZ)）  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
@@ -53,9 +62,9 @@
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-10-28更新）**  
+　**バイナリ（2019-12-28更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.25  
+　　IvyFEM.dll version 0.0.0.26  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

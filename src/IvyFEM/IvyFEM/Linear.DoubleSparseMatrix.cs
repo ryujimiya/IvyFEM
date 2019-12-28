@@ -11,6 +11,7 @@ namespace IvyFEM.Linear
         public int RowLength { get; protected set; } = 0;
         public int ColumnLength { get; protected set; } = 0;
         public Dictionary<int, double>[] RowColIndexValues { get; protected set; } = null;
+        public double PrecisionLowerLimit { get; set; }  = IvyFEM.Constants.PrecisionLowerLimit;
 
         public DoubleSparseMatrix()
         {
@@ -34,7 +35,7 @@ namespace IvyFEM.Linear
             {
                 for (int col = 0; col < denseM.ColumnLength; col++)
                 {
-                    if (Math.Abs(denseM[row, col]) >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (Math.Abs(denseM[row, col]) >= PrecisionLowerLimit)
                     {
                         this[row, col] = denseM[row, col];
                     }
@@ -91,7 +92,7 @@ namespace IvyFEM.Linear
                 }
                 if (RowColIndexValues[row].ContainsKey(col))
                 {
-                    if (Math.Abs(value) >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (Math.Abs(value) >= PrecisionLowerLimit)
                     {
                         RowColIndexValues[row][col] = value;
                     }
@@ -102,7 +103,7 @@ namespace IvyFEM.Linear
                 }
                 else
                 {
-                    if (Math.Abs(value) >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (Math.Abs(value) >= PrecisionLowerLimit)
                     {
                         RowColIndexValues[row].Add(col, value);
                     }
@@ -241,7 +242,7 @@ namespace IvyFEM.Linear
             }
         }
 
-        public bool IsSymmetric()
+        public bool AssertSymmetric(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isSymmetric = true;
@@ -255,9 +256,10 @@ namespace IvyFEM.Linear
                     {
                         //double diff = this[row, col] - this[col, row];
                         double diff = pair.Value - this[col, row];
-                        if (Math.Abs(diff) >= IvyFEM.Constants.PrecisionLowerLimit)
+                        if (Math.Abs(diff) >= th)
                         {
                             isSymmetric = false;
+                            System.Diagnostics.Debug.Assert(false);
                             break;
                         }
                     }

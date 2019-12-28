@@ -163,6 +163,36 @@ namespace IvyFEM.Lapack
             Copy(t.Buffer, t.RowLength, t.ColumnLength, false);
         }
 
+        public DoubleMatrix Real()
+        {
+            int nRow = RowLength;
+            int nCol = ColumnLength;
+            DoubleMatrix doubleM = new DoubleMatrix(nRow, nCol);
+            for (int row = 0; row < nRow; row++)
+            {
+                for (int col = 0; col < nCol; col++)
+                {
+                    doubleM[row, col] = this[row, col].Real;
+                }
+            }
+            return doubleM;
+        }
+
+        public DoubleMatrix Imaginary()
+        {
+            int nRow = RowLength;
+            int nCol = ColumnLength;
+            DoubleMatrix doubleM = new DoubleMatrix(nRow, nCol);
+            for (int row = 0; row < nRow; row++)
+            {
+                for (int col = 0; col < nCol; col++)
+                {
+                    doubleM[row, col] = this[row, col].Imaginary;
+                }
+            }
+            return doubleM;
+        }
+
         public static ComplexMatrix Conjugate(ComplexMatrix A)
         {
             System.Numerics.Complex[] x = IvyFEM.Lapack.Functions.zlacgv(A.Buffer);
@@ -228,7 +258,7 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
-        public bool IsHermitian()
+        public bool AssertHermitian(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isHermitian = true;
@@ -239,9 +269,10 @@ namespace IvyFEM.Lapack
                 {
                     System.Numerics.Complex diff =
                         this[row, col] - System.Numerics.Complex.Conjugate(this[col, row]);
-                    if (diff.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (diff.Magnitude >= th)
                     {
                         isHermitian = false;
+                        System.Diagnostics.Debug.Assert(false);
                         break;
                     }
                 }
@@ -253,7 +284,7 @@ namespace IvyFEM.Lapack
             return isHermitian;
         }
 
-        public bool IsSymmetric()
+        public bool AssertSymmetric(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isSymmetric = true;
@@ -263,9 +294,10 @@ namespace IvyFEM.Lapack
                 for (int col = row + 1; col < n; col++)
                 {
                     System.Numerics.Complex diff = this[row, col] - this[col, row];
-                    if (diff.Magnitude >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (diff.Magnitude >= th)
                     {
                         isSymmetric = false;
+                        System.Diagnostics.Debug.Assert(false);
                         break;
                     }
                 }

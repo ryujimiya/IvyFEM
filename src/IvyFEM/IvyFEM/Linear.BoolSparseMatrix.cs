@@ -132,7 +132,7 @@ namespace IvyFEM.Linear
         }
         */
 
-        public bool IsSymmetric()
+        public bool AssertSymmetric(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isSymmetric = true;
@@ -148,6 +148,7 @@ namespace IvyFEM.Linear
                         if (pair.Value != this[col, row])
                         {
                             isSymmetric = false;
+                            System.Diagnostics.Debug.Assert(false);
                             break;
                         }
                     }

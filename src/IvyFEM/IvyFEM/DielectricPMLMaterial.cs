@@ -14,8 +14,10 @@ namespace IvyFEM
         public double Muxx { get => Values[3]; set => Values[3] = value; }
         public double Muyy { get => Values[4]; set => Values[4] = value; }
         public double Muzz { get => Values[5]; set => Values[5] = value; }
-        protected double OriginPointX { get => Values[6]; set => Values[6] = value; }
-        protected double OriginPointY { get => Values[7]; set => Values[7] = value; }
+        public double Reflection0 { get => Values[6]; set => Values[6] = value; }
+        public double DistanceOrder { get => Values[7]; set => Values[7] = value; }
+        protected double OriginPointX { get => Values[8]; set => Values[8] = value; }
+        protected double OriginPointY { get => Values[9]; set => Values[9] = value; }
         public OpenTK.Vector2d OriginPoint 
         {
             get
@@ -28,15 +30,28 @@ namespace IvyFEM
                 OriginPointY = value.Y;
             } 
         }
-        public double XThickness { get => Values[8]; set => Values[8] = value; }
-        public double YThickness { get => Values[9]; set => Values[9] = value; }
-        public double Reflection0 { get => Values[10]; set => Values[10] = value; }
-
-        public bool IsTMMode { get => IntValues[0] == 1; set => IntValues[0] = value ? 1 : 0; }
+        public double XThickness { get => Values[10]; set => Values[10] = value; }
+        public double YThickness { get => Values[11]; set => Values[11] = value; }
+        // 回転
+        protected double RotOriginPointX { get => Values[12]; set => Values[12] = value; }
+        protected double RotOriginPointY { get => Values[13]; set => Values[13] = value; }
+        public OpenTK.Vector2d RotOriginPoint
+        {
+            get
+            {
+                return new OpenTK.Vector2d(RotOriginPointX, RotOriginPointY);
+            }
+            set
+            {
+                RotOriginPointX = value.X;
+                RotOriginPointY = value.Y;
+            }
+        }
+        public double RotAngle { get => Values[14]; set => Values[14] = value; }
 
         public DielectricPMLMaterial() : base()
         {
-            int len = 11;
+            int len = 15;
             Values = new double[len];
             for (int i = 0; i < len; i++)
             {
@@ -49,6 +64,7 @@ namespace IvyFEM
             Muyy = 1.0;
             Muzz = 1.0;
             Reflection0 = 1.0e-8;
+            DistanceOrder = 2.0;
 
             int intLen = 1;
             IntValues = new int[intLen];
@@ -56,7 +72,6 @@ namespace IvyFEM
             {
                 IntValues[i] = 0;
             }
-            IsTMMode = false;
         }
 
         public DielectricPMLMaterial(DielectricMaterial src) : base(src)
@@ -84,9 +99,10 @@ namespace IvyFEM
             double ep, double mu,
             double pos, double origin)
         {
+            double order = DistanceOrder;
             // σmax
             System.Diagnostics.Debug.Assert(thickness >= 0);
-            double sigmaMax = (3.0 / (2.0 * thickness)) *
+            double sigmaMax = ((1.0 + order) / (2.0 * thickness)) *
                 Math.Sqrt(Constants.Ep0 / Constants.Mu0) *
                 Math.Sqrt(ep / mu) *
                 Math.Log(1.0 / Reflection0);
@@ -95,7 +111,7 @@ namespace IvyFEM
             double s = Math.Abs(pos - origin) / thickness;
             System.Diagnostics.Debug.Assert(s <= 1.0);
 
-            double sigma = sigmaMax * s * s;
+            double sigma = sigmaMax * Math.Pow(s, order);
 
             return sigma;
         }
@@ -108,22 +124,14 @@ namespace IvyFEM
                 return sigmaX;
             }
 
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = XThickness;
-            double ep = 0.0;
-            double mu = 0.0;
-            if (IsTMMode)
-            {
-                // TMモードの場合、MuにEpが格納されている
-                ep = Muxx;
-                mu = Epxx;
-            }
-            else
-            {
-                ep = Epxx;
-                mu = Muxx;
-            }
+            double ep = Epxx;
+            double mu = Muxx;
             double pos = pt.X;
-            double origin = OriginPointX;
+            double origin = pmlOriginCoord[0]; // X
             sigmaX = CalcSigma(
                 thickness,
                 ep, mu,
@@ -140,22 +148,14 @@ namespace IvyFEM
                 return sigmaY;
             }
 
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = YThickness;
-            double ep = 0.0;
-            double mu = 0.0;
-            if (IsTMMode)
-            {
-                // TMモードの場合、MuにEpが格納されている
-                ep = Muyy;
-                mu = Epyy;
-            }
-            else
-            {
-                ep = Epyy;
-                mu = Muyy;
-            }
+            double ep = Epyy;
+            double mu = Muyy;
             double pos = pt.Y;
-            double origin = OriginPointY;
+            double origin = pmlOriginCoord[1]; // Y
             sigmaY = CalcSigma(
                 thickness,
                 ep, mu,
@@ -201,22 +201,14 @@ namespace IvyFEM
                 return;
             }
 
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = XThickness;
-            double ep = 0.0;
-            double mu = 0.0;
-            if (IsTMMode)
-            {
-                // TMモードの場合、MuにEpが格納されている
-                ep = Muxx;
-                mu = Epxx;
-            }
-            else
-            {
-                ep = Epxx;
-                mu = Muxx;
-            }
+            double ep = Epxx;
+            double mu = Muxx;
             double pos = pt.X;
-            double origin = OriginPointX;
+            double origin = pmlOriginCoord[0]; // X
             CalcSigmaForTD(
                 thickness,
                 ep, mu,
@@ -244,22 +236,14 @@ namespace IvyFEM
                 return;
             }
 
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = YThickness;
-            double ep = 0.0;
-            double mu = 0.0;
-            if (IsTMMode)
-            {
-                // TMモードの場合、MuにEpが格納されている
-                ep = Muyy;
-                mu = Epyy;
-            }
-            else
-            {
-                ep = Epyy;
-                mu = Muyy;
-            }
+            double ep = Epyy;
+            double mu = Muyy;
             double pos = pt.Y;
-            double origin = OriginPointY;
+            double origin = pmlOriginCoord[1]; // Y
             CalcSigmaForTD(
                 thickness,
                 ep, mu,

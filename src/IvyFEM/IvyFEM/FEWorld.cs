@@ -246,16 +246,6 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].GetPeriodicPortBcCoIds(portId, bcIndex);
         }
 
-        public int PeriodicPortBcCoord2Node(uint quantityId, uint portId, uint bcIndex, int coId)
-        {
-            return Quantitys[(int)quantityId].PeriodicPortBcCoord2Node(portId, bcIndex, coId);
-        }
-
-        public int PeriodicPortBcNode2Coord(uint quantityId, uint portId, uint bcIndex, int nodeId)
-        {
-            return Quantitys[(int)quantityId].PeriodicPortBcNode2Coord(portId, bcIndex, nodeId);
-        }
-
         public uint GetDof(uint quantityId)
         {
             return Quantitys[(int)quantityId].Dof;

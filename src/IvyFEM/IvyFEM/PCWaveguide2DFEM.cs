@@ -11,6 +11,7 @@ namespace IvyFEM
         public uint QuantityId { get; private set; } = 0;
 
         public IList<PCWaveguidePortInfo> WgPortInfos { get; set; } = null;
+        public bool IsTMMode { get; set; } = false;
 
         // Solve
         // input
@@ -83,6 +84,23 @@ namespace IvyFEM
                 Material ma0 = World.GetMaterial(triFE.MaterialId);
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
+                double maPxx = 0;
+                double maPyy = 0;
+                double maQzz = 0;
+                if (IsTMMode)
+                {
+                    // TMモード
+                    maPxx = 1.0 / ma.Epxx;
+                    maPyy = 1.0 / ma.Epyy;
+                    maQzz = ma.Muzz;
+                }
+                else
+                {
+                    // TEモード
+                    maPxx = 1.0 / ma.Muxx;
+                    maPyy = 1.0 / ma.Muyy;
+                    maQzz = ma.Epzz;
+                }
 
                 double[,] sNN = triFE.CalcSNN();
                 double[,][,] sNuNv = triFE.CalcSNuNv();
@@ -104,8 +122,8 @@ namespace IvyFEM
                         {
                             continue;
                         }
-                        double a = (1.0 / ma.Muxx) * sNyNy[row, col] + (1.0 / ma.Muyy) * sNxNx[row, col] -
-                            (k0 * k0 * ma.Epzz) * sNN[row, col];
+                        double a = maPxx * sNyNy[row, col] + maPyy * sNxNx[row, col] -
+                            k0 * k0 * maQzz * sNN[row, col];
 
                         A[rowNodeId, colNodeId] += (System.Numerics.Complex)a;
                     }
@@ -124,6 +142,7 @@ namespace IvyFEM
                 var eigenFEM = new PCWaveguide2DEigenFEM(World, QuantityId, portId, wgPortInfo);
                 eigenFEMs[portId] = eigenFEM;
 
+                eigenFEM.IsTMMode = IsTMMode;
                 eigenFEM.Frequency = Frequency;
                 eigenFEM.Solve();
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
@@ -138,13 +157,11 @@ namespace IvyFEM
                 for (int row = 0; row < bcNodeCnt; row++)
                 {
                     int rowPortNodeId = bcNodes[row];
-                    //int rowCoId = World.PeriodicPortBcNode2Coord(QuantityId, portId, bcIndex, rowPortNodeId);
                     int rowCoId = World.PortNode2Coord(QuantityId, portId, rowPortNodeId);
                     int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
                     for (int col = 0; col < bcNodeCnt; col++)
                     {
                         int colPortNodeId = bcNodes[col];
-                        //int colCoId = World.PeriodicPortBcNode2Coord(QuantityId, portId, bcIndex, colPortNodeId);
                         int colCoId = World.PortNode2Coord(QuantityId, portId, colPortNodeId);
                         int colNodeId = World.Coord2Node(QuantityId, colCoId);
 
@@ -164,7 +181,6 @@ namespace IvyFEM
                     for (int row = 0; row < bcNodeCnt; row++)
                     {
                         int rowPortNodeId = bcNodes[row];
-                        //int rowCoId = World.PeriodicPortBcNode2Coord(QuantityId, portId, bcIndex, rowPortNodeId);
                         int rowCoId = World.PortNode2Coord(QuantityId, portId, rowPortNodeId);
                         int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
 
@@ -209,7 +225,6 @@ namespace IvyFEM
             for (int row = 0; row < bcNodeCnt; row++)
             {
                 int rowPortNodeId = bcNodes[row];
-                //int rowCoId = World.PeriodicPortBcNode2Coord(QuantityId, portId, bcIndex, rowPortNodeId);
                 int rowCoId = World.PortNode2Coord(QuantityId, portId, rowPortNodeId);
                 int rowNodeId = World.Coord2Node(QuantityId, rowCoId);
                 portEz[row] = Ez[rowNodeId];

@@ -27,7 +27,7 @@ namespace IvyFEM
 
     public class Mesher2D
     {
-        public CadObject2D Cad2D { get; private set; } = null;
+        public CadObject2D Cad { get; private set; } = null;
         private IList<uint> CutMeshLoopCadIds = new List<uint>();
         private uint MeshingMode;
         private IList<double> ELens = new List<double>();
@@ -46,35 +46,35 @@ namespace IvyFEM
             MeshingMode = 2;
         }
 
-        public Mesher2D(CadObject2D cad2D)
+        public Mesher2D(CadObject2D cad)
         {
-            Cad2D = cad2D;
+            Cad = cad;
             MeshingMode = 0;
             double eLen = 1;
-            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
+            IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
             for (uint i = 0; i < lIds.Count; i++)
             {
                 CutMeshLoopCadIds.Add(lIds[(int)i]);
                 ELens.Add(eLen);
             }
 
-            Meshing(Cad2D);
+            Meshing(Cad);
         }
 
-        public Mesher2D(CadObject2D cad2D, double eLen)
+        public Mesher2D(CadObject2D cad, double eLen)
         {
-            Cad2D = cad2D;
+            Cad = cad;
             MeshingMode = 2;
             uint eSize = 1000;
 
-            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
+            IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
             for (int i = 0; i < lIds.Count; i++)
             {
                 CutMeshLoopCadIds.Add(lIds[i]);
                 ELens.Add(eLen);
             }
 
-            Meshing(Cad2D);
+            Meshing(Cad);
         }
 
         public Mesher2D(Mesher2D src)
@@ -447,15 +447,15 @@ namespace IvyFEM
         }
         */
 
-        public bool Meshing(CadObject2D cad2D)
+        public bool Meshing(CadObject2D cad)
         {
-            Cad2D = cad2D;
+            Cad = cad;
 
             IList<uint> cutLIds = new List<uint>();
             {
                 foreach (uint lId in CutMeshLoopCadIds)
                 {
-                    if (!cad2D.IsElementId(CadElementType.Loop, lId))
+                    if (!cad.IsElementId(CadElementType.Loop, lId))
                     {
                         continue;
                     }
@@ -464,11 +464,11 @@ namespace IvyFEM
             }
             if (MeshingMode == 0)
             {
-                return Tessellation(cad2D, cutLIds);
+                return Tessellation(cad, cutLIds);
             }
             else if (MeshingMode == 2)
             {
-                return MeshingElemLength(cad2D, cutLIds, ELens);
+                return MeshingElemLength(cad, cutLIds, ELens);
             }
             else
             {
@@ -477,16 +477,16 @@ namespace IvyFEM
             return false;
         }
 
-        private bool Tessellation(CadObject2D cad2D, IList<uint> loopIds)
+        private bool Tessellation(CadObject2D cad, IList<uint> loopIds)
         {
             {
-                IList<uint> vIds = cad2D.GetElementIds(CadElementType.Vertex);
+                IList<uint> vIds = cad.GetElementIds(CadElementType.Vertex);
                 for (uint iV = 0; iV < vIds.Count; iV++)
                 {
                     uint vId = vIds[(int)iV];
                     System.Diagnostics.Debug.Assert(GetIdFromCadId(vId, CadElementType.Vertex) == 0);
                     uint addId = GetFreeObjectId();
-                    OpenTK.Vector2d vec2d = cad2D.GetVertexCoord(vId);
+                    OpenTK.Vector2d vec2d = cad.GetVertexCoord(vId);
                     Vec2Ds.Add(vec2d);
                     {
                         MeshVertex tmpVer = new MeshVertex();
@@ -507,15 +507,15 @@ namespace IvyFEM
                     }
                     System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                 }
-                System.Diagnostics.Debug.Assert(Vec2Ds.Count <= cad2D.GetElementIds(CadElementType.Vertex).Count * 10);
+                System.Diagnostics.Debug.Assert(Vec2Ds.Count <= cad.GetElementIds(CadElementType.Vertex).Count * 10);
             }
             {
-                IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
+                IList<uint> eIds = cad.GetElementIds(CadElementType.Edge);
                 for (uint iE = 0; iE < eIds.Count; iE++)
                 {
                     uint eId = eIds[(int)iE];
 
-                    TessellateEdge(cad2D, eId);
+                    TessellateEdge(cad, eId);
 
                     System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                 }
@@ -525,23 +525,23 @@ namespace IvyFEM
                 {
                     uint lId = loopIds[(int)iL];
 
-                    TessellateLoop(cad2D, lId);
+                    TessellateLoop(cad, lId);
 
                     System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                 }
             }
 
-            MakeIncludeRelation(cad2D);
+            MakeIncludeRelation(cad);
 
             return true;
         }
 
-        private bool TessellateEdge(CadObject2D cad2D, uint eId)
+        private bool TessellateEdge(CadObject2D cad, uint eId)
         {
             uint sVId;
             uint eVId;
-            System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
-            if (!cad2D.GetEdgeVertexId(out sVId, out eVId, eId))
+            System.Diagnostics.Debug.Assert(cad.IsElementId(CadElementType.Edge, eId));
+            if (!cad.GetEdgeVertexId(out sVId, out eVId, eId))
             {
                 System.Diagnostics.Debug.WriteLine("error edge : " + eId);
                 System.Diagnostics.Debug.Assert(false);
@@ -592,7 +592,7 @@ namespace IvyFEM
             }
             MeshBarArray barArray = BarArrays[(int)ibarArary0];
             IList<OpenTK.Vector2d> pts;
-            cad2D.GetCurveAsPolyline(eId, out pts, -1);
+            cad.GetCurveAsPolyline(eId, out pts, -1);
 
             uint div = (uint)(pts.Count + 1);
             IList<uint> iPts = new List<uint>();
@@ -612,7 +612,7 @@ namespace IvyFEM
             {
                 barArray.Id = newElemArrayId;
                 barArray.ECadId = eId;
-                barArray.Layer = cad2D.GetLayer(CadElementType.Edge, eId);
+                barArray.Layer = cad.GetLayer(CadElementType.Edge, eId);
                 int barCnt = barArray.Bars.Count;
                 for (int i = barCnt; i < div; i++)
                 {
@@ -637,7 +637,7 @@ namespace IvyFEM
             return true;
         }
 
-        private bool TessellateLoop(CadObject2D cad2D, uint lId)
+        private bool TessellateLoop(CadObject2D cad, uint lId)
         {
             IList<MeshPoint2D> points = new List<MeshPoint2D>();
             IList<int> vec2Pt = new List<int>();
@@ -652,7 +652,7 @@ namespace IvyFEM
                 }
                 {
                     // このループで使用される節点のフラグを立てる
-                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                     while (true)
                     {
                         // ループをめぐる
@@ -948,7 +948,7 @@ namespace IvyFEM
 
             {
                 // エッジを回復する
-                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                 while (true)
                 {
                     // 子ループのためのループ
@@ -1105,7 +1105,7 @@ namespace IvyFEM
 
             {
                 // 辺要素から３角形要素への隣接情報を作成
-                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                 while (true)
                 {   
                     // 子ループのためのループ
@@ -1211,7 +1211,7 @@ namespace IvyFEM
 
             {
                 // 辺との隣接番号の整合性をとる
-                LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                 while (true)
                 {
                     // 子ループのためのループ
@@ -1348,7 +1348,7 @@ namespace IvyFEM
                 // 内側にある三角形をひとつ(iKerTri0)見つける
                 uint iKerTri0 = (uint)tris.Count;
                 {
-                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                     for (; !loopItr.IsEnd(); loopItr.Next())
                     {
                         uint eId;
@@ -1453,7 +1453,7 @@ namespace IvyFEM
                 }
                 { 
                     // 辺の隣接情報を更新
-                    LoopEdgeItr loopItr = cad2D.GetLoopEdgeItr(lId);
+                    LoopEdgeItr loopItr = cad.GetLoopEdgeItr(lId);
                     while (true)
                     {
                         // 子ループのためのループ
@@ -1579,7 +1579,7 @@ namespace IvyFEM
                 TriArrays[(int)iTriArray].Tris = inTris;
                 TriArrays[(int)iTriArray].LCadId = lId;
                 TriArrays[(int)iTriArray].Id = newTriId;
-                TriArrays[(int)iTriArray].Layer = cad2D.GetLayer(CadElementType.Loop, lId);
+                TriArrays[(int)iTriArray].Layer = cad.GetLayer(CadElementType.Loop, lId);
 
                 int typeLocCnt = TypeLocs.Count;
                 for (int i = typeLocCnt; i < newTriId + 1; i++)
@@ -1952,7 +1952,7 @@ namespace IvyFEM
             return 0;
         }
 
-        private void MakeIncludeRelation(CadObject2D cad2D)
+        private void MakeIncludeRelation(CadObject2D cad)
         {
             if (TypeLocs.Count == 0)
             {
@@ -1965,7 +1965,7 @@ namespace IvyFEM
                 typeLoc.IncludeRelations.Clear();
             }
 
-            IList<uint> lIds = cad2D.GetElementIds(CadElementType.Loop);
+            IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
             for (uint iLId = 0; iLId < lIds.Count; iLId++)
             {
                 uint lId = lIds[(int)iLId];
@@ -1974,7 +1974,7 @@ namespace IvyFEM
                 {
                     continue;
                 }
-                LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
+                LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId);
                 while (true)
                 {
                     for (; !lItr.IsEnd(); lItr.Next())
@@ -2001,11 +2001,11 @@ namespace IvyFEM
                 }
             }
 
-            IList<uint> eIds = cad2D.GetElementIds(CadElementType.Edge);
+            IList<uint> eIds = cad.GetElementIds(CadElementType.Edge);
             for (uint iEId = 0; iEId < eIds.Count; iEId++)
             {
                 uint eId = eIds[(int)iEId];
-                System.Diagnostics.Debug.Assert(cad2D.IsElementId(CadElementType.Edge, eId));
+                System.Diagnostics.Debug.Assert(cad.IsElementId(CadElementType.Edge, eId));
                 uint barId = GetIdFromCadId(eId, CadElementType.Edge);
                 if (!IsId(barId))
                 {
@@ -2014,7 +2014,7 @@ namespace IvyFEM
                 }
                 uint sVId;
                 uint eVId;
-                if (!cad2D.GetEdgeVertexId(out sVId, out eVId, eId))
+                if (!cad.GetEdgeVertexId(out sVId, out eVId, eId))
                 {
                     System.Diagnostics.Debug.Assert(false);
                 }
@@ -2068,7 +2068,7 @@ namespace IvyFEM
         }
 
         /*
-        private bool MeshingElemSize(CadObject2D cad2D, IList<uint> loopIds, IList<uint> eSizes)
+        private bool MeshingElemSize(CadObject2D cad, IList<uint> loopIds, IList<uint> eSizes)
         {
             System.Diagnostics.Debug.Assert(loopIds.Count == eSizes.Count);
 
@@ -2078,17 +2078,17 @@ namespace IvyFEM
             {
                 uint lId = loopIds[iLId];
                 uint eSize = eSizes[iLId];
-                area += cad2D.GetLoopArea(lId);
+                area += cad.GetLoopArea(lId);
 
                 System.Diagnostics.Debug.Assert(eSize != 0);
                 double elen = Math.Sqrt(area / (double)eSize) * 1.4;
                 eLens.Add(elen);
             }
-            return MeshingElemLength(cad2D, loopIds, eLens);
+            return MeshingElemLength(cad, loopIds, eLens);
         }
         */
 
-        private bool MeshingElemLength(CadObject2D cad2D, IList<uint> loopIds, IList<double> eLens)
+        private bool MeshingElemLength(CadObject2D cad, IList<uint> loopIds, IList<double> eLens)
         {
             if (eLens.Count == 1)
             {
@@ -2109,7 +2109,7 @@ namespace IvyFEM
                 for (int iLId = 0; iLId < loopIds.Count; iLId++)
                 {
                     uint lId = loopIds[iLId];
-                    LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId);
+                    LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId);
                     while (true)
                     {
                         for (; !lItr.IsEnd(); lItr.Next())
@@ -2138,13 +2138,13 @@ namespace IvyFEM
                         continue;
                     }
                     uint addId = GetFreeObjectId();
-                    OpenTK.Vector2d vec2d = cad2D.GetVertexCoord(vId);
+                    OpenTK.Vector2d vec2d = cad.GetVertexCoord(vId);
                     Vec2Ds.Add(vec2d);
                     {
                         MeshVertex tmpVer = new MeshVertex();
                         tmpVer.Id = addId;
                         tmpVer.VCadId = vId;
-                        tmpVer.Layer = cad2D.GetLayer(CadElementType.Vertex, vId);
+                        tmpVer.Layer = cad.GetLayer(CadElementType.Vertex, vId);
                         tmpVer.V = (uint)(Vec2Ds.Count - 1);
 
                         Vertexs.Add(tmpVer);
@@ -2169,7 +2169,7 @@ namespace IvyFEM
                 // ループに必要な辺を作る
                 uint lId = loopIds[iLId];
                 double eLen = eLens[iLId];
-                for (LoopEdgeItr lItr = cad2D.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
+                for (LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
                 {
                     for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
                     {
@@ -2184,7 +2184,7 @@ namespace IvyFEM
                             // 既にこの辺はMeshに存在
                             continue;
                         }
-                        MakeMeshEdge(cad2D, eId, eLen);
+                        MakeMeshEdge(cad, eId, eLen);
                         System.Diagnostics.Debug.Assert(CheckMesh() == 0);
                     }
                 }
@@ -2196,17 +2196,17 @@ namespace IvyFEM
                 uint lId = loopIds[iLId];
                 double eLen = eLens[iLId];
                 System.Diagnostics.Debug.Assert(eLen > 0.0);
-                MakeMeshLoop(cad2D, lId, eLen);
+                MakeMeshLoop(cad, lId, eLen);
 
                 System.Diagnostics.Debug.Assert(CheckMesh() == 0);
             }
 
 
-            MakeIncludeRelation(cad2D);
+            MakeIncludeRelation(cad);
             return true;
         }
 
-        private bool MakeMeshEdge(CadObject2D cad2D, uint eId, double len)
+        private bool MakeMeshEdge(CadObject2D cad, uint eId, double len)
         {
             {
                 System.Diagnostics.Debug.Assert(GetIdFromCadId(eId, CadElementType.Edge) == 0);
@@ -2218,7 +2218,7 @@ namespace IvyFEM
 
             uint sVId;
             uint eVId;
-            if (!cad2D.GetEdgeVertexId(out sVId, out eVId, eId))
+            if (!cad.GetEdgeVertexId(out sVId, out eVId, eId))
             {
                 System.Diagnostics.Debug.Assert(false);
             }
@@ -2267,7 +2267,7 @@ namespace IvyFEM
             }
             MeshBarArray barArray = BarArrays[(int)iBarArray0];
             IList<OpenTK.Vector2d> pts;
-            cad2D.GetCurveAsPolyline(eId, out pts, len);
+            cad.GetCurveAsPolyline(eId, out pts, len);
             ////////////////
             uint div = (uint)pts.Count + 1;
             IList<uint> ptIds = new List<uint>();
@@ -2287,7 +2287,7 @@ namespace IvyFEM
             {
                 barArray.Id = newElemId;
                 barArray.ECadId = eId;
-                barArray.Layer = cad2D.GetLayer(CadElementType.Edge, eId);
+                barArray.Layer = cad.GetLayer(CadElementType.Edge, eId);
                 barArray.SEId[0] = sMeshId;
                 barArray.SEId[1] = eMeshId;
                 barArray.LRId[0] = 0;
@@ -2309,9 +2309,9 @@ namespace IvyFEM
             return true;
         }
 
-        private bool MakeMeshLoop(CadObject2D cad2D, uint lCadId, double len)
+        private bool MakeMeshLoop(CadObject2D cad, uint lCadId, double len)
         {
-            if (!TessellateLoop(cad2D, lCadId))
+            if (!TessellateLoop(cad, lCadId))
             {
                 System.Diagnostics.Debug.WriteLine("Tesselation_Loop Fail");
                 System.Diagnostics.Debug.Assert(false);

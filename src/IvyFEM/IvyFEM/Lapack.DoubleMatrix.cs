@@ -217,7 +217,7 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
-        public bool IsSymmetric()
+        public bool AssertSymmetric(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);
             bool isSymmetric = true;
@@ -227,9 +227,10 @@ namespace IvyFEM.Lapack
                 for (int col = row + 1; col < n; col++)
                 {
                     double diff = this[row, col] - this[col, row];
-                    if (Math.Abs(diff) >= IvyFEM.Constants.PrecisionLowerLimit)
+                    if (Math.Abs(diff) >= th)
                     {
                         isSymmetric = false;
+                        System.Diagnostics.Debug.Assert(false);
                         break;
                     }
                 }
