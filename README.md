@@ -132,6 +132,8 @@
 　　![終端2](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224410.jpg)  
 　　![終端3](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224518.jpg)  
 　　![終端4](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191014/20191014224619.jpg)  
+　　〇フォトニックバンドギャップ  
+　　![三角形格子PBG](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20191109/20191109214649.jpg)  
 　　〇フォトニック結晶導波路の周波数領域FEM(固有モード展開)  
 　　![正方格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
 　　![三角形格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  
