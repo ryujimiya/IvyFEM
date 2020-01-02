@@ -21,6 +21,7 @@
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
 　　　　　　　　　　弾性体二体接触※  
+　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化  
@@ -31,6 +32,7 @@
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
+　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
 　　　　　　　　　　　周波数領域FEM  
@@ -50,21 +52,29 @@
 　　　　　　　　　　　誘電体ロッド型、エアホール型  
 　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　（固有モード展開）  
+　　　　　　　　　　　　（PBC）  
 　　　　　　　　　　　　（PML）  
 　　　　　　　　　　　時間領域FEM  
 　　　　　　　　　　　　（Jiao-Jin-Michielssen-RileyのPML）  
-　　　　　　　　　　　　（固有モード展開複素ABC(Modal ABCZ)）  
+　　　　　　　　　　　　（固有モード展開複素ABC(Modal ABCZ)）※  
+　　　　　　　　　　　　  
+　　　　　　　　　　Note: ABC - Absorbing Boundary Conditions, 吸収境界条件  
+　　　　　　　　　　　　　PML - Perfectly Matched Layers, 完全整合層  
+　　　　　　　　　　　　　PBC - Periodic Boundary Conditions, 周期境界条件  
+　　　　　　　　　　　　　  
 　　　　各種方程式：Poisson方程式  
 　　　　　　　　　　熱拡散方程式  
 　　　　　　　　　　移流拡散方程式  
 　　　　　　　　　　Helmholtz方程式  
+　　　　　　　　　　  
 　　　　三角形要素：Lagrange (1次、2次)  
 　　　　　　　　　　Bell Triangle(5次)  
+　　　　　　　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2019-12-28更新）**  
+　**バイナリ（2020-01-03更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.26  
+　　IvyFEM.dll version 0.0.0.27  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

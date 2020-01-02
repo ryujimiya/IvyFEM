@@ -96,6 +96,7 @@
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLFEM.cs" />
     <Compile Include="PCWaveguide2DModalABCZTDFEM.cs" />
+    <Compile Include="PCWaveguide2DPBCFEM.cs" />
     <Compile Include="PCWaveguide2DPMLFEM.cs" />
     <Compile Include="PCWaveguide2DPMLTDFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLTDFEM.cs" />

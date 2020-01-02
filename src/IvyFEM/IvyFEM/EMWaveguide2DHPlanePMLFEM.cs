@@ -78,7 +78,7 @@ namespace IvyFEM
         /// <summary>
         /// 固有値問題 EMWaveguide1DEigenFEM or EMWaveguide1DOepnEigenFEM
         /// </summary>
-        public EMWaveguide1DEigenBaseFEM[] EigenBaseFEM { get; private set; }
+        public EMWaveguide1DEigenBaseFEM[] EigenBaseFEMs { get; private set; }
 
         public EMWaveguide2DHPlanePMLFEM(FEWorld world)
         {
@@ -151,7 +151,7 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(
                 IsEigen1DUseDecayParameters.Count == 0 ||
                 IsEigen1DUseDecayParameters.Count == (refPortCnt + 1));
-            EigenBaseFEM = new EMWaveguide1DEigenBaseFEM[(refPortCnt + 1)];
+            EigenBaseFEMs = new EMWaveguide1DEigenBaseFEM[(refPortCnt + 1)];
             for (int portId = 0; portId < (refPortCnt + 1); portId++)
             {
                 IvyFEM.Lapack.DoubleMatrix ryy1D;
@@ -166,7 +166,7 @@ namespace IvyFEM
                     out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out alpha,
                     out eigen1DBaseFEM);
 
-                EigenBaseFEM[portId] = eigen1DBaseFEM;
+                EigenBaseFEMs[portId] = eigen1DBaseFEM;
                 int nodeCntB = ryy1D.RowLength;
                 Qbs.Add(ryy1D);
                 Rbs.Add(txx1D);
@@ -515,7 +515,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(incidentModeId == 0);
                 }
 
-                EMWaveguide1DEigenBaseFEM eigenBaseFEM = EigenBaseFEM[portId];
+                EMWaveguide1DEigenBaseFEM eigenBaseFEM = EigenBaseFEMs[portId];
                 System.Numerics.Complex[] betas = eigenBaseFEM.Betas;
                 System.Numerics.Complex[][] ezEVecs = eigenBaseFEM.EzEVecs;
                 int modeCnt = betas.Length;

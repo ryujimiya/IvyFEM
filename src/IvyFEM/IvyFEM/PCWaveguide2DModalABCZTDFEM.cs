@@ -511,7 +511,6 @@ namespace IvyFEM
             out System.Numerics.Complex[][] bcFxEVecs,
             out PCWaveguide2DEigenFEM eigenFEM)
         {
-            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             var wgPortInfo = WgPortInfos[portId];
             eigenFEM = new PCWaveguide2DEigenFEM(World, QuantityId, (uint)portId, wgPortInfo);
             eigenFEM.IsTMMode = IsTMMode;

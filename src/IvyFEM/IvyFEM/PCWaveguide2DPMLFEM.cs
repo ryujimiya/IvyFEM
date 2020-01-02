@@ -71,7 +71,7 @@ namespace IvyFEM
         /// <summary>
         /// 固有値問題 EMWaveguide1DEigenFEM or EMWaveguide1DOepnEigenFEM
         /// </summary>
-        public PCWaveguide2DEigenFEM[] EigenFEM { get; private set; }
+        public PCWaveguide2DEigenFEM[] EigenFEMs { get; private set; }
 
         public PCWaveguide2DPMLFEM(FEWorld world)
         {
@@ -142,7 +142,7 @@ namespace IvyFEM
             //------------------------------------------------------
             int refPortCnt = (int)World.GetPortCount(QuantityId) - 1; //励振源を除く
 
-            EigenFEM = new PCWaveguide2DEigenFEM[(refPortCnt + 1)];
+            EigenFEMs = new PCWaveguide2DEigenFEM[(refPortCnt + 1)];
             for (int portId = 0; portId < (refPortCnt + 1); portId++)
             {
                 var wgPortInfo = WgPortInfos[portId];
@@ -158,7 +158,7 @@ namespace IvyFEM
                     portId, freq,
                     out ryy1D, out txx1D, out uzz1D, out betas, out eVecs, out fxEVecs, out eigenFEM);
 
-                EigenFEM[portId] = eigenFEM;
+                EigenFEMs[portId] = eigenFEM;
                 int nodeCntB = ryy1D.RowLength;
                 Qbs.Add(ryy1D);
                 Rbs.Add(txx1D);
@@ -360,7 +360,6 @@ namespace IvyFEM
             out System.Numerics.Complex[][] bcFxEVecs,
             out PCWaveguide2DEigenFEM eigenFEM)
         {
-            int refPortCnt = (int)World.GetPortCount(QuantityId) - 1; // 励振源を除く
             var wgPortInfo = WgPortInfos[portId];
             eigenFEM = new PCWaveguide2DEigenFEM(World, QuantityId, (uint)portId, wgPortInfo);
             eigenFEM.IsTMMode = IsTMMode;
@@ -456,7 +455,6 @@ namespace IvyFEM
             for (int refIndex = 0; refIndex < refPortCnt; refIndex++)
             {
                 int portId = refIndex;
-                int nodeCntB = (int)World.GetPortNodeCount(QuantityId, (uint)portId);
                 System.Numerics.Complex[] portEzB1 = GetPortEzB1((uint)portId, Ez);
                 int incidentModeId = -1;
                 if (incidentPortId == portId)
@@ -466,7 +464,7 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(incidentModeId == 0);
                 }
 
-                PCWaveguide2DEigenFEM eigenFEM = EigenFEM[portId];
+                PCWaveguide2DEigenFEM eigenFEM = EigenFEMs[portId];
                 System.Numerics.Complex[] betas = eigenFEM.Betas;
                 System.Numerics.Complex[][] ezEVecs = eigenFEM.BcEVecs;
                 System.Numerics.Complex[][] ezFxEVecs = eigenFEM.BcFxEVecs;
