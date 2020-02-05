@@ -69,7 +69,7 @@ namespace IvyFEM
             return nodeL;
         }
 
-        public double[] _GetNodeL(int nodeId)
+        protected double[] _GetNodeL(int nodeId)
         {
             double[][] nodeL = new double[18][];
 

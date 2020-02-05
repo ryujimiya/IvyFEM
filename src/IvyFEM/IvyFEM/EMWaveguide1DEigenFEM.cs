@@ -210,7 +210,6 @@ namespace IvyFEM
             if (ret != 0)
             {
                 // fail safe
-                // fail safe
                 int n = A.RowLength;
                 eVals = new System.Numerics.Complex[n];
                 eVecs = new System.Numerics.Complex[n][];

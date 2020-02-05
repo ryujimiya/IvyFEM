@@ -186,6 +186,31 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].Node2Coord(nodeId);
         }
 
+        public uint GetEdgeNodeCount(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].GetEdgeNodeCount();
+        }
+
+        public int[] GetEdgeCoordIds(uint quantityId, int edgeId)
+        {
+            return Quantitys[(int)quantityId].GetEdgeCoordIds(edgeId);
+        }
+
+        public int GetEdgeIdFromCoords(uint quantityId, int coId1, int coId2, out bool isReverse)
+        {
+            return Quantitys[(int)quantityId].GetEdgeIdFromCoords(coId1, coId2, out isReverse);
+        }
+
+        public int Edge2EdgeNode(uint quantityId, int coId)
+        {
+            return Quantitys[(int)quantityId].Edge2EdgeNode(coId);
+        }
+
+        public int EdgeNode2Edge(uint quantityId, int nodeId)
+        {
+            return Quantitys[(int)quantityId].EdgeNode2Edge(nodeId);
+        }
+
         public void SetIncidentPortId(uint quantityId, int incidentPortId)
         {
             Quantitys[(int)quantityId].IncidentPortId = incidentPortId;

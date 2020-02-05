@@ -95,6 +95,7 @@
     <Compile Include="EMWaveguide1DEigenBaseFEM.cs" />
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLFEM.cs" />
+    <Compile Include="EMWaveguide2DEigenFEM.cs" />
     <Compile Include="PCWaveguide2DModalABCZTDFEM.cs" />
     <Compile Include="PCWaveguide2DPBCFEM.cs" />
     <Compile Include="PCWaveguide2DPMLFEM.cs" />
@@ -215,6 +216,7 @@
     <Compile Include="PCWaveguidePortInfo.cs" />
     <Compile Include="PCWaveguideUtils.cs" />
     <Compile Include="PortCondition.cs" />
+    <Compile Include="TriangleFEEdge1stInterpolate.cs" />
     <Compile Include="TriangleFEBellInterpolate.cs" />
     <Compile Include="VertexEdgeItr.cs" />
     <Compile Include="Lapack.ComplexBandMatrix.cs" />

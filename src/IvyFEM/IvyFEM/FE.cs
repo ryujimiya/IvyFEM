@@ -16,8 +16,10 @@ namespace IvyFEM
         public int Order { get; set; } = -1;
         public uint VertexCount { get; protected set; } = 0;
         public uint NodeCount { get; protected set; } = 0;
+        public uint EdgeCount { get; protected set; } = 0;
         public int[] VertexCoordIds { get; protected set; } = null;
         public int[] NodeCoordIds { get; protected set; } = null;
+        public int[][] EdgeCoordIdss { get; protected set; } = null;
         public double[][] Displacements { get; protected set; } = null;
         public uint MaterialId { get; set; } = 0;
         public uint MeshId { get; set; } = 0;
@@ -44,7 +46,9 @@ namespace IvyFEM
             Type = srcFE.Type;
             FEType = srcFE.FEType;
             Order = srcFE.Order;
+            VertexCount = srcFE.VertexCount;
             NodeCount = srcFE.NodeCount;
+            EdgeCount = srcFE.EdgeCount;
             VertexCoordIds = null;
             if (srcFE.VertexCoordIds != null)
             {
@@ -56,6 +60,19 @@ namespace IvyFEM
             {
                 NodeCoordIds = new int[srcFE.NodeCoordIds.Length];
                 srcFE.NodeCoordIds.CopyTo(NodeCoordIds, 0);
+            }
+            EdgeCoordIdss = null;
+            if (srcFE.EdgeCoordIdss != null)
+            {
+                int edgeCnt = srcFE.EdgeCoordIdss.Length;
+                System.Diagnostics.Debug.Assert(EdgeCount == edgeCnt);
+                EdgeCoordIdss = new int[edgeCnt][];
+                for (int i = 0; i < edgeCnt; i++)
+                {
+                    EdgeCoordIdss[i] = new int[srcFE.EdgeCoordIdss[i].Length];
+                    srcFE.EdgeCoordIdss[i].CopyTo(EdgeCoordIdss[i], 0);
+                }
+                srcFE.EdgeCoordIdss.CopyTo(EdgeCoordIdss, 0);
             }
             Displacements = null;
             if (srcFE.Displacements != null)
@@ -83,6 +100,10 @@ namespace IvyFEM
             else if (FEType == FiniteElementType.ScalarBell)
             {
                 CreateBellInterpolate();
+            }
+            else if (FEType == FiniteElementType.Edge)
+            {
+                CreateEdgeInterpolate();
             }
             else
             {
@@ -166,6 +187,40 @@ namespace IvyFEM
             }
         }
 
+        protected void CreateEdgeInterpolate()
+        {
+            System.Diagnostics.Debug.Assert(FEType == FiniteElementType.Edge);
+            if (this is LineFE)
+            {
+                // 暫定: Lagrange線要素で代用
+                LineFE thisLineFE = this as LineFE;
+                if (Order == 1)
+                {
+                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TriangleFE)
+            {
+                TriangleFE thisTriFE = this as TriangleFE;
+                if (Order == 1)
+                {
+                    Interpolate = new TriangleFEEdge1stInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+        }
+
         public void SetVertexCoordIds(int[] vertexCoordIds)
         {
             System.Diagnostics.Debug.Assert(VertexCount == vertexCoordIds.Length);
@@ -178,6 +233,29 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(NodeCount == nodeCoordIds.Length);
             NodeCoordIds = new int[NodeCount];
             nodeCoordIds.CopyTo(NodeCoordIds, 0);
+        }
+
+        public void SetEdgeCoordIdsFromNodeCoordIds()
+        {
+            if (!(Interpolate is IEdgeInterpolate))
+            {
+                return;
+            }
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            int edgeCnt = (int)edgeInterpolate.GetEdgeCount();
+            System.Diagnostics.Debug.Assert(edgeCnt == EdgeCount);
+            int[][] edgePointId = edgeInterpolate.GetEdgePointIdss();
+            EdgeCoordIdss = new int[edgeCnt][];
+            for (int i = 0; i < edgeCnt; i++)
+            {
+                int[] edgeCoIds = new int[2];
+                int pointId1 = edgePointId[i][0];
+                int pointId2 = edgePointId[i][1];
+
+                edgeCoIds[0] = NodeCoordIds[pointId1];
+                edgeCoIds[1] = NodeCoordIds[pointId2];
+                EdgeCoordIdss[i] = edgeCoIds;
+            }
         }
 
         public void SetDisplacements(double[][] displacements)

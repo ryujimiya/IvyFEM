@@ -16,6 +16,7 @@ namespace IvyFEM
             VertexCount = 3;
             CreateInterpolate();
             NodeCount = GetNodeCount();
+            EdgeCount = GetEdgeCount();
         }
 
         public TriangleFE(int order, FiniteElementType feType) : base()
@@ -26,6 +27,7 @@ namespace IvyFEM
             VertexCount = 3;
             CreateInterpolate();
             NodeCount = GetNodeCount();
+            EdgeCount = GetEdgeCount();
         }
 
         public TriangleFE(TriangleFE src)
@@ -41,6 +43,16 @@ namespace IvyFEM
         protected uint GetNodeCount()
         {
             return Interpolate.GetNodeCount();
+        }
+
+        protected uint GetEdgeCount()
+        {
+            if (!(Interpolate is IEdgeInterpolate))
+            {
+                return 0;
+            }
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            return edgeInterpolate.GetEdgeCount();
         }
 
         public double[] GetNodeL(int nodeId)
@@ -234,6 +246,30 @@ namespace IvyFEM
         public double[][,] CalcSNuN()
         {
             double[][,] ret = Interpolate.CalcSNuN();
+            return ret;
+        }
+
+        /// <summary>
+        /// vecN
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[][] CalcEdgeN(double[] L)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[][] ret = edgeInterpolate.CalcEdgeN(L);
+            return ret;
+        }
+
+        /// <summary>
+        /// [rot(vecN)]z
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[] CalcRotEdgeN(double[] L)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[] ret = edgeInterpolate.CalcRotEdgeN(L);
             return ret;
         }
     }

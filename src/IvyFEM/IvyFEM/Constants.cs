@@ -121,7 +121,8 @@ namespace IvyFEM
     public enum FiniteElementType
     {
         ScalarLagrange,
-        ScalarBell
+        ScalarBell,
+        Edge
     }
 
     public enum EqualityType
