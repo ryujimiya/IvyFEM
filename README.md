@@ -151,4 +151,7 @@
 　　〇フォトニック結晶導波路の周波数領域FEM(固有モード展開)  
 　　![正方格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205034.jpg)  
 　　![三角形格子ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190914/20190914205057.jpg)  
+　　〇電磁導波路のベクトル波固有モード(full-wave eigenmode)  
+　　![異方性誘電体導波路(図面)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205184519.jpg)  
+　　![異方性誘電体導波路](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205185121.jpg)  
 　  
