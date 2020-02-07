@@ -429,6 +429,24 @@ namespace IvyFEM
                                 new int[] { coId2, coId1 };
                             edgeCoIdss.Add(edgeCoIds);
                         }
+                        else if (lineFE.Order == 2)
+                        {
+                            int coId1 = nodeCoIds[0];
+                            int coId2 = nodeCoIds[1];
+                            int coId3 = nodeCoIds[2];
+                            {
+                                int[] edgeCoIds = coId1 < coId3 ?
+                                    new int[] { coId1, coId3 } :
+                                    new int[] { coId3, coId1 };
+                                edgeCoIdss.Add(edgeCoIds);
+                            }
+                            {
+                                int[] edgeCoIds = coId3 < coId2 ?
+                                    new int[] { coId3, coId2 } :
+                                    new int[] { coId2, coId3 };
+                                edgeCoIdss.Add(edgeCoIds);
+                            }
+                        }
                         else
                         {
                             // TODO:
@@ -706,6 +724,10 @@ namespace IvyFEM
             {
                 Coords = new List<double>(vertexCoords);
             }
+            else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+            {
+                Coords = new List<double>(vertexCoords);
+            }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
@@ -753,6 +775,10 @@ namespace IvyFEM
                 else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                 {
                     elemNodeCnt = 3;
+                }
+                else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                {
+                    elemNodeCnt = 6;
                 }
                 else
                 {
@@ -825,6 +851,44 @@ namespace IvyFEM
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
                         vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                    {
+                        for (int i = 0; i < elemVertexCnt; i++)
+                        {
+                            nodeCoIds[i] = vertexCoIds[i];
+
+                            {
+                                int v1 = vertexCoIds[i];
+                                int v2 = vertexCoIds[(i + 1) % elemVertexCnt];
+                                if (v1 > v2)
+                                {
+                                    int tmp = v1;
+                                    v1 = v2;
+                                    v2 = tmp;
+                                }
+                                string edgeKey = v1 + "_" + v2;
+                                int midPtCoId = -1;
+                                if (edge2MidPt.ContainsKey(edgeKey))
+                                {
+                                    midPtCoId = edge2MidPt[edgeKey][0];
+                                }
+                                else
+                                {
+                                    double[] vPt1 = world.GetVertexCoord(v1);
+                                    double[] vPt2 = world.GetVertexCoord(v2);
+                                    double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
+                                    midPtCoId = (int)(Coords.Count / Dimension);
+                                    Coords.Add(midPt[0]);
+                                    Coords.Add(midPt[1]);
+                                    var list = new List<int>();
+                                    list.Add(midPtCoId);
+                                    edge2MidPt[edgeKey] = list;
+                                }
+
+                                nodeCoIds[i + elemVertexCnt] = midPtCoId;
+                            }
+                        }
                     }
                     else
                     {
@@ -904,6 +968,11 @@ namespace IvyFEM
                     // 暫定: Lagrange線要素で代用
                     elemNodeCnt = 2;
                 }
+                else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                {
+                    // 暫定: Lagrange線要素で代用
+                    elemNodeCnt = 3;
+                }
                 else
                 {
                     System.Diagnostics.Debug.Assert(false);
@@ -970,6 +1039,30 @@ namespace IvyFEM
                         // 暫定：Lagrange線要素で代用
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
                         vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                    {
+                        // 暫定：Lagrange線要素で代用
+                        for (int i = 0; i < 2; i++)
+                        {
+                            nodeCoIds[i] = vertexCoIds[i];
+                        }
+                        // 線要素上の中点
+                        int v1 = vertexCoIds[0];
+                        int v2 = vertexCoIds[1];
+                        if (v1 > v2)
+                        {
+                            int tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                        }
+                        string edgeKey = v1 + "_" + v2;
+                        if (!edge2MidPt.ContainsKey(edgeKey))
+                        {
+                            System.Diagnostics.Debug.Assert(false);
+                        }
+                        int midPtCoId = edge2MidPt[edgeKey][0];
+                        nodeCoIds[2] = midPtCoId;
                     }
                     else
                     {
@@ -1444,32 +1537,32 @@ namespace IvyFEM
                         targetIds.Add(feId);
                     }
                 }
-                // 辺(頂点1-頂点2)→要素
+                // 辺(頂点2-3) [1次edge element]→要素
+                // 辺(頂点2-5, 5-3) [2次edge element]→要素
+                int elemEdgeCnt = (int)triFE.EdgeCount;
+                for (int eIndex = 0; eIndex < elemEdgeCnt; eIndex++)
                 {
-                    int[] coIds = triFE.VertexCoordIds;
-                    for (int i = 0; i < coIds.Length; i++)
+                    int[] coIds = triFE.EdgeCoordIdss[eIndex];
+                    int v1 = coIds[0];
+                    int v2 = coIds[1];
+                    if (v1 > v2)
                     {
-                        int v1 = coIds[i];
-                        int v2 = coIds[(i + 1) % coIds.Length];
-                        if (v1 > v2)
-                        {
-                            int tmp = v1;
-                            v1 = v2;
-                            v2 = tmp;
-                        }
-                        string edgeKey = v1 + "_" + v2;
-                        IList<uint> targetIds = null;
-                        if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
-                        {
-                            targetIds = EdgeCos2TriangleFE[edgeKey];
-                        }
-                        else
-                        {
-                            targetIds = new List<uint>();
-                            EdgeCos2TriangleFE[edgeKey] = targetIds;
-                        }
-                        targetIds.Add(feId);
+                        int tmp = v1;
+                        v1 = v2;
+                        v2 = tmp;
                     }
+                    string edgeKey = v1 + "_" + v2;
+                    IList<uint> targetIds = null;
+                    if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+                    {
+                        targetIds = EdgeCos2TriangleFE[edgeKey];
+                    }
+                    else
+                    {
+                        targetIds = new List<uint>();
+                        EdgeCos2TriangleFE[edgeKey] = targetIds;
+                    }
+                    targetIds.Add(feId);
                 }
             }
         }

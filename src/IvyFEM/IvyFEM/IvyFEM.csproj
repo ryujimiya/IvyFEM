@@ -216,6 +216,7 @@
     <Compile Include="PCWaveguidePortInfo.cs" />
     <Compile Include="PCWaveguideUtils.cs" />
     <Compile Include="PortCondition.cs" />
+    <Compile Include="TriangleFEEdge2ndInterpolate.cs" />
     <Compile Include="TriangleFEEdge1stInterpolate.cs" />
     <Compile Include="TriangleFEBellInterpolate.cs" />
     <Compile Include="VertexEdgeItr.cs" />

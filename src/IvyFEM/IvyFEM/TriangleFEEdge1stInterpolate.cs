@@ -86,7 +86,7 @@ namespace IvyFEM
 
         public int[][] GetEdgePointIdss()
         {
-            int[][] edgePointId =
+            int[][] edgePointId = new int[3][]
             {
                 new int[]{ 1, 2 },
                 new int[]{ 2, 0 },

@@ -72,13 +72,13 @@
 　　　　　　　　　　  
 　　　　三角形要素：Lagrange (1次、2次)  
 　　　　　　　　　　Bell Triangle(5次)  
-　　　　　　　　　　edge element(1次)  
+　　　　　　　　　　edge element(1次、2次)  
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-05更新）**  
+　**バイナリ（2020-02-07更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.28  
+　　IvyFEM.dll version 0.0.0.29  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

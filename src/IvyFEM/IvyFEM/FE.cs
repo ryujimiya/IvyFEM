@@ -198,6 +198,10 @@ namespace IvyFEM
                 {
                     Interpolate = new LineFE1stInterpolate(thisLineFE);
                 }
+                else if (Order == 2)
+                {
+                    Interpolate = new LineFE2ndInterpolate(thisLineFE);
+                }
                 else
                 {
                     System.Diagnostics.Debug.Assert(false);
@@ -209,6 +213,10 @@ namespace IvyFEM
                 if (Order == 1)
                 {
                     Interpolate = new TriangleFEEdge1stInterpolate(thisTriFE);
+                }
+                else if (Order == 2)
+                {
+                    Interpolate = new TriangleFEEdge2ndInterpolate(thisTriFE);
                 }
                 else
                 {
