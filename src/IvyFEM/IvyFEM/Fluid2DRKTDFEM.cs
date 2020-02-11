@@ -45,6 +45,9 @@ namespace IvyFEM
                 case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoisson1stEquationKMF(K, M, F);
                     break;
+                case FluidEquationType.StdGPressurePoissonWithBell:
+                    CalcStdGPressurePoissonWithBell1stEquationKMF(K, M, F);
+                    break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
@@ -61,6 +64,10 @@ namespace IvyFEM
             {
                 SetPressurePoisson1stEquationSpecialBC(A, B);
             }
+            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell)
+            {
+                SetPressurePoissonWithBell1stEquationSpecialBC(A, B);
+            }
         }
 
         private void Calc2ndEquationAB(
@@ -73,6 +80,9 @@ namespace IvyFEM
                     break;
                 case FluidEquationType.StdGPressurePoisson:
                     CalcStdGPressurePoisson2ndEquationAB(A, B);
+                    break;
+                case FluidEquationType.StdGPressurePoissonWithBell:
+                    CalcStdGPressurePoissonWithBell2ndEquationAB(A, B);
                     break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
@@ -89,6 +99,10 @@ namespace IvyFEM
             else if (EquationType == FluidEquationType.StdGPressurePoisson)
             {
                 SetPressurePoisson2ndEquationSpecialBC(A, B);
+            }
+            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell)
+            {
+                SetPressurePoissonWithBell2ndEquationSpecialBC(A, B);
             }
         }
 
@@ -199,7 +213,7 @@ namespace IvyFEM
                     B[i] *= (1.0 / dt);
                 }
                 Set1stEquationSpecialBC(A, B);
-                DoubleSetSplitQuantityFixedCadsCondtion(quantityId1, A, B);
+                DoubleSetSplitQuantityFixedCadsCondtion(quantityId1, quantityId1, A, B);
 
                 double[] X;
                 Solver.DoubleSolve(out X, A, B);
@@ -221,22 +235,38 @@ namespace IvyFEM
         private void Solve2ndEquation(
             int iter, double tolerance, out bool isConverged, ref double sqInvNorm0, out double convRatio)
         {
+            int quantityCnt = World.GetQuantityCount();
+
             isConverged = false;
             convRatio = 0;
 
-            uint quantityId2 = 1;
-            int quantityDof2 = (int)World.GetDof(quantityId2);
-            int quantityNodeCnt2 = (int)World.GetNodeCount(quantityId2);
-            int offset = GetOffset(quantityId2);
-            int nodeCnt = quantityNodeCnt2 * quantityDof2;
+            uint vQuantityId = 0;
+            uint pQuantityId = 1;
+            int nodeCnt = 0;
+            for (uint quantityId2 = pQuantityId; quantityId2 < quantityCnt; quantityId2++)
+            {
+                int quantityDof2 = (int)World.GetDof(quantityId2);
+                int quantityNodeCnt2 = (int)World.GetNodeCount(quantityId2);
+                nodeCnt += quantityNodeCnt2 * quantityDof2;
+            }
+            int pOffset = GetOffset(pQuantityId);
 
             double[] U2 = new double[nodeCnt];
-            // 前の反復のときの値をセット(方程式を解くときに必要はないが、解く前の収束判定で使用する）
-            for (int nodeId = 0; nodeId < quantityNodeCnt2; nodeId++)
+
+            for (uint quantityId2 = pQuantityId; quantityId2 < quantityCnt; quantityId2++)
             {
-                for (int iDof = 0; iDof < quantityDof2; iDof++)
+                int quantityDof2 = (int)World.GetDof(quantityId2);
+                int quantityNodeCnt2 = (int)World.GetNodeCount(quantityId2);
+                int offset = GetOffset(quantityId2);
+                int offsetp = offset - pOffset;
+
+                // 前の反復のときの値をセット(方程式を解くときに必要はないが、解く前の収束判定で使用する）
+                for (int nodeId = 0; nodeId < quantityNodeCnt2; nodeId++)
                 {
-                    U2[nodeId * quantityDof2 + iDof] = U[offset + nodeId * quantityDof2 + iDof];
+                    for (int iDof = 0; iDof < quantityDof2; iDof++)
+                    {
+                        U2[offsetp + nodeId * quantityDof2 + iDof] = U[offset + nodeId * quantityDof2 + iDof];
+                    }
                 }
             }
 
@@ -245,7 +275,7 @@ namespace IvyFEM
 
             Calc2ndEquationAB(A, B);
             Set2ndEquationSpecialBC(A, B);
-            DoubleSetSplitQuantityFixedCadsCondtion(quantityId2, A, B);
+            DoubleSetSplitQuantityFixedCadsCondtion(pQuantityId, (uint)(quantityCnt - 1), A, B);
 
             double[] AU = A * U2;
             double[] R = IvyFEM.Lapack.Functions.daxpy(-1.0, B, AU);
@@ -275,13 +305,14 @@ namespace IvyFEM
             Solver.DoubleSolve(out X, A, B);
             U2 = X;
 
-            U2.CopyTo(U, offset);
+            U2.CopyTo(U, pOffset);
         }
 
         public override void Solve()
         {
             int quantityCnt = World.GetQuantityCount();
-            System.Diagnostics.Debug.Assert(quantityCnt == 2);
+            //System.Diagnostics.Debug.Assert(quantityCnt == 2);
+            // Bell elementの場合2ではない
 
             // Nonlinear Iter
             bool isConverged = false;

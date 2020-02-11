@@ -999,20 +999,24 @@ namespace IvyFEM
                         int coId = vertexs[iElem * elemVertexCnt + iPt];
                         vertexCoIds[iPt] = coId;
                     }
+                    uint lineFEOrder = 0;
                     int[] nodeCoIds = new int[elemNodeCnt];
                     if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        lineFEOrder = 1;
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                     {
                         // 暫定：Lagrange線要素で代用
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        lineFEOrder = 1;
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                     {
+                        lineFEOrder = 2;
                         for (int i = 0; i < 2; i++)
                         {
                             nodeCoIds[i] = vertexCoIds[i];
@@ -1038,11 +1042,13 @@ namespace IvyFEM
                     {
                         // 暫定：Lagrange線要素で代用
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        lineFEOrder = 1;
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 2)
                     {
                         // 暫定：Lagrange線要素で代用
+                        lineFEOrder = 2;
                         for (int i = 0; i < 2; i++)
                         {
                             nodeCoIds[i] = vertexCoIds[i];
@@ -1069,7 +1075,7 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(false);
                     }
 
-                    LineFE lineFE = new LineFE((int)FEOrder, FEType);
+                    LineFE lineFE = new LineFE((int)lineFEOrder, FEType);
                     lineFE.World = world;
                     lineFE.QuantityId = (int)this.Id;
                     lineFE.SetVertexCoordIds(vertexCoIds);
@@ -1537,32 +1543,105 @@ namespace IvyFEM
                         targetIds.Add(feId);
                     }
                 }
-                // 辺(頂点2-3) [1次edge element]→要素
-                // 辺(頂点2-5, 5-3) [2次edge element]→要素
-                int elemEdgeCnt = (int)triFE.EdgeCount;
-                for (int eIndex = 0; eIndex < elemEdgeCnt; eIndex++)
+                if (FEType == FiniteElementType.Edge)
                 {
-                    int[] coIds = triFE.EdgeCoordIdss[eIndex];
-                    int v1 = coIds[0];
-                    int v2 = coIds[1];
-                    if (v1 > v2)
+                    // 辺(頂点2-3) [1次edge element]→要素
+                    // 辺(頂点2-5, 5-3) [2次edge element]→要素
+                    System.Diagnostics.Debug.Assert(FEOrder == 1 || FEOrder == 2);
+                    int elemEdgeCnt = (int)triFE.EdgeCount;
+                    for (int eIndex = 0; eIndex < elemEdgeCnt; eIndex++)
                     {
-                        int tmp = v1;
-                        v1 = v2;
-                        v2 = tmp;
+                        int[] coIds = triFE.EdgeCoordIdss[eIndex];
+                        int v1 = coIds[0];
+                        int v2 = coIds[1];
+                        if (v1 > v2)
+                        {
+                            int tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                        }
+                        string edgeKey = v1 + "_" + v2;
+                        IList<uint> targetIds = null;
+                        if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+                        {
+                            targetIds = EdgeCos2TriangleFE[edgeKey];
+                        }
+                        else
+                        {
+                            targetIds = new List<uint>();
+                            EdgeCos2TriangleFE[edgeKey] = targetIds;
+                        }
+                        targetIds.Add(feId);
                     }
-                    string edgeKey = v1 + "_" + v2;
-                    IList<uint> targetIds = null;
-                    if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+                }
+                else
+                {
+                    // Scalar elements
+                    int elemNodeCnt = (int)triFE.NodeCount;
+                    int[][] edgeNos = null;
+                    if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
-                        targetIds = EdgeCos2TriangleFE[edgeKey];
+                        edgeNos = new int[3][]
+                        {
+                            new int[] { 0, 1 },
+                            new int[] { 1, 2 },
+                            new int[] { 2, 0 }
+                        };
+                    }
+                    else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+                    {
+                        edgeNos = new int[6][]
+                        {
+                            new int[] { 0, 3 },
+                            new int[] { 3, 1 },
+                            new int[] { 1, 4 },
+                            new int[] { 4, 2 },
+                            new int[] { 2, 5 },
+                            new int[] { 5, 0 }
+                        };
+                    }
+                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                    {
+                        edgeNos = new int[3][]
+                        {
+                            new int[] { 0, 1 },
+                            new int[] { 1, 2 },
+                            new int[] { 2, 0 }
+                        };
                     }
                     else
                     {
-                        targetIds = new List<uint>();
-                        EdgeCos2TriangleFE[edgeKey] = targetIds;
+                        System.Diagnostics.Debug.Assert(false);
                     }
-                    targetIds.Add(feId);
+                    int elemEdgeCnt = edgeNos.Length;
+                    for (int eIndex = 0; eIndex < elemEdgeCnt; eIndex++)
+                    {
+                        int iNode1 = edgeNos[eIndex][0];
+                        int iNode2 = edgeNos[eIndex][1];
+                        int coId1 = triFE.NodeCoordIds[iNode1];
+                        int coId2 = triFE.NodeCoordIds[iNode2];
+
+                        int v1 = coId1;
+                        int v2 = coId2;
+                        if (v1 > v2)
+                        {
+                            int tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                        }
+                        string edgeKey = v1 + "_" + v2;
+                        IList<uint> targetIds = null;
+                        if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
+                        {
+                            targetIds = EdgeCos2TriangleFE[edgeKey];
+                        }
+                        else
+                        {
+                            targetIds = new List<uint>();
+                            EdgeCos2TriangleFE[edgeKey] = targetIds;
+                        }
+                        targetIds.Add(feId);
+                    }
                 }
             }
         }

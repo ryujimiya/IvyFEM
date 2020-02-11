@@ -9,14 +9,23 @@ namespace IvyFEM
     public abstract partial class FEM
     {
         protected void DoubleSetSplitQuantityFixedCadsCondtion(
-            uint quantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+            uint sQuantityId, uint eQuantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
-            int nodeCnt = (int)World.GetNodeCount(quantityId);
-            int dof = (int)World.GetDof(quantityId);
+            int nodeCnt = 0;
+            int dof = (int)World.GetDof(sQuantityId);
+            int[] offsets = new int[eQuantityId - sQuantityId + 1];
+            for (uint quantityId = sQuantityId; quantityId <= eQuantityId; quantityId++)
+            {
+                offsets[quantityId - sQuantityId] = nodeCnt;
+                nodeCnt += (int)World.GetNodeCount(quantityId) * dof;
+                System.Diagnostics.Debug.Assert(World.GetDof(quantityId) == dof);
+            }
 
             // A11
+            for (uint quantityId = sQuantityId; quantityId <= eQuantityId; quantityId++)
             {
-                int rowNodeCnt = nodeCnt;
+                int quantityNodeCnt = (int)World.GetNodeCount(quantityId);
+                int rowNodeCnt = quantityNodeCnt;
                 int rowDofCnt = dof;
                 for (int rowNodeId = 0; rowNodeId < rowNodeCnt; rowNodeId++)
                 {
@@ -33,9 +42,9 @@ namespace IvyFEM
                             double[] values = rowFixedCad.GetDoubleValues(rowCoId);
                             double value = values[rowFixedDof];
                             {
-                                int colNodeCnt = nodeCnt;
+                                int colNodeCnt = quantityNodeCnt;
                                 int colDofCnt = dof;
-                                int colOffset = 0;
+                                int colOffset = offsets[quantityId];
                                 for (int colNodeId = 0; colNodeId < colNodeCnt; colNodeId++)
                                 {
                                     for (int colDof = 0; colDof < colDofCnt; colDof++)

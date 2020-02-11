@@ -76,9 +76,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-07更新）**  
+　**バイナリ（2020-02-11更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.29  
+　　IvyFEM.dll version 0.0.0.30  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -92,6 +92,10 @@
 　　インストール、実装概略を次のページにまとめました。  
 　　[.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
 　　[.NET向け有限要素法CAEライブラリIvyFEMでカスタマイズ方程式を実装する](https://qiita.com/ryujimiya2361/items/f003c10cfc222378ad5a)  
+　  
+　**技術資料**  
+　  定式化をpdfにまとめています。  
+　  [pdf置き場](http://starlightparade.usamimi.info/ivyfem/)  
 　  
 　**サンプルアプリケーション**  
 　  

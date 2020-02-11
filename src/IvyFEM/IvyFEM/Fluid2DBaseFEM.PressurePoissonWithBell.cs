@@ -22,6 +22,8 @@ namespace IvyFEM
             IvyFEM.Linear.DoubleSparseMatrix A, double[] B, 
             double dt, double beta, double gamma, uint valueId)
         {
+            int quantityCnt = World.GetQuantityCount();
+            System.Diagnostics.Debug.Assert(quantityCnt == 7);
             uint vQuantityId = 0;
             uint pQuantityId = 1;
             uint pxQuantityId = 2;
@@ -288,15 +290,15 @@ namespace IvyFEM
                             };
 
                             // kpv
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -343,15 +345,15 @@ namespace IvyFEM
                                 }
                             }
                             // qp
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -400,6 +402,8 @@ namespace IvyFEM
             IvyFEM.Linear.DoubleSparseMatrix A, double[] B,
             double dt, double beta, double gamma, uint valueId)
         {
+            int quantityCnt = World.GetQuantityCount();
+            System.Diagnostics.Debug.Assert(quantityCnt == 7);
             uint vQuantityId = 0;
             uint pQuantityId = 1;
             uint pxQuantityId = 2;
@@ -666,15 +670,15 @@ namespace IvyFEM
                             };
 
                             // kpv
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -710,15 +714,15 @@ namespace IvyFEM
                                 }
                             }
                             // kpp
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -733,15 +737,15 @@ namespace IvyFEM
                                         continue;
                                     }
 
-                                    for (int colQuantityId = 0; colQuantityId < 6; colQuantityId++)
+                                    for (uint colQuantityId = pQuantityId; colQuantityId  < quantityCnt; colQuantityId++)
                                     {
-                                        int coloffsetp = offsetps[colQuantityId];
-                                        uint colpTriFENodeCnt = pTriFENodeCnts[colQuantityId];
-                                        int[] colpTriFENodes = pTriFENodess[colQuantityId];
-                                        int[] colpNodes = pNodess[colQuantityId];
-                                        double[] colpN = pNs[colQuantityId];
-                                        double[] colpNx = pNxs[colQuantityId];
-                                        double[] colpNy = pNys[colQuantityId];
+                                        int coloffsetp = offsetps[colQuantityId - pQuantityId];
+                                        uint colpTriFENodeCnt = pTriFENodeCnts[colQuantityId - pQuantityId];
+                                        int[] colpTriFENodes = pTriFENodess[colQuantityId - pQuantityId];
+                                        int[] colpNodes = pNodess[colQuantityId - pQuantityId];
+                                        double[] colpN = pNs[colQuantityId - pQuantityId];
+                                        double[] colpNx = pNxs[colQuantityId - pQuantityId];
+                                        double[] colpNy = pNys[colQuantityId - pQuantityId];
 
                                         for (int col = 0; col < colpTriFENodeCnt; col++)
                                         {
@@ -762,15 +766,15 @@ namespace IvyFEM
                                 }
                             }
                             // qp
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -800,6 +804,8 @@ namespace IvyFEM
             IvyFEM.Linear.DoubleSparseMatrix A, double[] B,
             double dt, double beta, double gamma, uint valueId)
         {
+            int quantityCnt = World.GetQuantityCount();
+            System.Diagnostics.Debug.Assert(quantityCnt == 7);
             uint vQuantityId = 0;
             uint pQuantityId = 1;
             uint pxQuantityId = 2;
@@ -1070,15 +1076,15 @@ namespace IvyFEM
                             };
 
                             // kpv
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -1118,15 +1124,15 @@ namespace IvyFEM
                                 }
                             }
                             // kpp
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {
@@ -1141,15 +1147,15 @@ namespace IvyFEM
                                         continue;
                                     }
 
-                                    for (int colQuantityId = 0; colQuantityId < 6; colQuantityId++)
+                                    for (uint colQuantityId = pQuantityId; colQuantityId  < quantityCnt; colQuantityId++)
                                     {
-                                        int coloffsetp = offsetps[colQuantityId];
-                                        uint colpTriFENodeCnt = pTriFENodeCnts[colQuantityId];
-                                        int[] colpTriFENodes = pTriFENodess[colQuantityId];
-                                        int[] colpNodes = pNodess[colQuantityId];
-                                        double[] colpN = pNs[colQuantityId];
-                                        double[] colpNx = pNxs[colQuantityId];
-                                        double[] colpNy = pNys[colQuantityId];
+                                        int coloffsetp = offsetps[colQuantityId - pQuantityId];
+                                        uint colpTriFENodeCnt = pTriFENodeCnts[colQuantityId - pQuantityId];
+                                        int[] colpTriFENodes = pTriFENodess[colQuantityId - pQuantityId];
+                                        int[] colpNodes = pNodess[colQuantityId - pQuantityId];
+                                        double[] colpN = pNs[colQuantityId - pQuantityId];
+                                        double[] colpNx = pNxs[colQuantityId - pQuantityId];
+                                        double[] colpNy = pNys[colQuantityId - pQuantityId];
 
                                         for (int col = 0; col < colpTriFENodeCnt; col++)
                                         {
@@ -1169,15 +1175,15 @@ namespace IvyFEM
                                 }
                             }
                             // qp
-                            for (int rowQuantityId = 0; rowQuantityId < 6; rowQuantityId++)
+                            for (uint rowQuantityId = pQuantityId; rowQuantityId  < quantityCnt; rowQuantityId++)
                             {
-                                int rowoffsetp = offsetps[rowQuantityId];
-                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId];
-                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId];
-                                int[] rowpNodes = pNodess[rowQuantityId];
-                                double[] rowpN = pNs[rowQuantityId];
-                                double[] rowpNx = pNxs[rowQuantityId];
-                                double[] rowpNy = pNys[rowQuantityId];
+                                int rowoffsetp = offsetps[rowQuantityId - pQuantityId];
+                                uint rowpTriFENodeCnt = pTriFENodeCnts[rowQuantityId - pQuantityId];
+                                int[] rowpTriFENodes = pTriFENodess[rowQuantityId - pQuantityId];
+                                int[] rowpNodes = pNodess[rowQuantityId - pQuantityId];
+                                double[] rowpN = pNs[rowQuantityId - pQuantityId];
+                                double[] rowpNx = pNxs[rowQuantityId - pQuantityId];
+                                double[] rowpNy = pNys[rowQuantityId - pQuantityId];
 
                                 for (int row = 0; row < rowpTriFENodeCnt; row++)
                                 {

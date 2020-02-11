@@ -159,8 +159,9 @@ namespace IvyFEM
             if (this is LineFE)
             {
                 LineFE thisLineFE = this as LineFE;
-                if (Order == 5)
+                if (Order == 1)
                 {
+                    // for Bell element 5次
                     // 暫定：Lagrange線要素で代用.当然ながら形状関数は正しくない
                     Interpolate = new LineFE1stInterpolate(thisLineFE);
                 }
@@ -174,6 +175,7 @@ namespace IvyFEM
                 TriangleFE thisTriFE = this as TriangleFE;
                 if (Order == 5)
                 {
+                    // for Bell element 5次
                     Interpolate = new TriangleFEBellInterpolate(thisTriFE);
                 }
                 else
