@@ -413,7 +413,7 @@ namespace IvyFEM
                             {
                                 continue;
                             }
-                            double fp = detJWeight * rho * (g[0] * pNx[row] + g[1] * pNy[row]);
+                            double fp = detJWeight * rho * (g[0] * rowpNx[row] + g[1] * rowpNy[row]);
                             double qp = 0;
                             B[rowoffsetp + rowNodeId] +=
                                 fp - qp;

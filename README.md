@@ -31,6 +31,7 @@
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
+　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
 　　　　　　　　　　　分離型解法(Runge-Kutta)  
 　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
@@ -76,9 +77,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-11更新）**  
+　**バイナリ（2020-02-13更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.30  
+　　IvyFEM.dll version 0.0.0.31  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

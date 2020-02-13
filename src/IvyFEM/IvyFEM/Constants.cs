@@ -152,7 +152,8 @@ namespace IvyFEM
         StdGVorticity,
         SUPGVorticity,
         StdGPressurePoisson,
-        StdGPressurePoissonWithBell
+        StdGPressurePoissonWithBell,
+        SUPGPressurePoissonWithBell
     }
 
     public enum FlowVorticityBCType

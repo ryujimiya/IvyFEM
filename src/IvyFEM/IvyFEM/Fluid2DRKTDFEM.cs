@@ -48,6 +48,9 @@ namespace IvyFEM
                 case FluidEquationType.StdGPressurePoissonWithBell:
                     CalcStdGPressurePoissonWithBell1stEquationKMF(K, M, F);
                     break;
+                case FluidEquationType.SUPGPressurePoissonWithBell:
+                    CalcSUPGPressurePoissonWithBell1stEquationKMF(K, M, F);
+                    break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
@@ -64,7 +67,8 @@ namespace IvyFEM
             {
                 SetPressurePoisson1stEquationSpecialBC(A, B);
             }
-            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell)
+            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell ||
+                EquationType == FluidEquationType.SUPGPressurePoissonWithBell)
             {
                 SetPressurePoissonWithBell1stEquationSpecialBC(A, B);
             }
@@ -84,6 +88,9 @@ namespace IvyFEM
                 case FluidEquationType.StdGPressurePoissonWithBell:
                     CalcStdGPressurePoissonWithBell2ndEquationAB(A, B);
                     break;
+                case FluidEquationType.SUPGPressurePoissonWithBell:
+                    CalcSUPGPressurePoissonWithBell2ndEquationAB(A, B);
+                    break;
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
@@ -100,7 +107,8 @@ namespace IvyFEM
             {
                 SetPressurePoisson2ndEquationSpecialBC(A, B);
             }
-            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell)
+            else if (EquationType == FluidEquationType.StdGPressurePoissonWithBell ||
+                EquationType == FluidEquationType.SUPGPressurePoissonWithBell)
             {
                 SetPressurePoissonWithBell2ndEquationSpecialBC(A, B);
             }
