@@ -28,11 +28,12 @@
 　　　　　　　　　　Vorticity / Stream Funciton定式化  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
-　　　　　　　　　　　分離型解法(Runge-Kutta)  
+　　　　　　　　　　　分離型解法(Runge-Kutta)(標準)  
 　　　　　　　　　　Pressure Poisson定式化※  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
-　　　　　　　　　　　分離型解法(Runge-Kutta)  
+　　　　　　　　　　　分離型解法(Runge-Kutta)(標準)  
+　　　　　　　　　　　分離型解法(Runge-Kutta)(SUPG[Streamline Upwind Petrov-Galerkin]安定化)※  
 　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
@@ -77,9 +78,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-13更新）**  
+　**バイナリ（2020-02-15更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.31  
+　　IvyFEM.dll version 0.0.0.32  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

@@ -679,7 +679,12 @@ namespace IvyFEM
                             }
 
                             double[,] kvv1 = new double[vDof, vDof];
+                            /*
+                            // dv/dtをkvvとして扱う
                             double[,] kvv1dvdt = new double[vDof, vDof];
+                            */
+                            // dv/dtをmvvとして扱う
+                            double[,] mvv1 = new double[vDof, vDof];
                             double[,] kvv2 = new double[vDof, vDof];
                             for (int rowDof = 0; rowDof < vDof; rowDof++)
                             {
@@ -688,7 +693,14 @@ namespace IvyFEM
                                     kvv1[rowDof, colDof] =
                                         detJWeight * taum * (v[0] * vNu[0][row] + v[1] * vNu[1][row]) *
                                         rmivj[rowDof, colDof, col];
+                                    /*
+                                    // dv/dtをkvvとして扱う
                                     kvv1dvdt[rowDof, colDof] =
+                                        detJWeight * taum * (v[0] * vNu[0][row] + v[1] * vNu[1][row]) *
+                                        rmivjdvdt[rowDof, colDof, col];
+                                    */
+                                    // dv/dtをmvvとして扱う
+                                    mvv1[rowDof, colDof] =
                                         detJWeight * taum * (v[0] * vNu[0][row] + v[1] * vNu[1][row]) *
                                         rmivjdvdt[rowDof, colDof, col];
 
@@ -702,6 +714,7 @@ namespace IvyFEM
                             {
                                 for (int colDof = 0; colDof < vDof; colDof++)
                                 {
+                                    /* dv/dtをkvvとして扱う
                                     K[rowNodeId * vDof + rowDof, colNodeId * vDof + colDof] +=
                                         kvv1[rowDof, colDof] + kvv2[rowDof, colDof] +
                                         (3.0 / (2.0 * dt)) * kvv1dvdt[rowDof, colDof];
@@ -709,8 +722,15 @@ namespace IvyFEM
                                     int colCoId = vCoIds[col];
                                     double[] u = FV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
                                     double[] prevU = prevFV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
-                                    F[rowNodeId] += -1.0 * kvv1dvdt[rowDof, colDof] * (
+                                    F[rowNodeId * vDof + rowDof] += -1.0 * kvv1dvdt[rowDof, colDof] * (
                                         -4.0 * u[colDof] + prevU[colDof]) / (2.0 * dt);
+                                    */
+
+                                    // dv/dtをmvvとして扱う
+                                    K[rowNodeId * vDof + rowDof, colNodeId * vDof + colDof] +=
+                                        kvv1[rowDof, colDof] + kvv2[rowDof, colDof];
+                                    M[rowNodeId * vDof + rowDof, colNodeId * vDof + colDof] += 
+                                        mvv1[rowDof, colDof];
                                 }
                             }
                         }
@@ -1499,7 +1519,8 @@ namespace IvyFEM
                                     double[] u = FV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
                                     double[] prevU = prevFV.GetDoubleValue(colCoId, FieldDerivativeType.Value);
                                     B[rowoffsetp + rowNodeId] +=
-                                        -kpv[0, colDof] * vValue - 1.0 * (
+                                        -kpv[0, colDof] * vValue -
+                                        1.0 * kpvdvdt[0, colDof] * (
                                         3.0 * vValue - 4.0 * u[colDof] + prevU[colDof]) / (2.0 * dt);
                                 }
                             }
