@@ -1080,6 +1080,10 @@ namespace IvyFEM
                     lineFE.QuantityId = (int)this.Id;
                     lineFE.SetVertexCoordIds(vertexCoIds);
                     lineFE.SetNodeCoordIds(nodeCoIds);
+                    if (FEType == FiniteElementType.Edge)
+                    {
+                        lineFE.SetEdgeCoordIdsFromNodeCoordIds();
+                    }
                     lineFE.MaterialId = maId;
                     lineFE.MeshId = meshId;
                     lineFE.MeshElemId = iElem;

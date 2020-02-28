@@ -62,6 +62,8 @@
 　　　　　　　　　　　　  
 　　　　　　　　　　full-wave(ベクトル波)導波路の固有値問題  
 　　　　　　　　　　　　edge/nodal elements  
+　　　　　　　　　　　　(遮蔽形, closed waveguides)  
+　　　　　　　　　　　　(開放形, open or unbounded waveguides)  
 　　　　　　　　　　　　  
 　　　　　　　　　　Note: ABC - Absorbing Boundary Conditions, 吸収境界条件  
 　　　　　　　　　　　　　PML - Perfectly Matched Layers, 完全整合層  
@@ -78,9 +80,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-15更新）**  
+　**バイナリ（2020-02-28更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.32  
+　　IvyFEM.dll version 0.0.0.33  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

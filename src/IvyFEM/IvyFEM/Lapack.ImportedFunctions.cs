@@ -233,6 +233,14 @@ namespace IvyFEM.Lapack
             double[] w, System.Numerics.Complex* z, int ldz);
 
         [DllImport("liblapacke.dll")]
+        public static extern unsafe int LAPACKE_zgeev(
+            MatrixLayout matrix_layout,
+            byte jobvl, byte jobvr,
+            int n, System.Numerics.Complex* a, int lda, System.Numerics.Complex* w,
+            System.Numerics.Complex* vl, int ldvl,
+            System.Numerics.Complex* vr, int ldvr);
+
+        [DllImport("liblapacke.dll")]
         public static extern unsafe int LAPACKE_zggev(
             MatrixLayout matrix_layout,
             byte jobvl, byte jobvr,

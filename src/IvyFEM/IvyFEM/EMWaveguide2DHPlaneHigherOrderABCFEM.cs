@@ -38,7 +38,7 @@ namespace IvyFEM
         /// <summary>
         /// 1D固有値問題のクラッド比誘電率
         /// </summary>
-        public IList<double> Eigen1DCladdingEps { get; set; } = new List<double>();
+        public IList<double> Eigen1DCladdingEp { get; set; } = new List<double>();
         /// <summary>
         /// 減衰定数を持ってくる1D固有値問題のポート
         /// </summary>
@@ -889,7 +889,7 @@ namespace IvyFEM
                 // 減衰定数を考慮した固有値問題
                 var eigen1DFEM = new EMWaveguide1DOpenEigenFEM(World, QuantityId, (uint)portId);
                 eigen1DBaseFEM = eigen1DFEM;
-                eigen1DFEM.CladdingEp = Eigen1DCladdingEps[portId];
+                eigen1DFEM.CladdingEp = Eigen1DCladdingEp[portId];
                 eigen1DFEM.IsTMMode = IsTMMode;
                 eigen1DFEM.Frequency = freq;
                 eigen1DFEM.Solve();

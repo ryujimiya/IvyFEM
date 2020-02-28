@@ -15,6 +15,7 @@ namespace IvyFEM
             VertexCount = 2;
             CreateInterpolate();
             NodeCount = GetNodeCount();
+            EdgeCount = GetEdgeCount();
         }
 
         public LineFE(int order, FiniteElementType feType) : base()
@@ -25,6 +26,7 @@ namespace IvyFEM
             VertexCount = 2;
             CreateInterpolate();
             NodeCount = GetNodeCount();
+            EdgeCount = GetEdgeCount();
         }
 
         public LineFE(LineFE src)
@@ -40,6 +42,16 @@ namespace IvyFEM
         protected uint GetNodeCount()
         {
             return Interpolate.GetNodeCount();
+        }
+
+        protected uint GetEdgeCount()
+        {
+            if (!(Interpolate is IEdgeInterpolate))
+            {
+                return 0;
+            }
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            return edgeInterpolate.GetEdgeCount();
         }
 
         private double[] AddDisplacement(int iNode, double[] co)
@@ -154,6 +166,13 @@ namespace IvyFEM
             return L;
         }
 
+        public double[] GetEdgeL(int edgeId)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[] ret = edgeInterpolate.GetEdgeL(edgeId);
+            return ret;
+        }
+
         // ξ([-1, 1])からL1,L2に変換
         public static double[] GetLFromXi(double xi)
         {
@@ -226,5 +245,28 @@ namespace IvyFEM
             return ret;
         }
 
+        /// <summary>
+        /// vecN
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[][] CalcEdgeN(double[] L)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[][] ret = edgeInterpolate.CalcEdgeN(L);
+            return ret;
+        }
+
+        /// <summary>
+        /// [rot(vecN)]z
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[] CalcRotEdgeN(double[] L)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[] ret = edgeInterpolate.CalcRotEdgeN(L);
+            return ret;
+        }
     }
 }

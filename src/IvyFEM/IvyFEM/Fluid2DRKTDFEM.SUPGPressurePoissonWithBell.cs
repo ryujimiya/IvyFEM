@@ -661,6 +661,84 @@ namespace IvyFEM
                             }
                         }
                     }
+                    /*
+                    //-----------------
+                    // for Pressure Poisson
+                    {
+                        rc = puv[0, 0] + puv[1, 1] + rho * (
+                            v[0] * (vuv[0, 0][0] + vuv[0, 1][1]) +
+                            v[1] * (vuv[1, 0][0] + vuv[1, 1][1])) -
+                            rho * (gx[0] + gy[1]);
+                        for (int jDof = 0; jDof < vDof; jDof++)
+                        {
+                            for (int jNode = 0; jNode < vElemNodeCnt; jNode++)
+                            {
+                                int jNodeId = vNodes[jNode];
+                                if (jNodeId == -1)
+                                {
+                                    continue;
+                                }
+                                rcvj[jDof, jNode] = rho * (
+                                    v[0] * vNuv[0, jDof][jNode] +
+                                    v[1] * vNuv[1, jDof][jNode]);
+                            }
+                        }
+                        for (int jNode = 0; jNode < pElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[0]] = pNuv[0, 0][jNode] + pNuv[1, 1][jNode];
+                        }
+                        for (int jNode = 0; jNode < pxElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pxNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[1]] = pxNuv[0, 0][jNode] + pxNuv[1, 1][jNode];
+                        }
+                        for (int jNode = 0; jNode < pyElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pyNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[2]] = pyNuv[0, 0][jNode] + pyNuv[1, 1][jNode];
+                        }
+                        for (int jNode = 0; jNode < pxxElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pxxNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[3]] = pxxNuv[0, 0][jNode] + pxxNuv[1, 1][jNode];
+                        }
+                        for (int jNode = 0; jNode < pxyElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pxyNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[4]] = pxyNuv[0, 0][jNode] + pxyNuv[1, 1][jNode];
+                        }
+                        for (int jNode = 0; jNode < pyyElemNodeCnt; jNode++)
+                        {
+                            int jNodeId = pyyNodes[jNode];
+                            if (jNodeId == -1)
+                            {
+                                continue;
+                            }
+                            rcp[jNode + pElemNodeOffsets[5]] = pyyNuv[0, 0][jNode] + pyyNuv[1, 1][jNode];
+                        }
+                    }
+                    */
                     //-----------------
                     // kvv
                     for (int row = 0; row < vElemNodeCnt; row++)
@@ -707,6 +785,11 @@ namespace IvyFEM
                                     // for Navier-Stokes
                                     kvv2[rowDof, colDof] =
                                         detJWeight * tauc * rho * vNu[rowDof][row] * rcvj[colDof, col];
+                                    /*
+                                    // for Pressure Poisson
+                                    kvv2[rowDof, colDof] =
+                                        detJWeight * tauc * rho * vNu[rowDof][row] * rcvj[colDof, col];
+                                    */
                                 }
                             }
 
@@ -765,6 +848,14 @@ namespace IvyFEM
                                 uint workcolOffset = pElemNodeOffsets[colQuantityId - pQuantityId];
                                 for (int rowDof = 0; rowDof < vDof; rowDof++)
                                 {
+                                    /*
+                                    //----------------
+                                    // for Pressure Poisson
+                                    kv2p[rowDof, 0] =
+                                        detJWeight * tauc * rho * vNu[rowDof][row] * rcp[col + workcolOffset];
+                                    //----------------
+                                    */
+
                                     kvp[rowDof, 0] =
                                         detJWeight * taum *
                                         (v[0] * vNu[0][row] + v[1] * vNu[1][row]) * rmip[rowDof, col + workcolOffset];
@@ -776,6 +867,11 @@ namespace IvyFEM
                                     // for Navier-Stokes
                                     F[rowNodeId * vDof + rowDof] +=
                                         -kvp[rowDof, 0] * pValue;
+                                    /*
+                                    // for Pressure Poisson
+                                    F[rowNodeId * vDof + rowDof] +=
+                                        -(kvp[rowDof, 0] + kv2p[rowDof, 0]) * pValue;
+                                    */
                                 }
                             }
                         }
@@ -1356,9 +1452,11 @@ namespace IvyFEM
                         pElemNodeCnt + pxElemNodeCnt + pyElemNodeCnt + pxxElemNodeCnt + pxyElemNodeCnt
                     };
                     double[,] rmip = new double[vDof, allpElemNodeCnt];
+                    /*
                     double rc = 0;
                     double[,] rcvj = new double[vDof, vElemNodeCnt];
                     double[] rcp = new double[allpElemNodeCnt];
+                    */
                     for (int iDof = 0; iDof < vDof; iDof++)
                     {
                         rmi[iDof] =
@@ -1455,6 +1553,7 @@ namespace IvyFEM
                             rmip[iDof, jNode + pElemNodeOffsets[5]] = pyyNu[iDof][jNode];
                         }
                     }
+                    /*
                     // for Navier-Stokes
                     {
                         rc = vx[0] + vy[1];
@@ -1471,6 +1570,7 @@ namespace IvyFEM
                             }
                         }
                     }
+                    */
                     ////////
                     // kpv
                     for (uint rowQuantityId = pQuantityId; rowQuantityId < quantityCnt; rowQuantityId++)

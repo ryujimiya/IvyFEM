@@ -194,15 +194,14 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(FEType == FiniteElementType.Edge);
             if (this is LineFE)
             {
-                // 暫定: Lagrange線要素で代用
                 LineFE thisLineFE = this as LineFE;
                 if (Order == 1)
                 {
-                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                    Interpolate = new LineFEEdge1stInterpolate(thisLineFE);
                 }
                 else if (Order == 2)
                 {
-                    Interpolate = new LineFE2ndInterpolate(thisLineFE);
+                    Interpolate = new LineFEEdge2ndInterpolate(thisLineFE);
                 }
                 else
                 {

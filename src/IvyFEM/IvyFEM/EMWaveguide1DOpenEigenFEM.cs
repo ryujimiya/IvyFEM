@@ -17,7 +17,6 @@ namespace IvyFEM
         /// </summary>
         public double DecayParameter { get; set; } = 0.0;
 
-
         public EMWaveguide1DOpenEigenFEM(FEWorld world, uint quantityId, uint portId) :
             base(world, quantityId, portId)
         {

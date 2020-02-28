@@ -94,6 +94,7 @@
     <Compile Include="DistributedPortCondition.cs" />
     <Compile Include="EMWaveguide1DEigenBaseFEM.cs" />
     <Compile Include="EMWaveguide1DOpenEigenFEM.cs" />
+    <Compile Include="EMWaveguide2DOpenEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlanePMLFEM.cs" />
     <Compile Include="EMWaveguide2DEigenFEM.cs" />
     <Compile Include="Fluid2DFEM.SUPGPressurePoissonWithBell.cs" />
@@ -101,6 +102,8 @@
     <Compile Include="Fluid2DRKTDFEM.SUPGPressurePoissonWithBell.cs" />
     <Compile Include="Fluid2DRKTDFEM.StdGPressurePoissonWithBell.cs" />
     <Compile Include="Fluid2DTDFEM.SUPGPressurePoissonWithBell.cs" />
+    <Compile Include="LineFEEdge2ndInterpolate.cs" />
+    <Compile Include="LineFEEdge1stInterpolate.cs" />
     <Compile Include="PCWaveguide2DModalABCZTDFEM.cs" />
     <Compile Include="PCWaveguide2DPBCFEM.cs" />
     <Compile Include="PCWaveguide2DPMLFEM.cs" />

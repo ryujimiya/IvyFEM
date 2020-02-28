@@ -1319,8 +1319,92 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
+        public static int zgeev(System.Numerics.Complex[] A, int aRow, int aCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
+            A.CopyTo(dirtyA, 0);
+            int ret = zgeev_dirty(dirtyA, aRow, aCol, out eVals, out eVecs);
+            return ret;
+        }
+
+        public static int zgeev_dirty(System.Numerics.Complex[] dirtyA, int aRow, int aCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            byte jobvl = Job.DontCompute;
+            byte jobvr = Job.Compute;
+            int n = aCol;
+            int lda = n;
+
+            System.Numerics.Complex[] w = new System.Numerics.Complex[n];
+
+            int ldvl = 1;
+            System.Numerics.Complex[] vl = new System.Numerics.Complex[ldvl * n];
+
+            int ldvr = n;
+            System.Numerics.Complex[] vr = new System.Numerics.Complex[ldvr * n];
+
+            int ret = -1;
+            unsafe
+            {
+                fixed (System.Numerics.Complex* dirtyAP = &dirtyA[0])
+                fixed (System.Numerics.Complex* wP = &w[0])
+                fixed (System.Numerics.Complex* vlP = &vl[0])
+                fixed (System.Numerics.Complex* vrP = &vr[0])
+                {
+                    ret = IvyFEM.Lapack.ImportedFunctions.LAPACKE_zgeev(
+                        MatrixLayout.ColMajor,
+                        jobvl, jobvr,
+                        n, dirtyAP, lda,
+                        wP,
+                        vlP, ldvl,
+                        vrP, ldvr);
+                }
+            }
+
+            if (ret != 0)
+            {
+                throw new InvalidOperationException("Error occurred: ret = " + ret);
+                //return ret;
+            }
+
+            // 固有値を格納
+            eVals = new System.Numerics.Complex[n];
+            for (int i = 0; i < n; i++)
+            {
+                eVals[i] = w[i];
+            }
+
+            // 固有ベクトルを格納
+            eVecs = new System.Numerics.Complex[n][];
+            for (int i = 0; i < n; i++)
+            {
+                eVecs[i] = new System.Numerics.Complex[ldvr];
+                for (int j = 0; j < ldvr; j++)
+                {
+                    eVecs[i][j] = vr[i * ldvr + j];
+                }
+            }
+
+            return ret;
+        }
+
         public static int zggev(System.Numerics.Complex[] A, int aRow, int aCol,
             System.Numerics.Complex[] B, int bRow, int bCol,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
+            A.CopyTo(dirtyA, 0);
+            System.Numerics.Complex[] dirtyB = new System.Numerics.Complex[B.Length];
+            B.CopyTo(dirtyB, 0);
+            int ret = zggev_dirty(
+                dirtyA, aRow, aCol, dirtyB, bRow, bCol,
+                out eVals, out eVecs);
+            return ret;
+        }
+
+        public static int zggev_dirty(System.Numerics.Complex[] dirtyA, int aRow, int aCol,
+            System.Numerics.Complex[] dirtyB, int bRow, int bCol,
             out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
         {
             byte jobvl = Job.DontCompute;
@@ -1330,15 +1414,10 @@ namespace IvyFEM.Lapack
             int ldb = n;
             System.Numerics.Complex[] alpha = new System.Numerics.Complex[n];
             System.Numerics.Complex[] beta = new System.Numerics.Complex[n];
-            int ldvl = n;
+            int ldvl = 1;
             System.Numerics.Complex[] vl = new System.Numerics.Complex[ldvl * n];
             int ldvr = n;
             System.Numerics.Complex[] vr = new System.Numerics.Complex[ldvr * n];
-
-            System.Numerics.Complex[] dirtyA = new System.Numerics.Complex[A.Length];
-            A.CopyTo(dirtyA, 0);
-            System.Numerics.Complex[] dirtyB = new System.Numerics.Complex[B.Length];
-            B.CopyTo(dirtyB, 0);
 
             int ret;
             unsafe
@@ -1381,10 +1460,10 @@ namespace IvyFEM.Lapack
             eVecs = new System.Numerics.Complex[n][];
             for (int i = 0; i < n; i++)
             {
-                eVecs[i] = new System.Numerics.Complex[ldvl];
-                for (int j = 0; j < ldvl; j++)
+                eVecs[i] = new System.Numerics.Complex[ldvr];
+                for (int j = 0; j < ldvr; j++)
                 {
-                    eVecs[i][j] = vl[i * ldvl + j];
+                    eVecs[i][j] = vr[i * ldvr + j];
                 }
             }
             return ret;
