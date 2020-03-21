@@ -131,7 +131,7 @@ namespace IvyFEM
                                     {
                                         double a = (colQuantityId == rowQuantityId &&
                                             colNodeId == rowNodeId &&
-                                            colDof == rowFixedDof) ? 1 : 0;
+                                            colDof == rowFixedDof) ? 1.0 : 0.0;
                                         A[rowOffset + rowNodeId * rowDofCnt + (int)rowFixedDof,
                                             colOffset + colNodeId * colDofCnt + colDof] = a;
                                     }
@@ -260,7 +260,7 @@ namespace IvyFEM
                                     {
                                         System.Numerics.Complex a = (colQuantityId == rowQuantityId &&
                                             colNodeId == rowNodeId &&
-                                            colDof == rowFixedDof) ? 1 : 0;
+                                            colDof == rowFixedDof) ? 1.0 : 0.0;
                                         A[rowOffset + rowNodeId * rowDofCnt + (int)rowFixedDof,
                                             colOffset + colNodeId * colDofCnt + colDof] = a;
                                     }

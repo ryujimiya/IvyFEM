@@ -45,7 +45,8 @@ namespace IvyFEM
         protected ObjectArray<Edge2D> EdgeArray = new ObjectArray<Edge2D>();
         protected ObjectArray<Vertex2D> VertexArray = new ObjectArray<Vertex2D>();
         protected BRep2D BRep = new BRep2D();
-        protected double MinClearance = 1.0e-3;
+        public double MinClearance { get; set; } = 1.0e-3;
+        public double MinTriArea { get; set; } = CadUtils.DefMinTriArea;
         public bool IsSkipAssertValid { get; set; } = false;
 
         public CadObject2D()
@@ -62,6 +63,8 @@ namespace IvyFEM
         {
             Clear();
 
+            MinClearance = src.MinClearance;
+            MinTriArea = src.MinTriArea;
             IsSkipAssertValid = src.IsSkipAssertValid;
 
             // Vertex

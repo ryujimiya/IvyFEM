@@ -285,15 +285,15 @@ namespace IvyFEM
                 VertexArray.SetSize(ptCnt, ndim);
                 for (int iPt = 0; iPt < ptCnt; iPt++)
                 {
-                    VertexArray.VertexCoordArray[iPt * ndim] = vec2Ds[iPt].X;
-                    VertexArray.VertexCoordArray[iPt * ndim + 1] = vec2Ds[iPt].Y;
+                    VertexArray.VertexCoords[iPt * ndim] = vec2Ds[iPt].X;
+                    VertexArray.VertexCoords[iPt * ndim + 1] = vec2Ds[iPt].Y;
                 }
-                if (VertexArray.UVCoordArray != null)
+                if (VertexArray.UVCoords != null)
                 {
                     for (int iPt = 0; iPt < ptCnt; iPt++)
                     {
-                        VertexArray.UVCoordArray[iPt * ndim] = vec2Ds[iPt].X * TexScale;
-                        VertexArray.UVCoordArray[iPt * ndim + 1] = vec2Ds[iPt].Y * TexScale;
+                        VertexArray.UVCoords[iPt * ndim] = vec2Ds[iPt].X * TexScale;
+                        VertexArray.UVCoords[iPt * ndim + 1] = vec2Ds[iPt].Y * TexScale;
                     }
                 }
             }
@@ -321,11 +321,11 @@ namespace IvyFEM
             /////////////
             // vertex arrayを登録する
             GL.EnableClientState(ArrayCap.VertexArray);
-            GL.VertexPointer((int)ndim, VertexPointerType.Double, 0, VertexArray.VertexCoordArray);
-            if (isTexture && VertexArray.UVCoordArray != null)
+            GL.VertexPointer((int)ndim, VertexPointerType.Double, 0, VertexArray.VertexCoords);
+            if (isTexture && VertexArray.UVCoords != null)
             {
                 GL.EnableClientState(ArrayCap.TextureCoordArray);
-                GL.TexCoordPointer(2, TexCoordPointerType.Double, 0, VertexArray.UVCoordArray);
+                GL.TexCoordPointer(2, TexCoordPointerType.Double, 0, VertexArray.UVCoords);
                 GL.MatrixMode(MatrixMode.Texture);
                 GL.LoadIdentity();
                 GL.Translate(-TexCentX, -TexCentY, 0.0);
@@ -413,7 +413,7 @@ namespace IvyFEM
                         GL.Begin(PrimitiveType.Lines);
                         uint sVI = dp.Indexs[0];
                         uint eVI = dp.Indexs[dp.ElemCount * dp.ElemPtCount - 1];
-                        double[] va = VertexArray.VertexCoordArray;
+                        double[] va = VertexArray.VertexCoords;
                         OpenTK.Vector2d sPt = new OpenTK.Vector2d(va[sVI * 2 + 0], va[sVI * 2 + 1]);
                         OpenTK.Vector2d ePt = new OpenTK.Vector2d(va[eVI * 2 + 0], va[eVI * 2 + 1]);
                         if (dp.CurveType == CurveType.CurveArc)
@@ -514,7 +514,7 @@ namespace IvyFEM
             GL.PushName(iDraw);
             // モデルの描画
             GL.EnableClientState(ArrayCap.VertexArray);
-            GL.VertexPointer((int)ndim, VertexPointerType.Double, 0, VertexArray.VertexCoordArray);
+            GL.VertexPointer((int)ndim, VertexPointerType.Double, 0, VertexArray.VertexCoords);
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
                 CadObject2DDrawPart dp = DrawParts[idp];

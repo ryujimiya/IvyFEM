@@ -263,5 +263,138 @@ namespace IvyFEM
             return rotEdgeNs;
         }
 
+        public double[][][] CalcEdgeNu(double[] L)
+        {
+            double[] a;
+            double[] b;
+            double[] c;
+            Owner.CalcTransMatrix(out a, out b, out c);
+
+            double A = Owner.GetArea();
+            double[] barA = new double[3];
+            double[] barB = new double[3];
+            double[] barC = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                barA[i] = a[i] * (2.0 * A);
+                barB[i] = b[i] * (2.0 * A);
+                barC[i] = c[i] * (2.0 * A);
+            }
+            double[] lens = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                lens[i] = Math.Sqrt(barB[i] * barB[i] + barC[i] * barC[i]);
+            }
+
+            double[][] gradLs = new double[3][];
+            for (int eIndex = 0; eIndex < 2; eIndex++)
+            {
+                double[] gradL = new double[2];
+                gradLs[eIndex] = gradL;
+
+                gradL[0] = b[eIndex];
+                gradL[1] = c[eIndex];
+            }
+            {
+                int eIndex = 2;
+                double[] gradL = new double[2];
+                gradLs[eIndex] = gradL;
+
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    double[] gradL0 = gradLs[0];
+                    double[] gradL1 = gradLs[1];
+                    gradL[idim] = -gradL0[idim] - gradL1[idim];
+                }
+            }
+
+            double[][][] edgeNus = new double[2][][];
+            double[][] edgeNxs = new double[8][];
+            edgeNus[0] = edgeNxs;
+            // t1...t6
+            for (int vEIndex = 0; vEIndex < 3; vEIndex++)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    int eIndex = vEIndex * 2 + i;
+                    double[] edgeNx = new double[2];
+                    edgeNxs[eIndex] = edgeNx;
+                    // x,y成分
+                    if (i % 2 == 0)
+                    {
+                        for (int idim = 0; idim < 2; idim++)
+                        {
+                            edgeNx[idim] = b[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                        }
+                    }
+                    else
+                    {
+                        for (int idim = 0; idim < 2; idim++)
+                        {
+                            edgeNx[idim] = -b[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                        }
+                    }
+                }
+            }
+            // t7,t8
+            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            {
+                int eIndex = 6 + vEIndex;
+                double[] edgeNx = new double[2];
+                edgeNxs[eIndex] = edgeNx;
+                // x,y成分
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    edgeNx[idim] = 4.0 * (
+                        b[(vEIndex + 1) % 3] * L[(vEIndex + 2) % 3] +
+                        b[(vEIndex + 2) % 3] * L[(vEIndex + 1) % 3]
+                        )* gradLs[vEIndex][idim];
+                }
+            }
+
+            double[][] edgeNys = new double[8][];
+            edgeNus[1] = edgeNys;
+            // t1...t6
+            for (int vEIndex = 0; vEIndex < 3; vEIndex++)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    int eIndex = vEIndex * 2 + i;
+                    double[] edgeNy = new double[2];
+                    edgeNys[eIndex] = edgeNy;
+                    // x,y成分
+                    if (i % 2 == 0)
+                    {
+                        for (int idim = 0; idim < 2; idim++)
+                        {
+                            edgeNy[idim] = c[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                        }
+                    }
+                    else
+                    {
+                        for (int idim = 0; idim < 2; idim++)
+                        {
+                            edgeNy[idim] = -c[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                        }
+                    }
+                }
+            }
+            // t7,t8
+            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            {
+                int eIndex = 6 + vEIndex;
+                double[] edgeNy = new double[2];
+                edgeNys[eIndex] = edgeNy;
+                // x,y成分
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    edgeNy[idim] = 4.0 * (
+                        c[(vEIndex + 1) % 3] * L[(vEIndex + 2) % 3] +
+                        c[(vEIndex + 2) % 3] * L[(vEIndex + 1) % 3]
+                        ) * gradLs[vEIndex][idim];
+                }
+            }
+            return edgeNus;
+        }
     }
 }

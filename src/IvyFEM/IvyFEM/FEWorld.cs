@@ -281,6 +281,11 @@ namespace IvyFEM
             return MaterialArray.GetObjectIds();
         }
 
+        public bool IsMaterialId(uint maId)
+        {
+            return MaterialArray.IsObjectId(maId);
+        }
+
         public Material GetMaterial(uint maId)
         {
             System.Diagnostics.Debug.Assert(MaterialArray.IsObjectId(maId));
@@ -778,9 +783,9 @@ namespace IvyFEM
             }
         }
 
-        public IList<LineFE> MakeBoundOfElements(uint quantityId)
+        public IList<LineFE> MakeLineElementsForDraw(uint quantityId)
         {
-            return Quantitys[(int)quantityId].MakeBoundOfElements(this);
+            return Quantitys[(int)quantityId].MakeLineElementsForDraw(this);
         }
 
     }

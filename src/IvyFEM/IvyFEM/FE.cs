@@ -101,6 +101,10 @@ namespace IvyFEM
             {
                 CreateBellInterpolate();
             }
+            else if (FEType == FiniteElementType.ScalarHermite)
+            {
+                CreateHermiteInterpolate();
+            }
             else if (FEType == FiniteElementType.Edge)
             {
                 CreateEdgeInterpolate();
@@ -159,7 +163,7 @@ namespace IvyFEM
             if (this is LineFE)
             {
                 LineFE thisLineFE = this as LineFE;
-                if (Order == 1)
+                if (Order == 5)
                 {
                     // for Bell element 5次
                     // 暫定：Lagrange線要素で代用.当然ながら形状関数は正しくない
@@ -177,6 +181,43 @@ namespace IvyFEM
                 {
                     // for Bell element 5次
                     Interpolate = new TriangleFEBellInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+        }
+
+        protected void CreateHermiteInterpolate()
+        {
+            System.Diagnostics.Debug.Assert(FEType == FiniteElementType.ScalarHermite);
+            if (this is LineFE)
+            {
+                LineFE thisLineFE = this as LineFE;
+                if (Order == 3)
+                {
+                    // for Hermite element 3次
+                    // 暫定：Lagrange線要素で代用.当然ながら形状関数は正しくない
+                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TriangleFE)
+            {
+                TriangleFE thisTriFE = this as TriangleFE;
+                if (Order == 3)
+                {
+                    // for Hermite element 3次
+                    // 暫定：Lagrange三角形要素で代用.当然ながら形状関数は正しくない
+                    Interpolate = new TriangleFE1stInterpolate(thisTriFE);
                 }
                 else
                 {

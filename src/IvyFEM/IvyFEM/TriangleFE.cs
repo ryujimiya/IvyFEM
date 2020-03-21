@@ -279,5 +279,17 @@ namespace IvyFEM
             double[] ret = edgeInterpolate.CalcRotEdgeN(L);
             return ret;
         }
+
+        /// <summary>
+        /// d(vecN)/du (u=x,y)
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
+        public double[][][] CalcEdgeNu(double[] L)
+        {
+            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            double[][][] ret = edgeInterpolate.CalcEdgeNu(L);
+            return ret;
+        }
     }
 }

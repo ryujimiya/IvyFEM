@@ -11,6 +11,16 @@ namespace IvyFEM
         protected void CalcLinearElasticElementAB(
             uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
+            {
+                uint quantityId0 = 0;
+                TriangleFE workTriFE = World.GetTriangleFE(quantityId0, feId);
+                Material workMa0 = World.GetMaterial(workTriFE.MaterialId);
+                if (!(workMa0 is LinearElasticMaterial))
+                {
+                    return;
+                }
+            }
+
             uint quantityId = 0;
             int nodeCnt = (int)World.GetNodeCount(quantityId);
             System.Diagnostics.Debug.Assert(World.GetDof(quantityId) == 2);

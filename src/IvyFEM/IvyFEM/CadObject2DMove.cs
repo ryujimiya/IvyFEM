@@ -376,7 +376,7 @@ namespace IvyFEM
                 if (Math.Abs(CadUtils.TriHeight(vec, sPt, ePt)) > edgeLen * 0.02)
                 {
                     OpenTK.Vector2d cPt;
-                    bool ret = CadUtils.CenterCircumcircle(sPt, ePt, vec, out cPt);
+                    bool ret = CadUtils.CenterCircumcircle(sPt, ePt, vec, MinTriArea, out cPt);
                     System.Diagnostics.Debug.Assert(ret);
                     double dist = CadUtils.TriHeight(cPt, sPt, ePt);
                     double distRatio = dist / edgeLen;

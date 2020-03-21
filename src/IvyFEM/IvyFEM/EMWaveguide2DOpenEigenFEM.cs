@@ -309,6 +309,31 @@ namespace IvyFEM
                         int nodeId = World.Coord2Node(zQuantityId, coId);
                         nodes[iNode] = nodeId;
                     }
+                    // 境界に接する三角形
+                    TriangleFE tTriFE;
+                    {
+                        int coId1 = tLineFE.EdgeCoordIdss[0][0];
+                        int coId2 = tLineFE.EdgeCoordIdss[0][1];
+                        IList<uint> triFEIds = World.GetTriangleFEIdsFromEdgeCoord(tQuantityId, coId1, coId2);
+                        System.Diagnostics.Debug.Assert(triFEIds.Count == 1);
+                        uint triFEId = triFEIds[0];
+                        tTriFE = World.GetTriangleFE(tQuantityId, triFEId);
+                    }
+                    uint tTriElemEdgeNodeCnt = tTriFE.EdgeCount;
+                    int[] tTriEdgeIds = new int[tTriElemEdgeNodeCnt];
+                    bool[] tTriIsReverses = new bool[tTriElemEdgeNodeCnt];
+                    int[] tTriEdgeNodes = new int[tTriElemEdgeNodeCnt];
+                    for (int iENode = 0; iENode < tTriElemEdgeNodeCnt; iENode++)
+                    {
+                        int[] coIds = tTriFE.EdgeCoordIdss[iENode];
+                        bool isReverse;
+                        int edgeId = World.GetEdgeIdFromCoords(tQuantityId, coIds[0], coIds[1], out isReverse);
+                        int edgeNodeId = World.Edge2EdgeNode(tQuantityId, edgeId);
+
+                        tTriEdgeIds[iENode] = edgeId;
+                        tTriIsReverses[iENode] = isReverse;
+                        tTriEdgeNodes[iENode] = edgeNodeId;
+                    }
 
                     Material ma0 = World.GetMaterial(tLineFE.MaterialId);
                     System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
@@ -366,6 +391,19 @@ namespace IvyFEM
                         double[] N = zLineFE.CalcN(L);
                         double[][] Nu = zLineFE.CalcNu(L);
                         double[] Ns = Nu[0];
+                        double[] triL = new double[3] { 0.0, 0.0, 0.0 };
+                        {
+                            int vertexCo1 = zLineFE.VertexCoordIds[0];
+                            int vertexCo2 = zLineFE.VertexCoordIds[1];
+                            int iL1 = Array.IndexOf(tTriFE.VertexCoordIds, vertexCo1);
+                            int iL2 = Array.IndexOf(tTriFE.VertexCoordIds, vertexCo2);
+                            triL[iL1] = L[0];
+                            triL[iL2] = L[1];
+                        }
+                        double[][] tTriN = tTriFE.CalcEdgeN(triL);
+                        double[][][] tTriNu = tTriFE.CalcEdgeNu(triL);
+                        double[][] tTriNx = tTriNu[0];
+                        double[][] tTriNy = tTriNu[1];
 
                         double weight = ip.Weights[ipPt];
                         double detJWeight = (1.0 / 2.0) * weight * le;
@@ -385,15 +423,6 @@ namespace IvyFEM
                                 int colEdgeNodeId = edgeNodes[col];
                                 bool colIsReverse = isReverses[col];
                                 double colEdgeSgn = colIsReverse ? -1.0 : 1.0;
-                                int[] colEdgeCoIds = tLineFE.EdgeCoordIdss[col];
-                                int colEdgeCoId1 = colEdgeCoIds[0];
-                                int colEdgeCoId2 = colEdgeCoIds[1];
-                                IList<uint> tTriFEIds = World.GetTriangleFEIdsFromEdgeCoord(
-                                    tQuantityId, colEdgeCoId1, colEdgeCoId2);
-                                System.Diagnostics.Debug.Assert(tTriFEIds.Count == 1);
-                                uint tTriFEId = tTriFEIds[0];
-                                TriangleFE tTriFE = World.GetTriangleFE(tQuantityId, tTriFEId);
-                                TriangleFE zTriFE = World.GetTriangleFE(zQuantityId, tTriFEId);
 
                                 if (colEdgeNodeId == -1)
                                 {
@@ -422,66 +451,31 @@ namespace IvyFEM
                             {
                                 continue;
                             }
-                            /* En = 0として以下を削除
-                            ////////////////////////////////////////////////////////
-                            // n方向はz方向と同じ節点
-                            for (int col = 0; col < elemNodeCnt; col++)
+
+                            /* En = 0とすると良好な結果が得られた
+                            /////////////////////////////////////////////////////
+                            // n成分
+                            for (int kENode = 0; kENode < tTriElemEdgeNodeCnt; kENode++)
                             {
-                                int kCoId = zLineFE.NodeCoordIds[col];
-                                IList<uint> ktTriFEIds2 = World.GetTriangleFEIdsFromCoord(tQuantityId, kCoId);
-                                int ktTriFECnt2 = ktTriFEIds2.Count;
-
-                                foreach (uint ktFEId2 in ktTriFEIds2)
+                                int kEdgeNodeId = tTriEdgeNodes[kENode];
+                                bool kIsReverse = tTriIsReverses[kENode];
+                                double kEdgeSgn = kIsReverse ? -1.0 : 1.0;
+                                if (kEdgeNodeId == -1)
                                 {
-                                    TriangleFE ktTriFE2 = World.GetTriangleFE(tQuantityId, ktFEId2);
-                                    TriangleFE kzTriFE2 = World.GetTriangleFE(zQuantityId, ktFEId2);
-                                    int kNode2 = Array.IndexOf(kzTriFE2.NodeCoordIds, kCoId);
-                                    double[] kL2 = kzTriFE2.GetNodeL(kNode2);
-                                    double[][] kTriNt2 = ktTriFE2.CalcEdgeN(kL2);
-
-                                    uint ktTriElemEdgeNodeCnt = ktTriFE2.EdgeCount;
-                                    int[] kEdgeIds = new int[ktTriElemEdgeNodeCnt];
-                                    bool[] kIsReverses = new bool[ktTriElemEdgeNodeCnt];
-                                    int[] kEdgeNodes = new int[ktTriElemEdgeNodeCnt];
-                                    for (int lENode = 0; lENode < ktTriElemEdgeNodeCnt; lENode++)
-                                    {
-                                        int[] coIds = ktTriFE2.EdgeCoordIdss[lENode];
-                                        bool isReverse;
-                                        int edgeId = World.GetEdgeIdFromCoords(
-                                            tQuantityId, coIds[0], coIds[1], out isReverse);
-                                        int edgeNodeId = World.Edge2EdgeNode(tQuantityId, edgeId);
-
-                                        kEdgeIds[lENode] = edgeId;
-                                        kIsReverses[lENode] = isReverse;
-                                        kEdgeNodes[lENode] = edgeNodeId;
-                                    }
-
-                                    for (int lEdgeNode = 0; lEdgeNode < ktTriElemEdgeNodeCnt; lEdgeNode++)
-                                    {
-                                        int lEdgeNodeId = kEdgeNodes[lEdgeNode];
-                                        bool lIsReverse = kIsReverses[lEdgeNode];
-                                        double lEdgeSgn = lIsReverse ? -1.0 : 1.0;
-                                        if (lEdgeNodeId == -1)
-                                        {
-                                            continue;
-                                        }
-                                        double[] lTriNt = kTriNt2[lEdgeNode];
-                                        double utnVal = 0;
-                                        if (isYDirection)
-                                        {
-                                            utnVal = detJWeight * maPzz * tN[row][1] * Ns[col] *
-                                                lTriNt[0] / ktTriFECnt2;
-                                        }
-                                        else
-                                        {
-                                            utnVal = detJWeight * maPzz * tN[row][0] * Ns[col] *
-                                                lTriNt[1] / ktTriFECnt2;
-                                        }
-                                        Utn[rowEdgeNodeId, lEdgeNodeId] += rowEdgeSgn * lEdgeSgn * utnVal;
-                                    }
+                                    continue;
                                 }
+                                double utnVal = 0;
+                                if (isYDirection)
+                                {
+                                    utnVal = detJWeight * maPzz * tN[row][1] * tTriNy[kENode][0];
+                                }
+                                else
+                                {
+                                    utnVal = detJWeight * maPzz * tN[row][0] * tTriNx[kENode][1];
+                                }
+                                Utn[rowEdgeNodeId, kEdgeNodeId] += rowEdgeSgn * kEdgeSgn * utnVal;
                             }
-                            ////////////////////////////////////////////////////////
+                            /////////////////////////////////////////////////////
                             */
                         }
 
@@ -493,66 +487,31 @@ namespace IvyFEM
                             {
                                 continue;
                             }
-                            /* En = 0として以下を削除
-                            ////////////////////////////////////////////////////////
-                            // n方向はz方向と同じ節点
-                            for (int col = 0; col < elemNodeCnt; col++)
+
+                            /* En = 0とすると良好な結果が得られた
+                            /////////////////////////////////////////////////////
+                            // n成分
+                            for (int kENode = 0; kENode < tTriElemEdgeNodeCnt; kENode++)
                             {
-                                int kCoId = zLineFE.NodeCoordIds[col];
-                                IList<uint> ktTriFEIds2 = World.GetTriangleFEIdsFromCoord(tQuantityId, kCoId);
-                                int ktTriFECnt2 = ktTriFEIds2.Count;
-
-                                foreach (uint ktFEId2 in ktTriFEIds2)
+                                int kEdgeNodeId = tTriEdgeNodes[kENode];
+                                bool kIsReverse = tTriIsReverses[kENode];
+                                double kEdgeSgn = kIsReverse ? -1.0 : 1.0;
+                                if (kEdgeNodeId == -1)
                                 {
-                                    TriangleFE ktTriFE2 = World.GetTriangleFE(tQuantityId, ktFEId2);
-                                    TriangleFE kzTriFE2 = World.GetTriangleFE(zQuantityId, ktFEId2);
-                                    int kNode2 = Array.IndexOf(kzTriFE2.NodeCoordIds, kCoId);
-                                    double[] kL2 = kzTriFE2.GetNodeL(kNode2);
-                                    double[][] kTriNt2 = ktTriFE2.CalcEdgeN(kL2);
-
-                                    uint ktTriElemEdgeNodeCnt = ktTriFE2.EdgeCount;
-                                    int[] kEdgeIds = new int[ktTriElemEdgeNodeCnt];
-                                    bool[] kIsReverses = new bool[ktTriElemEdgeNodeCnt];
-                                    int[] kEdgeNodes = new int[ktTriElemEdgeNodeCnt];
-                                    for (int lENode = 0; lENode < ktTriElemEdgeNodeCnt; lENode++)
-                                    {
-                                        int[] coIds = ktTriFE2.EdgeCoordIdss[lENode];
-                                        bool isReverse;
-                                        int edgeId = World.GetEdgeIdFromCoords(
-                                            tQuantityId, coIds[0], coIds[1], out isReverse);
-                                        int edgeNodeId = World.Edge2EdgeNode(tQuantityId, edgeId);
-
-                                        kEdgeIds[lENode] = edgeId;
-                                        kIsReverses[lENode] = isReverse;
-                                        kEdgeNodes[lENode] = edgeNodeId;
-                                    }
-
-                                    for (int lEdgeNode = 0; lEdgeNode < ktTriElemEdgeNodeCnt; lEdgeNode++)
-                                    {
-                                        int lEdgeNodeId = kEdgeNodes[lEdgeNode];
-                                        bool lIsReverse = kIsReverses[lEdgeNode];
-                                        double lEdgeSgn = lIsReverse ? -1.0 : 1.0;
-                                        if (lEdgeNodeId == -1)
-                                        {
-                                            continue;
-                                        }
-                                        double[] lTriNt = kTriNt2[lEdgeNode];
-                                        double uznVal = 0;
-                                        if (isYDirection)
-                                        {
-                                            uznVal = -1.0 * detJWeight * maPyy * N[row] * N[col] *
-                                                lTriNt[0] / ktTriFECnt2;
-                                        }
-                                        else
-                                        {
-                                            uznVal = -1.0 * detJWeight * maPxx * N[row] * N[col] *
-                                                lTriNt[1] / ktTriFECnt2;
-                                        }
-                                        Uzn[rowNodeId, lEdgeNodeId] += lEdgeSgn * uznVal;
-                                    }
+                                    continue;
                                 }
+                                double uznVal = 0;
+                                if (isYDirection)
+                                {
+                                    uznVal = -1.0 * detJWeight * maPyy * N[row] * tTriN[kENode][0];
+                                }
+                                else
+                                {
+                                    uznVal = -1.0 * detJWeight * maPxx * N[row] * tTriN[kENode][1];
+                                }
+                                Uzn[rowNodeId, kEdgeNodeId] += kEdgeSgn * uznVal;
                             }
-                            ////////////////////////////////////////////////////////
+                            /////////////////////////////////////////////////////
                             */
                         }
                         // uzz

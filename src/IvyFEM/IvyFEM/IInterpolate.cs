@@ -26,5 +26,6 @@ namespace IvyFEM
         int[][] GetEdgePointIdss();
         double[][] CalcEdgeN(double[] L);
         double[] CalcRotEdgeN(double[] L);
+        double[][][] CalcEdgeNu(double[] L);
     }
 }

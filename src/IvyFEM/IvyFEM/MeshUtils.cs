@@ -1053,7 +1053,7 @@ namespace IvyFEM
 
 
         public static bool MakePointSurTri(IList<MeshTri2D> tris, uint npoin, uint[] elsupInd,
-            out uint nelsup, out uint[] elsup )
+            out uint nelsup, out uint[] elsup)
         {
 
             uint nnotri = 3;

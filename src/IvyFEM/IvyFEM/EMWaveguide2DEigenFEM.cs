@@ -296,7 +296,7 @@ namespace IvyFEM
             int ret = -1;
             try
             {
-                ret = IvyFEM.Lapack.Functions.dggev(A.Buffer, A.RowLength, A.ColumnLength,
+                ret = IvyFEM.Lapack.Functions.dggev_dirty(A.Buffer, A.RowLength, A.ColumnLength,
                     B.Buffer, B.RowLength, B.ColumnLength,
                     out eVals, out eVecs);
                 System.Diagnostics.Debug.Assert(ret == 0);

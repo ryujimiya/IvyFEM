@@ -187,9 +187,9 @@ namespace IvyFEM
                         double[] coord = world.GetCoord(quantityId, coId);
                         FieldDerivativeType dt = ValueDt;
                         double value = fv.GetShowValue(coId, 0, dt);
-                        VertexArray.VertexCoordArray[coId * 3 + 0] = coord[0];
-                        VertexArray.VertexCoordArray[coId * 3 + 1] = coord[1];
-                        VertexArray.VertexCoordArray[coId * 3 + 2] = value;
+                        VertexArray.VertexCoords[coId * 3 + 0] = coord[0];
+                        VertexArray.VertexCoords[coId * 3 + 1] = coord[1];
+                        VertexArray.VertexCoords[coId * 3 + 2] = value;
                     }
                 }
                 else
@@ -202,7 +202,7 @@ namespace IvyFEM
                         for (int iDim = 0; iDim < dim; iDim++)
                         {
                             double value = fv.GetShowValue(coId, iDim, dt);
-                            VertexArray.VertexCoordArray[coId * dim + iDim] = coord[iDim] + value;
+                            VertexArray.VertexCoords[coId * dim + iDim] = coord[iDim] + value;
                         }
                     }
                 }
@@ -215,7 +215,7 @@ namespace IvyFEM
                     double[] coord = world.GetCoord(quantityId, coId);
                     for (int iDim = 0; iDim < dim; iDim++)
                     {
-                        VertexArray.VertexCoordArray[coId * dim + iDim] = coord[iDim];
+                        VertexArray.VertexCoords[coId * dim + iDim] = coord[iDim];
                     }
                 }
             }
@@ -301,17 +301,17 @@ namespace IvyFEM
                 {
                     uint[] vertexs = dp.GetVertexs((uint)iElem);
                     OpenTK.Vector3d c0 = new OpenTK.Vector3d(
-                        VertexArray.VertexCoordArray[vertexs[0] * 3],
-                        VertexArray.VertexCoordArray[vertexs[0] * 3 + 1],
-                        VertexArray.VertexCoordArray[vertexs[0] * 3 + 2]);
+                        VertexArray.VertexCoords[vertexs[0] * 3],
+                        VertexArray.VertexCoords[vertexs[0] * 3 + 1],
+                        VertexArray.VertexCoords[vertexs[0] * 3 + 2]);
                     OpenTK.Vector3d c1 = new OpenTK.Vector3d(
-                        VertexArray.VertexCoordArray[vertexs[1] * 3],
-                        VertexArray.VertexCoordArray[vertexs[1] * 3 + 1],
-                        VertexArray.VertexCoordArray[vertexs[1] * 3 + 2]);
+                        VertexArray.VertexCoords[vertexs[1] * 3],
+                        VertexArray.VertexCoords[vertexs[1] * 3 + 1],
+                        VertexArray.VertexCoords[vertexs[1] * 3 + 2]);
                     OpenTK.Vector3d c2 = new OpenTK.Vector3d(
-                        VertexArray.VertexCoordArray[vertexs[2] * 3],
-                        VertexArray.VertexCoordArray[vertexs[2] * 3 + 1],
-                        VertexArray.VertexCoordArray[vertexs[2] * 3 + 2]);
+                        VertexArray.VertexCoords[vertexs[2] * 3],
+                        VertexArray.VertexCoords[vertexs[2] * 3 + 1],
+                        VertexArray.VertexCoords[vertexs[2] * 3 + 2]);
                     double[] n;
                     double area;
                     CadUtils.UnitNormalAreaTri3D(out n, out area, c0, c1, c2);
@@ -459,7 +459,7 @@ namespace IvyFEM
                 GL.LineWidth(3);
                 GL.EnableClientState(ArrayCap.VertexArray);
                 GL.VertexPointer((int)VertexArray.Dimension, VertexPointerType.Double,
-                    0, VertexArray.VertexCoordArray);
+                    0, VertexArray.VertexCoords);
                 if (NormalArray != null && GL.IsEnabled(EnableCap.Lighting))
                 {
                     GL.EnableClientState(ArrayCap.NormalArray);
@@ -507,7 +507,7 @@ namespace IvyFEM
                 GL.ShadeModel(ShadingModel.Smooth);
                 GL.EnableClientState(ArrayCap.VertexArray);
                 GL.VertexPointer((int)VertexArray.Dimension, VertexPointerType.Double,
-                    0, VertexArray.VertexCoordArray);
+                    0, VertexArray.VertexCoords);
                 if (NormalArray != null && GL.IsEnabled(EnableCap.Lighting))
                 {
                     GL.EnableClientState(ArrayCap.NormalArray);

@@ -9,22 +9,12 @@ namespace IvyFEM
     public abstract class Camera
     {
         public double WindowAspect { get; set; }
-
         public OpenTK.Vector2d WindowCenter { get; set; } = new OpenTK.Vector2d();
         protected double InvScale;
-        public double Scale
-        {
-            get
-            {
-                return GetScale();
-            }
-            set
-            {
-                SetScale(value);
-            }
-        }
+        public double Scale { get => GetScale(); set => SetScale(value); }
         public double HalfViewHeight { get; private set; }
 
+        public double MinLen { get; set; } = 1.0e-4;
         private double ObjectW;
         private double ObjectH;
         private double ObjectD;
@@ -146,7 +136,7 @@ namespace IvyFEM
         {
             hw = HalfViewHeight * InvScale * WindowAspect;
             hh = HalfViewHeight * InvScale;
-            hd = (ObjectD * 20.0 > 1.0e-4) ? ObjectD * 20.0 : 1.0e-4;
+            hd = (ObjectD * 20.0 > MinLen) ? ObjectD * 20.0 : MinLen;
             hd = (ObjectW * 20.0 > hd) ? ObjectW * 20.0 : hd;
             hd = (ObjectH * 20.0 > hd) ? ObjectH * 20.0 : hd;
         }

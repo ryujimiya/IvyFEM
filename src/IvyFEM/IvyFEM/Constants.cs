@@ -122,6 +122,7 @@ namespace IvyFEM
     {
         ScalarLagrange,
         ScalarBell,
+        ScalarHermite,
         Edge
     }
 

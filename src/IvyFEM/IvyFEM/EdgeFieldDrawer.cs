@@ -58,7 +58,7 @@ namespace IvyFEM
             if (isDrawInnerEdge)
             {
                 // 内部の全ての辺を描画
-                LineFEs = world.MakeBoundOfElements(quantityId);
+                LineFEs = world.MakeLineElementsForDraw(quantityId);
             }
             else
             {
@@ -137,8 +137,8 @@ namespace IvyFEM
                     {
                         int coId = lineFE.NodeCoordIds[iPt];
                         double[] co = world.GetCoord(quantityId, coId);
-                        VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim  + 0] = co[0];
-                        VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim  + 1] = co[1];
+                        VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim  + 0] = co[0];
+                        VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim  + 1] = co[1];
 
                     }
                 }
@@ -159,9 +159,9 @@ namespace IvyFEM
                             double[] coord = world.GetCoord(quantityId, coId);
                             FieldDerivativeType dt = ValueDt;
                             double value = fv.GetShowValue(coId, 0, dt);
-                            VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim + 0] = coord[0];
-                            VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim + 1] = coord[1];
-                            VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim + 2] = value;
+                            VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim + 0] = coord[0];
+                            VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim + 1] = coord[1];
+                            VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim + 2] = value;
                         }
                     }
                 }
@@ -179,7 +179,7 @@ namespace IvyFEM
                             for (int iDim = 0; iDim < drawDim; iDim++)
                             {
                                 double value = fv.GetShowValue(coId, iDim, dt);
-                                VertexArray.VertexCoordArray[(iEdge * LinePtCount + iPt) * drawDim + iDim] =
+                                VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim + iDim] =
                                     coord[iDim] + value;
                             }
                         }
@@ -205,7 +205,7 @@ namespace IvyFEM
 
             uint drawDim = VertexArray.Dimension;
             GL.EnableClientState(ArrayCap.VertexArray);
-            GL.VertexPointer((int)drawDim, VertexPointerType.Double, 0, VertexArray.VertexCoordArray);
+            GL.VertexPointer((int)drawDim, VertexPointerType.Double, 0, VertexArray.VertexCoords);
             if (drawDim == 2)
             {
                 GL.Translate(0, 0, +0.01);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
 
 namespace IvyFEM
 {
@@ -10,6 +11,7 @@ namespace IvyFEM
     {
         public OpenTK.Vector2d Point { get; set; } = new OpenTK.Vector2d();
         public OpenTK.Vector2d Normal { get; set; } = new OpenTK.Vector2d();
+        public double BoundingBoxLen { get; set; } = 1.0;
 
         public LineConstraint()
         {
@@ -65,6 +67,41 @@ namespace IvyFEM
                 value *= -1.0;
             }
             return value;
+        }
+
+        public override BoundingBox3D GetBoundingBox(Matrix3d rot)
+        {
+            // 2D
+            var pt = Point;
+            var normal = Normal;
+            var horizontal = new OpenTK.Vector2d(-normal.Y, normal.X);
+            var pt1 = pt - horizontal * BoundingBoxLen;
+            var pt2 = pt + horizontal * BoundingBoxLen;
+
+            IList<double> coords = new List<double>();
+            coords.Add(pt1.X);
+            coords.Add(pt1.Y);
+            coords.Add(pt2.X);
+            coords.Add(pt2.Y);
+            int pointCnt = coords.Count / 2;
+
+            BoundingBox3D bb;
+            {
+                double x1 = coords[0];
+                double y1 = coords[1];
+                double z1 = 0.0;
+                bb = new BoundingBox3D(x1, x1, y1, y1, z1, z1);
+            }
+            for (int iPt = 1; iPt < pointCnt; iPt++)
+            {
+                double x1 = coords[iPt * 2];
+                double y1 = coords[iPt * 2 + 1];
+                double z1 = 0.0;
+                bb.MaxX = (x1 > bb.MaxX) ? x1 : bb.MaxX; bb.MinX = (x1 < bb.MinX) ? x1 : bb.MinX;
+                bb.MaxY = (y1 > bb.MaxY) ? y1 : bb.MaxY; bb.MinY = (y1 < bb.MinY) ? y1 : bb.MinY;
+                bb.MaxZ = (z1 > bb.MaxZ) ? z1 : bb.MaxZ; bb.MinZ = (z1 < bb.MinZ) ? z1 : bb.MinZ;
+            }
+            return bb;
         }
     }
 }

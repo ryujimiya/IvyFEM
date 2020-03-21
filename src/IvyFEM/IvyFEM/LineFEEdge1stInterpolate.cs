@@ -121,5 +121,10 @@ namespace IvyFEM
         {
             throw new NotImplementedException();
         }
+
+        public double[][][] CalcEdgeNu(double[] L)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

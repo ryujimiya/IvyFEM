@@ -3,17 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace IvyFEM
 {
-    public class ConstraintDrawer
+    // constraintはDrawerArray, FieldDrawerArray兼用
+    public class ConstraintDrawer : IDrawer, IFieldDrawer
     {
         private Constraint Constraint = null;
+
+        public RotMode SutableRotMode { get; private set; } = RotMode.RotMode2D;
+        public bool IsAntiAliasing { get; set; } = false;
 
         public ConstraintDrawer(Constraint constraint)
         {
             Constraint = constraint;
+        }
+
+        public BoundingBox3D GetBoundingBox(Matrix3d rot)
+        {
+            return Constraint.GetBoundingBox(rot);
         }
 
         public void Draw()
@@ -69,6 +79,26 @@ namespace IvyFEM
                 GL.Vertex2(pt2.X, pt2.Y);
             }
             GL.End();
+        }
+
+        public void DrawSelection(uint idraw)
+        {
+
+        }
+
+        public void AddSelected(int[] selectFlag)
+        {
+
+        }
+
+        public void ClearSelected()
+        {
+
+        }
+
+        public void Update(FEWorld world)
+        {
+
         }
     }
 }

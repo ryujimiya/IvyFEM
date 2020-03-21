@@ -13,8 +13,14 @@ namespace IvyFEM
     {
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
+
         // Calc Matrix
         protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
+        // Calc Matrix for truss
+        protected IList<CalcElementDoubleAB> CalcElementABsForLine { get; set; } = new List<CalcElementDoubleAB>();
+
+        protected int ConstraintCount { get => (HasMultipointConstraints() || HasTwoBodyContact()) ? 1 : 0; }
+        public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
 
         //Solve
         // Output
@@ -41,6 +47,14 @@ namespace IvyFEM
                 foreach (var calcElementAB in CalcElementABs)
                 {
                     calcElementAB(feId, A, B);
+                }
+            }
+            IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
+            foreach (uint feId in lineFEIds)
+            {
+                foreach (var calcElementABForLine in CalcElementABsForLine)
+                {
+                    calcElementABForLine(feId, A, B);
                 }
             }
             CalcMultipointConstraintAB(A, B);
@@ -168,7 +182,11 @@ namespace IvyFEM
             {
                 TriangleFE triFE = World.GetTriangleFE(quantityId, feId);
                 Material ma = World.GetMaterial(triFE.MaterialId);
-                if (ma is LinearElasticMaterial)
+                if (ma is NullMaterial)
+                {
+                    // null
+                }
+                else if (ma is LinearElasticMaterial)
                 {
                     // linear
                 }
@@ -176,6 +194,42 @@ namespace IvyFEM
                 {
                     hasNonlinear = true;
                     break;
+                }
+            }
+
+            if (!hasNonlinear)
+            {
+                IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
+                foreach (uint feId in lineFEIds)
+                {
+                    LineFE lineFE = World.GetLineFE(quantityId, feId);
+                    uint maId = lineFE.MaterialId;
+                    if (!World.IsMaterialId(maId))
+                    {
+                        continue;
+                    }
+                    Material ma = World.GetMaterial(maId);
+                    if (ma is NullMaterial)
+                    {
+                        // null
+                    }
+                    else if (ma is TrussMaterial)
+                    {
+                        // truss
+                    }
+                    else if (ma is BeamMaterial)
+                    {
+                        // beam
+                    }
+                    else if (ma is FrameMaterial)
+                    {
+                        // frame
+                    }
+                    else
+                    {
+                        hasNonlinear = true;
+                        break;
+                    }
                 }
             }
             return hasNonlinear;

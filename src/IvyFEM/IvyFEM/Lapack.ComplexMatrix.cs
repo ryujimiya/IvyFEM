@@ -149,17 +149,25 @@ namespace IvyFEM.Lapack
             }
         }
 
-        public void Transpose()
+        public static ComplexMatrix Transpose(ComplexMatrix A)
         {
-            ComplexMatrix t = new ComplexMatrix(ColumnLength, RowLength);
+            int nRow = A.RowLength;
+            int nCol = A.ColumnLength;
+            ComplexMatrix t = new ComplexMatrix(nCol, nRow);
 
-            for (int row = 0; row < RowLength; row++)
+            for (int row = 0; row < nRow; row++)
             {
-                for (int col = 0; col < ColumnLength; col++)
+                for (int col = 0; col < nCol; col++)
                 {
-                    t[col, row] = this[row, col];
+                    t[col, row] = A[row, col];
                 }
             }
+            return t;
+        }
+
+        public void Transpose()
+        {
+            ComplexMatrix t = Transpose(this);
             Copy(t.Buffer, t.RowLength, t.ColumnLength, false);
         }
 

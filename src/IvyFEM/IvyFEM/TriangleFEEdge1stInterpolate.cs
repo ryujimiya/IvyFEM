@@ -189,5 +189,79 @@ namespace IvyFEM
             return rotEdgeNs;
         }
 
+        public double[][][] CalcEdgeNu(double[] L)
+        {
+            double[] a;
+            double[] b;
+            double[] c;
+            Owner.CalcTransMatrix(out a, out b, out c);
+
+            double A = Owner.GetArea();
+            double[] barA = new double[3];
+            double[] barB = new double[3];
+            double[] barC = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                barA[i] = a[i] * (2.0 * A);
+                barB[i] = b[i] * (2.0 * A);
+                barC[i] = c[i] * (2.0 * A);
+            }
+            double[] lens = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                lens[i] = Math.Sqrt(barB[i] * barB[i] + barC[i] * barC[i]);
+            }
+
+            double[][] gradLs = new double[3][];
+            for (int eIndex = 0; eIndex < 2; eIndex++)
+            {
+                double[] gradL = new double[2];
+                gradLs[eIndex] = gradL;
+
+                gradL[0] = b[eIndex];
+                gradL[1] = c[eIndex];
+            }
+            {
+                int eIndex = 2;
+                double[] gradL = new double[2];
+                gradLs[eIndex] = gradL;
+
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    double[] gradL0 = gradLs[0];
+                    double[] gradL1 = gradLs[1];
+                    gradL[idim] = -gradL0[idim] - gradL1[idim];
+                }
+            }
+
+            double[][][] edgeNus = new double[2][][];
+            double[][] edgeNxs = new double[3][];
+            edgeNus[0] = edgeNxs;
+            for (int eIndex = 0; eIndex < 3; eIndex++)
+            {
+                double[] edgeNx = new double[2];
+                edgeNxs[eIndex] = edgeNx;
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    edgeNx[idim] = lens[eIndex] * (
+                        b[(eIndex + 1) % 3] * gradLs[(eIndex + 2) % 3][idim] -
+                        b[(eIndex + 2) % 3] * gradLs[(eIndex + 1) % 3][idim]);
+                }
+            }
+            double[][] edgeNys = new double[3][];
+            edgeNus[1] = edgeNys;
+            for (int eIndex = 0; eIndex < 3; eIndex++)
+            {
+                double[] edgeNy = new double[2];
+                edgeNys[eIndex] = edgeNy;
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    edgeNy[idim] = lens[eIndex] * (
+                        c[(eIndex + 1) % 3] * gradLs[(eIndex + 2) % 3][idim] -
+                        c[(eIndex + 2) % 3] * gradLs[(eIndex + 1) % 3][idim]);
+                }
+            }
+            return edgeNus;
+        }
     }
 }

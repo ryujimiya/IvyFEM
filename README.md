@@ -21,6 +21,10 @@
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
 　　　　　　　　　　弾性体二体接触※  
+　　　　　　　　　　構造要素  
+　　　　　　　　　　　Truss要素(トラス)  
+　　　　　　　　　　　Beam要素(X方向の梁)  
+　　　　　　　　　　　Frame要素(骨組、方向の異なるトラス/梁を繋いだもの、曲げとねじり)  
 　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -80,9 +84,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-02-28更新）**  
+　**バイナリ（2020-03-21更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.33  
+　　IvyFEM.dll version 0.0.0.34  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

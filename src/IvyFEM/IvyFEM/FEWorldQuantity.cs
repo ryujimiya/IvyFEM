@@ -26,7 +26,7 @@ namespace IvyFEM
             new Dictionary<int, IList<MultipointConstraint>>();
         public int IncidentPortId { get; set; } = -1;
         public int IncidentModeId { get; set; } = -1;
-        public IList<PortCondition> PortConditions { get; private set; } =new List<PortCondition>();
+        public IList<PortCondition> PortConditions { get; private set; } = new List<PortCondition>();
         private IList<Dictionary<int, int>> PortCo2Nodes = new List<Dictionary<int, int>>();
         private IList<Dictionary<int, int>> PortNode2Cos = new List<Dictionary<int, int>>();
         private IList<IList<IList<int>>> PeriodicPortBcCosss = new List<IList<IList<int>>>();
@@ -278,7 +278,7 @@ namespace IvyFEM
             int coId1 = int.Parse(tokens[0]);
             int coId2 = int.Parse(tokens[1]);
             int[] edgeCoordIds = { coId1, coId2 };
-            return edgeCoordIds; 
+            return edgeCoordIds;
         }
 
         public int GetEdgeIdFromCoords(int coId1, int coId2, out bool isReverse)
@@ -546,7 +546,7 @@ namespace IvyFEM
             foreach (uint feId in feIds)
             {
                 LineFE lineFE = GetLineFE(feId);
-                uint meshId= lineFE.MeshId;
+                uint meshId = lineFE.MeshId;
                 int meshElemId = lineFE.MeshElemId;
                 uint cadId;
                 uint elemCount;
@@ -686,6 +686,8 @@ namespace IvyFEM
             // 三角形要素の節点ナンバリング
             NumberTriangleNodes(world, zeroCoordIds);
             NumberTriangleEdgeNodes(world, zeroEdgeIds);
+            // Loopに属さない線要素の節点ナンバリング
+            NumberLineNodesNotBelongToLoop(world, zeroCoordIds);
 
             // 接触解析のMaster/Slave線要素を準備する
             SetupContactMasterSlaveLineElements(world);
@@ -712,11 +714,15 @@ namespace IvyFEM
             {
                 Coords = new List<double>(vertexCoords);
             }
+            else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+            {
+                Coords = new List<double>(vertexCoords);
+            }
             else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
             {
                 Coords = new List<double>(vertexCoords);
             }
-            else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+            else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
             {
                 Coords = new List<double>(vertexCoords);
             }
@@ -764,13 +770,17 @@ namespace IvyFEM
                 {
                     elemNodeCnt = 3;
                 }
+                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+                {
+                    elemNodeCnt = 6;
+                }
                 else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                 {
                     elemNodeCnt = 3;
                 }
-                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+                else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
                 {
-                    elemNodeCnt = 6;
+                    elemNodeCnt = 3;
                 }
                 else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                 {
@@ -800,11 +810,6 @@ namespace IvyFEM
                     }
                     int[] nodeCoIds = new int[elemNodeCnt];
                     if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
-                    {
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
-                    }
-                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
                         vertexCoIds.CopyTo(nodeCoIds, 0);
@@ -846,6 +851,17 @@ namespace IvyFEM
                                 nodeCoIds[i + elemVertexCnt] = midPtCoId;
                             }
                         }
+                    }
+                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                    {
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
+                    {
+                        // 暫定: Lagrange三角形要素で代用
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                     {
@@ -954,14 +970,19 @@ namespace IvyFEM
                 {
                     elemNodeCnt = 2;
                 }
+                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+                {
+                    elemNodeCnt = 3;
+                }
                 else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                 {
                     // 暫定：Lagrange線要素で代用
                     elemNodeCnt = 2;
                 }
-                else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
+                else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
                 {
-                    elemNodeCnt = 3;
+                    // 暫定：Lagrange線要素で代用
+                    elemNodeCnt = 2;
                 }
                 else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                 {
@@ -999,24 +1020,15 @@ namespace IvyFEM
                         int coId = vertexs[iElem * elemVertexCnt + iPt];
                         vertexCoIds[iPt] = coId;
                     }
-                    uint lineFEOrder = 0;
+                    uint lineFEOrder = FEOrder;
                     int[] nodeCoIds = new int[elemNodeCnt];
                     if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        lineFEOrder = 1;
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
-                    }
-                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
-                    {
-                        // 暫定：Lagrange線要素で代用
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        lineFEOrder = 1;
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                     {
-                        lineFEOrder = 2;
                         for (int i = 0; i < 2; i++)
                         {
                             nodeCoIds[i] = vertexCoIds[i];
@@ -1038,17 +1050,27 @@ namespace IvyFEM
                         int midPtCoId = edge2MidPt[edgeKey][0];
                         nodeCoIds[2] = midPtCoId;
                     }
+                    else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
+                    {
+                        // 暫定：Lagrange線要素で代用
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
+                    {
+                        // 暫定：Lagrange線要素で代用
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                    }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                     {
                         // 暫定：Lagrange線要素で代用
                         System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        lineFEOrder = 1;
                         vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 2)
                     {
                         // 暫定：Lagrange線要素で代用
-                        lineFEOrder = 2;
                         for (int i = 0; i < 2; i++)
                         {
                             nodeCoIds[i] = vertexCoIds[i];
@@ -1207,7 +1229,7 @@ namespace IvyFEM
             PeriodicPortLineFEIdsss[(int)portId] = portLineFEIdss;
             IList<IList<int>> bcCoss = new List<IList<int>>();
             PeriodicPortBcCosss[(int)portId] = bcCoss;
-            IList<uint>[] portEIdss = { 
+            IList<uint>[] portEIdss = {
                 portCondition.BcEIdsForPeriodic1, portCondition.BcEIdsForPeriodic2,
                 portCondition.BcEIdsForPeriodic3, portCondition.BcEIdsForPeriodic4
             };
@@ -1376,7 +1398,7 @@ namespace IvyFEM
                 if (portCondition is DistributedPortCondition)
                 {
                     DistributedPortCondition dist = portCondition as DistributedPortCondition;
-                    IList<int> coIds = new List<int>(); 
+                    IList<int> coIds = new List<int>();
                     foreach (uint eId in portEIds)
                     {
                         IList<int> tmpCoIds = GetCoordIdsFromCadId(world, eId, CadElementType.Edge);
@@ -1461,9 +1483,6 @@ namespace IvyFEM
                 uint cadId;
                 mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
                 System.Diagnostics.Debug.Assert(meshType == MeshType.Tri);
-                var triArray = mesh.GetTriArrays();
-                var tri = triArray[loc].Tris[iElem];
-                tri.FEId = (int)feId;
 
                 string key = string.Format(meshId + "_" + iElem);
                 Mesh2TriangleFE.Add(key, feId);
@@ -1512,12 +1531,55 @@ namespace IvyFEM
                 uint cadId;
                 mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
                 System.Diagnostics.Debug.Assert(meshType == MeshType.Tri);
-                var triArray = mesh.GetTriArrays();
-                var tri = triArray[loc].Tris[iElem];
-                tri.FEId = (int)feId;
 
                 string key = string.Format(meshId + "_" + iElem);
                 Mesh2TriangleFE.Add(key, feId);
+            }
+        }
+
+        // Loopに属さない線要素の節点ナンバリング
+        private void NumberLineNodesNotBelongToLoop(FEWorld world, IList<int> zeroCoordIds)
+        {
+            if (FEType == FiniteElementType.Edge)
+            {
+                return;
+            }
+            Mesher2D mesh = world.Mesh;
+
+            // ナンバリング
+            // これまでに三角形要素の節点番号としてナンバリングした数を取得する
+            int nodeId = Co2Node.Count;
+            IList<uint> lineFEIds = LineFEArray.GetObjectIds();
+            foreach (uint feId in lineFEIds)
+            {
+                LineFE fe = LineFEArray.GetObject(feId);
+                int elemPtCnt = fe.NodeCoordIds.Length;
+                int[] coIds = fe.NodeCoordIds;
+                for (int iPt = 0; iPt < elemPtCnt; iPt++)
+                {
+                    int coId = coIds[iPt];
+                    if (!Co2Node.ContainsKey(coId) &&
+                        zeroCoordIds.IndexOf(coId) == -1)
+                    {
+                        Co2Node[coId] = nodeId;
+                        nodeId++;
+                    }
+                }
+
+                uint meshId = fe.MeshId;
+                int iElem = fe.MeshElemId;
+                uint elemCnt;
+                MeshType meshType;
+                int loc;
+                uint cadId;
+                mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+
+                string key = string.Format(meshId + "_" + iElem);
+                if (!Mesh2LineFE.ContainsKey(key))
+                {
+                    Mesh2LineFE.Add(key, feId);
+                }
             }
         }
 
@@ -1613,6 +1675,15 @@ namespace IvyFEM
                             new int[] { 2, 0 }
                         };
                     }
+                    else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
+                    {
+                        edgeNos = new int[3][]
+                        {
+                            new int[] { 0, 1 },
+                            new int[] { 1, 2 },
+                            new int[] { 2, 0 }
+                        };
+                    }
                     else
                     {
                         System.Diagnostics.Debug.Assert(false);
@@ -1700,7 +1771,10 @@ namespace IvyFEM
 
             foreach (var fixedCad in ZeroFieldFixedCads)
             {
-                System.Diagnostics.Debug.Assert(fixedCad.CadElemType == CadElementType.Edge);
+                if (fixedCad.CadElemType != CadElementType.Edge)
+                {
+                    continue;
+                }
                 IList<int[]> edgeCoIdss = GetEdgeCoordIdssFromCadId(world, fixedCad.CadId);
                 foreach (int[] edgeCoIds in edgeCoIdss)
                 {
@@ -1841,9 +1915,9 @@ namespace IvyFEM
             }
         }
 
-        public IList<LineFE> MakeBoundOfElements(FEWorld world)
+        public IList<LineFE> MakeLineElementsForDraw(FEWorld world)
         {
-            IList<LineFE> boundOfTriangleFEs = new List<LineFE>();
+            IList<LineFE> lineFEs = new List<LineFE>();
             HashSet<string> edges = new HashSet<string>();
 
             var feIds = GetTriangleFEIds();
@@ -1901,16 +1975,48 @@ namespace IvyFEM
                     {
                         edges.Add(edgeKey);
                     }
-                    var lineFE = new LineFE((int)FEOrder, FEType);
-                    lineFE.World = world;
-                    lineFE.QuantityId = (int)this.Id;
-                    lineFE.SetVertexCoordIds(vertexCoIds[iEdge]);
-                    lineFE.SetNodeCoordIds(nodeCoIds[iEdge]);
+                    var newLineFE = new LineFE((int)FEOrder, FEType);
+                    newLineFE.World = world;
+                    newLineFE.QuantityId = (int)this.Id;
+                    newLineFE.SetVertexCoordIds(vertexCoIds[iEdge]);
+                    newLineFE.SetNodeCoordIds(nodeCoIds[iEdge]);
                     // MeshId等は対応するものがないのでセットしない
-                    boundOfTriangleFEs.Add(lineFE);
+                    lineFEs.Add(newLineFE);
                 }
             }
-            return boundOfTriangleFEs;
+
+            // Loopに属さない線要素を追加
+            var lineFEIds = GetLineFEIds();
+            foreach (uint feId in lineFEIds)
+            {
+                LineFE lineFE = GetLineFE(feId);
+                int v1 = lineFE.VertexCoordIds[0];
+                int v2 = lineFE.VertexCoordIds[1];
+                if (v1 > v2)
+                {
+                    int tmp = v1;
+                    v1 = v2;
+                    v2 = tmp;
+                }
+                string edgeKey = v1 + "_" + v2;
+                if (edges.Contains(edgeKey))
+                {
+                    continue;
+                }
+                else
+                {
+                    edges.Add(edgeKey);
+                }
+                var newLineFE = new LineFE((int)FEOrder, FEType);
+                newLineFE.World = world;
+                newLineFE.QuantityId = (int)this.Id;
+                newLineFE.SetVertexCoordIds(lineFE.VertexCoordIds.ToArray());
+                newLineFE.SetNodeCoordIds(lineFE.NodeCoordIds.ToArray());
+                // MeshId等は対応するものがないのでセットしない
+                lineFEs.Add(lineFE);
+            }
+
+            return lineFEs;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace IvyFEM
         /// <summary>
         /// 三角形最小面積
         /// </summary>
-        public const double MinTriArea = 1.0e-10;
+        public const double DefMinTriArea = 1.0e-10;
 
         public static OpenTK.Vector2d Normalize(OpenTK.Vector2d v)
         {
@@ -152,12 +152,13 @@ namespace IvyFEM
         }
 
         public static bool CenterCircumcircle(OpenTK.Vector2d p0, OpenTK.Vector2d p1, OpenTK.Vector2d p2,
+            double minTriArea,
             out OpenTK.Vector2d center)
         {
             center = new OpenTK.Vector2d();
 
             double area = TriArea(p0, p1, p2);
-            if (Math.Abs(area) < 1.0e-10)
+            if (Math.Abs(area) < minTriArea)
             {
                 return false;
             }

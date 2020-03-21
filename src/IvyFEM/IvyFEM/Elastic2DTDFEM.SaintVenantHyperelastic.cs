@@ -11,6 +11,16 @@ namespace IvyFEM
         protected void CalcSaintVenantHyperelasticElementAB(
             uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
+            {
+                uint quantityId0 = 0;
+                TriangleFE workTriFE = World.GetTriangleFE(quantityId0, feId);
+                Material workMa0 = World.GetMaterial(workTriFE.MaterialId);
+                if (!(workMa0 is SaintVenantHyperelasticMaterial))
+                {
+                    return;
+                }
+            }
+
             uint quantityId = 0;
             System.Diagnostics.Debug.Assert(World.GetDof(quantityId) == 2);
             int dof = 2;
@@ -19,7 +29,7 @@ namespace IvyFEM
             double dt = TimeStep;
             double beta = NewmarkBeta;
             double gamma = NewmarkGamma;
-            var FV = World.GetFieldValue(ValueId);
+            var FV = World.GetFieldValue(UValueId);
 
             TriangleFE triFE = World.GetTriangleFE(quantityId, feId);
             Material ma0 = World.GetMaterial(triFE.MaterialId);

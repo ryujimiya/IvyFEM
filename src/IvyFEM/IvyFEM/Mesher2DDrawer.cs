@@ -141,8 +141,8 @@ namespace IvyFEM
                 VertexArray.SetSize(nVec, nDim);
                 for (int ivec = 0; ivec < nVec; ivec++)
                 {
-                    VertexArray.VertexCoordArray[ivec * nDim] = vec2Ds[ivec].X;
-                    VertexArray.VertexCoordArray[ivec * nDim + 1] = vec2Ds[ivec].Y;
+                    VertexArray.VertexCoords[ivec * nDim] = vec2Ds[ivec].X;
+                    VertexArray.VertexCoords[ivec * nDim + 1] = vec2Ds[ivec].Y;
                 }
             }
             return true;
@@ -165,8 +165,8 @@ namespace IvyFEM
                 }
                 for (int ivec = 0; ivec < nVec; ivec++)
                 {
-                    VertexArray.VertexCoordArray[ivec * nDim] = vecs[ivec].X;
-                    VertexArray.VertexCoordArray[ivec * nDim + 1] = vecs[ivec].Y;
+                    VertexArray.VertexCoords[ivec * nDim] = vecs[ivec].X;
+                    VertexArray.VertexCoords[ivec * nDim + 1] = vecs[ivec].Y;
                 }
             }
         }
@@ -195,7 +195,7 @@ namespace IvyFEM
 
             // 頂点配列の設定
             GL.EnableClientState(ArrayCap.VertexArray);
-            GL.VertexPointer((int)nDim, VertexPointerType.Double, 0, VertexArray.VertexCoordArray);
+            GL.VertexPointer((int)nDim, VertexPointerType.Double, 0, VertexArray.VertexCoords);
             
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
@@ -221,7 +221,7 @@ namespace IvyFEM
             // モデルの描画
             GL.EnableClientState(ArrayCap.VertexArray);
 
-            GL.VertexPointer((int)nDim, VertexPointerType.Double, 0, VertexArray.VertexCoordArray);
+            GL.VertexPointer((int)nDim, VertexPointerType.Double, 0, VertexArray.VertexCoords);
 
             GL.PushName(iDraw);
             for (int idp = 0; idp < DrawParts.Count; idp++)
