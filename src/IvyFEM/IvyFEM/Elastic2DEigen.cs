@@ -40,7 +40,9 @@ namespace IvyFEM
             // Hyperelastic
 
             // Truss/Beam
+            CalcElementKMsForLine.Add(CalcTrussElementKMForLine);
             CalcElementKMsForLine.Add(CalcBeamElementKMForLine);
+            CalcElementKMsForLine.Add(CalcFrameElementKMForLine);
         }
 
         protected int GetOffset(uint quantityId)

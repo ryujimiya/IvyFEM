@@ -81,8 +81,10 @@
   <ItemGroup>
     <Compile Include="AdvectionDiffusion2DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
+    <Compile Include="Elastic2DEigenFEM.Frame.cs" />
     <Compile Include="Elastic2DTDFEM.Frame.cs" />
     <Compile Include="Elastic2DTDFEM.Beam.cs" />
+    <Compile Include="Elastic2DEigenFEM.Truss.cs" />
     <Compile Include="Elastic2DTDFEM.Truss.cs" />
     <Compile Include="FrameMaterial.cs" />
     <Compile Include="BoundingBox2D.cs" />
