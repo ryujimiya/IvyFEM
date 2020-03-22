@@ -121,6 +121,16 @@
 　　![直線、円との接触問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421124711.jpg)  
 　　〇弾性体二体接触問題  
 　　![弾性体二体接触問題](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421125420.jpg)  
+　　〇構造要素  
+　　トラス要素  
+　　![Truss-Fig](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322200004.jpg)  
+　　![Truss](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322200754.jpg)  
+　　ビーム要素  
+　　![Beam-Fig](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201059.jpg)  
+　　![Beam](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201326.jpg)  
+　　フレーム要素  
+　　![Frame-Fig](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201608.jpg)  
+　　![Frame](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201906.jpg)  
 　　〇Poissonの方程式  
 　　![Poisson](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221503.jpg)  
 　　〇Helmholtzの方程式  
