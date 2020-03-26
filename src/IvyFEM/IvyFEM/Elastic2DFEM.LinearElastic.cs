@@ -28,10 +28,8 @@ namespace IvyFEM
 
             TriangleFE triFE = World.GetTriangleFE(quantityId, feId);
             Material ma0 = World.GetMaterial(triFE.MaterialId);
-            if (!(ma0 is LinearElasticMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
+
             int[] coIds = triFE.NodeCoordIds;
             uint elemNodeCnt = triFE.NodeCount;
             int[] nodes = new int[elemNodeCnt];

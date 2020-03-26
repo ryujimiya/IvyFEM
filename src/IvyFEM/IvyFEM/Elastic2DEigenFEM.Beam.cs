@@ -56,10 +56,8 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            if (!(ma0 is BeamMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is BeamMaterial);
+
             int[] dCoIds = dLineFE.NodeCoordIds;
             uint dElemNodeCnt = dLineFE.NodeCount;
             // FIXME: エルミート要素にすべき

@@ -130,6 +130,11 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].FieldFixedCads;
         }
 
+        public IList<FieldFixedCad> GetForceFieldFixedCads(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].ForceFieldFixedCads;
+        }
+
         public int GetMultipointConstraintCount(uint quantityId)
         {
             return Quantitys[(int)quantityId].GetMultipointConstraintCount();
@@ -361,6 +366,11 @@ namespace IvyFEM
         public IList<FieldFixedCad> GetFixedCadsFromCoord(uint quantityId, int coId)
         {
             return Quantitys[(int)quantityId].GetFixedCadsFromCoord(coId);
+        }
+
+        public IList<FieldFixedCad> GetForceFixedCadsFromCoord(uint quantityId, int coId)
+        {
+            return Quantitys[(int)quantityId].GetForceFixedCadsFromCoord(coId);
         }
 
         public IList<MultipointConstraint> GetMultipointConstraintFromCoord(uint quantityId, int coId)

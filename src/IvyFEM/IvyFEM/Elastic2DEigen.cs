@@ -11,6 +11,9 @@ namespace IvyFEM
 
     public partial class Elastic2DEigenFEM : FEM
     {
+        public double ConvRatioToleranceForNonlinearIter { get; set; }
+            = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
+
         // Calc Matrix
         protected IList<CalcElementDoubleKM> CalcElementKMs { get; set; } = new List<CalcElementDoubleKM>();
         // Calc Matrix for truss
@@ -18,6 +21,9 @@ namespace IvyFEM
 
         protected int ConstraintCount => 0;
         public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
+        // for non-linear
+        protected double[] U { get; set; }
+        protected double[] BVec { get; set; } // Newton-Raphson
 
         //Solve
         // Output
@@ -36,6 +42,8 @@ namespace IvyFEM
             CalcElementKMsForLine.Clear();
 
             // Linear/Staint Venant
+            CalcElementKMs.Add(CalcLinearElasticElementKM);
+            CalcElementKMs.Add(CalcSaintVenantHyperelasticElementAB);
 
             // Hyperelastic
 
@@ -43,6 +51,8 @@ namespace IvyFEM
             CalcElementKMsForLine.Add(CalcTrussElementKMForLine);
             CalcElementKMsForLine.Add(CalcBeamElementKMForLine);
             CalcElementKMsForLine.Add(CalcFrameElementKMForLine);
+            CalcElementKMsForLine.Add(CalcTimoshenkoBeamElementKMForLine);
+            CalcElementKMsForLine.Add(CalcTimoshenkoFrameElementKMForLine);
         }
 
         protected int GetOffset(uint quantityId)
@@ -79,6 +89,22 @@ namespace IvyFEM
         }
 
         public override void Solve()
+        {
+            int quantityCnt = World.GetQuantityCount();
+            int nodeCnt = 0;
+            for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+            {
+                int quantityDof = (int)World.GetDof(quantityId);
+                int quantityNodeCnt = (int)World.GetNodeCount(quantityId);
+                nodeCnt += quantityDof * quantityNodeCnt;
+            }
+
+            U = new double[nodeCnt]; // dummy
+            BVec = new double[nodeCnt]; // dummy
+            _Solve();
+        }
+
+        protected void _Solve()
         {
             int quantityCnt = World.GetQuantityCount();
             int nodeCnt = 0;
@@ -219,5 +245,22 @@ namespace IvyFEM
                 }
             }
         }
+
+        /*
+        private bool IsTrivialModeVec(System.Numerics.Complex[] eVec)
+        {
+            bool isTrivial = true;
+            // all zero check
+            for (int i = 0; i < eVec.Length; i++)
+            {
+                if (eVec[i].Magnitude >= Constants.PrecisionLowerLimit)
+                {
+                    isTrivial = false;
+                    break;
+                }
+            }
+            return isTrivial;
+        }
+        */
     }
 }

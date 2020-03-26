@@ -65,10 +65,8 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            if (!(ma0 is FrameMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is FrameMaterial);
+
             // FIXME: u:Lagrange要素、v, θ:Hermite要素にすべき
             int[] d1CoIds = d1LineFE.NodeCoordIds;
             uint d1ElemNodeCnt = d1LineFE.NodeCount;
@@ -149,7 +147,7 @@ namespace IvyFEM
             int localDof = 3;
             System.Diagnostics.Debug.Assert(localDof == (d1Dof + d2Dof + rDof));
             int localD2Offset = d1Dof;
-            int localROffset = localD2Offset + rDof;
+            int localROffset = localD2Offset + d2Dof;
             // displacement 1
             for (int row = 0; row < d1ElemNodeCnt; row++)
             {

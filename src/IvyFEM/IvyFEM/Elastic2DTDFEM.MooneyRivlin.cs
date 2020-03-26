@@ -41,10 +41,7 @@ namespace IvyFEM
             TriangleFE uTriFE = World.GetTriangleFE(uQuantityId, feId);
             TriangleFE lTriFE = World.GetTriangleFE(lQuantityId, feId);
             Material ma0 = World.GetMaterial(uTriFE.MaterialId);
-            if (!(ma0 is MooneyRivlinHyperelasticMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is MooneyRivlinHyperelasticMaterial);
 
             uint vertexCnt = uTriFE.VertexCount;
             for (int iVertex = 0; iVertex < vertexCnt; iVertex++)

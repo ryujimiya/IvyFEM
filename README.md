@@ -23,8 +23,12 @@
 　　　　　　　　　　弾性体二体接触※  
 　　　　　　　　　　構造要素  
 　　　　　　　　　　　Truss要素(トラス)  
-　　　　　　　　　　　Beam要素(X方向の梁)  
-　　　　　　　　　　　Frame要素(骨組、方向の異なるトラス/梁を繋いだもの、曲げとねじり)  
+　　　　　　　　　　　Beam要素(X方向の梁)(非推奨）  
+　　　　　　　　　　　　Eular-Bernoulli  
+　　　　　　　　　　　　Timoshenko  
+　　　　　　　　　　　Frame要素(骨組、方向の異なるトラス/梁を繋いだもの)  
+　　　　　　　　　　　　Eular-Bernoulli  
+　　　　　　　　　　　　Timoshenko  
 　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -84,9 +88,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-03-22更新）**  
+　**バイナリ（2020-03-26更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.35  
+　　IvyFEM.dll version 0.0.0.36  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

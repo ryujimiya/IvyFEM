@@ -63,10 +63,8 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            if (!(ma0 is BeamMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is BeamMaterial);
+
             // FIXME: w,θ:Hermite要素にすべき
             int[] dCoIds = dLineFE.NodeCoordIds;
             uint dElemNodeCnt = dLineFE.NodeCount;

@@ -50,10 +50,8 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            if (!(ma0 is TrussMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is TrussMaterial);
+
             int[] coIds = lineFE.NodeCoordIds;
             uint elemNodeCnt = lineFE.NodeCount;
             // FIXME:

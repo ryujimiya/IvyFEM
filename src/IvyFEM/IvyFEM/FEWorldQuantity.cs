@@ -16,7 +16,9 @@ namespace IvyFEM
         public FiniteElementType FEType { get; set; } = FiniteElementType.ScalarLagrange;
         public IList<FieldFixedCad> ZeroFieldFixedCads { get; private set; } = new List<FieldFixedCad>();
         public IList<FieldFixedCad> FieldFixedCads { get; private set; } = new List<FieldFixedCad>();
+        public IList<FieldFixedCad> ForceFieldFixedCads { get; private set; } = new List<FieldFixedCad>();
         private Dictionary<int, IList<FieldFixedCad>> Co2FixedCads = new Dictionary<int, IList<FieldFixedCad>>();
+        private Dictionary<int, IList<FieldFixedCad>> Co2ForceFixedCads = new Dictionary<int, IList<FieldFixedCad>>();
         private IList<double> Coords = new List<double>();
         private IList<string> Edges = new List<string>();
         private IList<MultipointConstraint> MultipointConstraints = new List<MultipointConstraint>();
@@ -72,6 +74,7 @@ namespace IvyFEM
             Coords.Clear();
             Edges.Clear();
             Co2FixedCads.Clear();
+            Co2ForceFixedCads.Clear();
             Co2MultipointConstraints.Clear();
             foreach (var portCo2Node in PortCo2Nodes)
             {
@@ -467,6 +470,15 @@ namespace IvyFEM
             return Co2FixedCads[coId];
         }
 
+        public IList<FieldFixedCad> GetForceFixedCadsFromCoord(int coId)
+        {
+            if (!Co2ForceFixedCads.ContainsKey(coId))
+            {
+                return new List<FieldFixedCad>();
+            }
+            return Co2ForceFixedCads[coId];
+        }
+
         public IList<MultipointConstraint> GetMultipointConstraintFromCoord(int coId)
         {
             if (!Co2MultipointConstraints.ContainsKey(coId))
@@ -673,8 +685,10 @@ namespace IvyFEM
             }
 
             // Note: 三角形要素生成後でないと特定できない
-            MakeCo2FixedCads(world);
-            SetDistributedFixedCadCoords(world);
+            MakeCo2FixedCads(world, FieldFixedCads, Co2FixedCads);
+            MakeCo2FixedCads(world, ForceFieldFixedCads, Co2ForceFixedCads);
+            SetDistributedFixedCadCoords(world, FieldFixedCads);
+            SetDistributedFixedCadCoords(world, ForceFieldFixedCads);
 
             // 頂点→三角形要素のマップと辺→三角形要素のマップ作成
             MakeCo2AndEdgeCos2TriangleFE();
@@ -1043,11 +1057,23 @@ namespace IvyFEM
                             v2 = tmp;
                         }
                         string edgeKey = v1 + "_" + v2;
-                        if (!edge2MidPt.ContainsKey(edgeKey))
+                        int midPtCoId = -1;
+                        if (edge2MidPt.ContainsKey(edgeKey))
                         {
-                            System.Diagnostics.Debug.Assert(false);
+                            midPtCoId = edge2MidPt[edgeKey][0];
                         }
-                        int midPtCoId = edge2MidPt[edgeKey][0];
+                        else
+                        {
+                            double[] vPt1 = world.GetVertexCoord(v1);
+                            double[] vPt2 = world.GetVertexCoord(v2);
+                            double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
+                            midPtCoId = (int)(Coords.Count / Dimension);
+                            Coords.Add(midPt[0]);
+                            Coords.Add(midPt[1]);
+                            var list = new List<int>();
+                            list.Add(midPtCoId);
+                            edge2MidPt[edgeKey] = list;
+                        }
                         nodeCoIds[2] = midPtCoId;
                     }
                     else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
@@ -1085,11 +1111,23 @@ namespace IvyFEM
                             v2 = tmp;
                         }
                         string edgeKey = v1 + "_" + v2;
-                        if (!edge2MidPt.ContainsKey(edgeKey))
+                        int midPtCoId = -1;
+                        if (edge2MidPt.ContainsKey(edgeKey))
                         {
-                            System.Diagnostics.Debug.Assert(false);
+                            midPtCoId = edge2MidPt[edgeKey][0];
                         }
-                        int midPtCoId = edge2MidPt[edgeKey][0];
+                        else
+                        {
+                            double[] vPt1 = world.GetVertexCoord(v1);
+                            double[] vPt2 = world.GetVertexCoord(v2);
+                            double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
+                            midPtCoId = (int)(Coords.Count / Dimension);
+                            Coords.Add(midPt[0]);
+                            Coords.Add(midPt[1]);
+                            var list = new List<int>();
+                            list.Add(midPtCoId);
+                            edge2MidPt[edgeKey] = list;
+                        }
                         nodeCoIds[2] = midPtCoId;
                     }
                     else
@@ -1790,23 +1828,24 @@ namespace IvyFEM
             return zeroEdgeIds;
         }
 
-        private void MakeCo2FixedCads(FEWorld world)
+        private void MakeCo2FixedCads(
+            FEWorld world, IList<FieldFixedCad> fieldFixedCads, Dictionary<int, IList<FieldFixedCad>> co2FixedCads)
         {
-            Co2FixedCads.Clear();
-            foreach (var fixedCad in FieldFixedCads)
+            co2FixedCads.Clear();
+            foreach (var fixedCad in fieldFixedCads)
             {
                 IList<int> coIds = GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
                 foreach (int coId in coIds)
                 {
                     IList<FieldFixedCad> fixedCads = null;
-                    if (!Co2FixedCads.ContainsKey(coId))
+                    if (!co2FixedCads.ContainsKey(coId))
                     {
                         fixedCads = new List<FieldFixedCad>();
-                        Co2FixedCads[coId] = fixedCads;
+                        co2FixedCads[coId] = fixedCads;
                     }
                     else
                     {
-                        fixedCads = Co2FixedCads[coId];
+                        fixedCads = co2FixedCads[coId];
                     }
                     if (fixedCads.IndexOf(fixedCad) == -1)
                     {
@@ -1844,9 +1883,9 @@ namespace IvyFEM
             }
         }
 
-        private void SetDistributedFixedCadCoords(FEWorld world)
+        private void SetDistributedFixedCadCoords(FEWorld world, IList<FieldFixedCad> fieldFixedCads)
         {
-            foreach (var fixedCad in FieldFixedCads)
+            foreach (var fixedCad in fieldFixedCads)
             {
                 IList<int> coIds = GetCoordIdsFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
                 if (fixedCad is DistributedFieldFixedCad)

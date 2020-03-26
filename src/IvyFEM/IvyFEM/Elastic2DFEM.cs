@@ -33,6 +33,8 @@ namespace IvyFEM
             CalcElementABsForLine.Add(CalcTrussElementABForLine);
             CalcElementABsForLine.Add(CalcBeamElementABForLine);
             CalcElementABsForLine.Add(CalcFrameElementABForLine);
+            CalcElementABsForLine.Add(CalcTimoshenkoBeamElementABForLine);
+            CalcElementABsForLine.Add(CalcTimoshenkoFrameElementABForLine);
         }
 
         //////////////////////////////////////////////////

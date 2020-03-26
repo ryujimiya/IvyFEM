@@ -97,6 +97,10 @@ namespace IvyFEM
                     System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
+                    DoubleSetForceFixedCadsCondtion(A, B);
+                    System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
+
+                    t = System.Environment.TickCount;
                     double[] AU = A * U;
                     double[] R = IvyFEM.Lapack.Functions.daxpy(-1.0, B, AU);
                     sqNorm = IvyFEM.Lapack.Functions.ddot(R, R);
@@ -143,6 +147,10 @@ namespace IvyFEM
 
                 t = System.Environment.TickCount;
                 DoubleSetFixedCadsCondtion(A, B);
+                System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
+
+                t = System.Environment.TickCount;
+                DoubleSetForceFixedCadsCondtion(A, B);
                 System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
@@ -224,6 +232,14 @@ namespace IvyFEM
                     else if (ma is FrameMaterial)
                     {
                         // frame
+                    }
+                    else if (ma is TimoshenkoBeamMaterial)
+                    {
+                        // Timoshenko Beam
+                    }
+                    else if (ma is TimoshenkoFrameMaterial)
+                    {
+                        // Timoshenko Frame
                     }
                     else
                     {

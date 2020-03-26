@@ -65,10 +65,8 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            if (!(ma0 is FrameMaterial))
-            {
-                return;
-            }
+            System.Diagnostics.Debug.Assert(ma0 is FrameMaterial);
+
             // FIXME: u:Lagrange要素、v, θ:Hermite要素にすべき
             int[] d1CoIds = d1LineFE.NodeCoordIds;
             uint d1ElemNodeCnt = d1LineFE.NodeCount;

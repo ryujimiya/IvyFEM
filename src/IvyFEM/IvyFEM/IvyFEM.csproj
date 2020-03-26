@@ -81,10 +81,21 @@
   <ItemGroup>
     <Compile Include="AdvectionDiffusion2DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
+    <Compile Include="Elastic2DEigenFEM.TimoshenkoBeam.cs" />
+    <Compile Include="Elastic2DEigenFEM.TimoshenkoFrame.cs" />
+    <Compile Include="Elastic2DTDFEM.TimoshenkoFrame.cs" />
+    <Compile Include="Elastic2DFEM.TimoshenkoFrame.cs" />
+    <Compile Include="Elastic2DTDFEM.TimoshenkoBeam.cs" />
+    <Compile Include="FEM.ForceFixedCadsCondition.cs" />
+    <Compile Include="TimoshenkoFrameMaterial.cs" />
+    <Compile Include="TimoshenkoBeamMaterial.cs" />
     <Compile Include="Elastic2DEigenFEM.Frame.cs" />
+    <Compile Include="Elastic2DEigenFEM.LinearElastic.cs" />
+    <Compile Include="Elastic2DFEM.TimoshenkoBeam.cs" />
     <Compile Include="Elastic2DTDFEM.Frame.cs" />
     <Compile Include="Elastic2DTDFEM.Beam.cs" />
     <Compile Include="Elastic2DEigenFEM.Truss.cs" />
+    <Compile Include="Elastic2DEigenFEM.SaintVenantHyperelastic.cs" />
     <Compile Include="Elastic2DTDFEM.Truss.cs" />
     <Compile Include="FrameMaterial.cs" />
     <Compile Include="BoundingBox2D.cs" />
