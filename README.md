@@ -24,10 +24,10 @@
 　　　　　　　　　　構造要素(線形)  
 　　　　　　　　　　　Truss要素(トラス)  
 　　　　　　　　　　　Beam要素(X方向の梁)(非推奨）  
-　　　　　　　　　　　　Eular-Bernoulli  
+　　　　　　　　　　　　Euler-Bernoulli  
 　　　　　　　　　　　　Timoshenko  
 　　　　　　　　　　　Frame要素(骨組、方向の異なるトラス/梁を繋いだもの)  
-　　　　　　　　　　　　Eular-Bernoulli  
+　　　　　　　　　　　　Euler-Bernoulli  
 　　　　　　　　　　　　Timoshenko  
 　　　　　　　　　　構造要素(幾何学的非線形)  
 　　　　　　　　　　　Co-rotational Beam(Frame) Formulation  
