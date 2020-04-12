@@ -21,7 +21,7 @@
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
 　　　　　　　　　　剛体との接触(直線、円)  
 　　　　　　　　　　弾性体二体接触※  
-　　　　　　　　　　構造要素  
+　　　　　　　　　　構造要素(線形)  
 　　　　　　　　　　　Truss要素(トラス)  
 　　　　　　　　　　　Beam要素(X方向の梁)(非推奨）  
 　　　　　　　　　　　　Eular-Bernoulli  
@@ -29,7 +29,10 @@
 　　　　　　　　　　　Frame要素(骨組、方向の異なるトラス/梁を繋いだもの)  
 　　　　　　　　　　　　Eular-Bernoulli  
 　　　　　　　　　　　　Timoshenko  
-　　　　　　　　　　  
+　　　　　　　　　　構造要素(幾何学的非線形)  
+　　　　　　　　　　　Co-rotational Beam(Frame) Formulation  
+　　　　　　　　　　　　shallow arch  
+　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化  
@@ -88,9 +91,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-03-26更新）**  
+　**バイナリ（2020-04-12更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.36  
+　　IvyFEM.dll version 0.0.0.37  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -134,7 +137,7 @@
 　　![Beam](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201326.jpg)  
 　　フレーム要素  
 　　![Frame-Fig](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201608.jpg)  
-　　![Frame](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201906.jpg)  
+　　![Frame](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200412/20200412153223.jpg)  
 　　〇Poissonの方程式  
 　　![Poisson](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221503.jpg)  
 　　〇Helmholtzの方程式  

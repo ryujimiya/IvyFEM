@@ -81,8 +81,8 @@ namespace IvyFEM
             double Iz = ma.SecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
-            double G = ma.ShearCoefficent;
-            double kappa = ma.TimoshenkoShearCoefficent;
+            double G = ma.ShearCoefficient;
+            double kappa = ma.TimoshenkoShearCoefficient;
 
             double[] pt1 = vCoords[0];
             double[] pt2 = vCoords[1];

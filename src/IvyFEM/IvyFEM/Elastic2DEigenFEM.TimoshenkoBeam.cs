@@ -82,8 +82,8 @@ namespace IvyFEM
             double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
-            double G = ma.ShearCoefficent;
-            double kappa = ma.TimoshenkoShearCoefficent;
+            double G = ma.ShearCoefficient;
+            double kappa = ma.TimoshenkoShearCoefficient;
 
             double[] pt1 = vCoords[0];
             double[] pt2 = vCoords[1];
@@ -99,21 +99,21 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(localDof == (dDof + rDof));
             int localOffset = dDof;
 
-            IntegrationPoints ip;
+            IntegrationPoints ipK;
             if (dLineFE.Order == 1 && rLineFE.Order == 1)
             {
                 // 低減積分
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 1);
+                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
+                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 1);
             }
             else
             {
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 5);
+                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
+                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 5);
             }
-            for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
+            for (int ipPt = 0; ipPt < ipK.PointCount; ipPt++)
             {
-                double[] L = ip.Ls[ipPt];
+                double[] L = ipK.Ls[ipPt];
                 double[] dN = dLineFE.CalcN(L);
                 double[][] dNu = dLineFE.CalcNu(L);
                 double[] dNx = dNu[0];
@@ -121,7 +121,7 @@ namespace IvyFEM
                 double[][] rNu = rLineFE.CalcNu(L);
                 double[] rNx = rNu[0];
                 double lineLen = dLineFE.GetLineLength();
-                double weight = ip.Weights[ipPt];
+                double weight = ipK.Weights[ipPt];
                 double detJWeight = (lineLen / 2.0) * weight;
 
                 // displacement
@@ -141,9 +141,7 @@ namespace IvyFEM
                             continue;
                         }
                         double kValue = detJWeight * kappa * G * Ae * dNx[row] * dNx[col];
-                        double mValue = detJWeight * rho * Ae * dN[row] * dN[col];
                         K[rowNodeId, colNodeId] += kValue;
-                        M[rowNodeId, colNodeId] += mValue;
                     }
                     // rotation
                     for (int col = 0; col < rElemNodeCnt; col++)
@@ -154,9 +152,7 @@ namespace IvyFEM
                             continue;
                         }
                         double kValue = -1.0 * detJWeight * kappa * G * Ae * dNx[row] * rN[col];
-                        double mValue = 0.0;
                         K[rowNodeId, colNodeId + offset] += kValue;
-                        M[rowNodeId, colNodeId + offset] += mValue;
                     }
                 }
                 // rotation
@@ -176,9 +172,7 @@ namespace IvyFEM
                             continue;
                         }
                         double kValue = -1.0 * detJWeight * kappa * G * Ae * rN[row] * dNx[col];
-                        double mValue = 0.0;
                         K[rowNodeId + offset, colNodeId] += kValue;
-                        M[rowNodeId + offset, colNodeId] += mValue;
                     }
                     // rotation
                     for (int col = 0; col < rElemNodeCnt; col++)
@@ -190,9 +184,85 @@ namespace IvyFEM
                         }
                         double kValue1 = detJWeight * kappa * G * Ae * rN[row] * rN[col];
                         double kValue2 = detJWeight * E * Iz * rNx[row] * rNx[col];
-                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
                         K[rowNodeId + offset, colNodeId + offset] +=
                             kValue1 + kValue2;
+                    }
+                }
+            }
+            IntegrationPoints ipM = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
+            System.Diagnostics.Debug.Assert(ipM.Ls.Length == 5);
+            for (int ipPt = 0; ipPt < ipM.PointCount; ipPt++)
+            {
+                double[] L = ipM.Ls[ipPt];
+                double[] dN = dLineFE.CalcN(L);
+                double[][] dNu = dLineFE.CalcNu(L);
+                double[] dNx = dNu[0];
+                double[] rN = rLineFE.CalcN(L);
+                double[][] rNu = rLineFE.CalcNu(L);
+                double[] rNx = rNu[0];
+                double lineLen = dLineFE.GetLineLength();
+                double weight = ipM.Weights[ipPt];
+                double detJWeight = (lineLen / 2.0) * weight;
+
+                // displacement
+                for (int row = 0; row < dElemNodeCnt; row++)
+                {
+                    int rowNodeId = dNodes[row];
+                    if (rowNodeId == -1)
+                    {
+                        continue;
+                    }
+                    // displacement
+                    for (int col = 0; col < dElemNodeCnt; col++)
+                    {
+                        int colNodeId = dNodes[col];
+                        if (colNodeId == -1)
+                        {
+                            continue;
+                        }
+                        double mValue = detJWeight * rho * Ae * dN[row] * dN[col];
+                        M[rowNodeId, colNodeId] += mValue;
+                    }
+                    // rotation
+                    for (int col = 0; col < rElemNodeCnt; col++)
+                    {
+                        int colNodeId = rNodes[col];
+                        if (colNodeId == -1)
+                        {
+                            continue;
+                        }
+                        double mValue = 0.0;
+                        M[rowNodeId, colNodeId + offset] += mValue;
+                    }
+                }
+                // rotation
+                for (int row = 0; row < rElemNodeCnt; row++)
+                {
+                    int rowNodeId = rNodes[row];
+                    if (rowNodeId == -1)
+                    {
+                        continue;
+                    }
+                    // displacement
+                    for (int col = 0; col < dElemNodeCnt; col++)
+                    {
+                        int colNodeId = dNodes[col];
+                        if (colNodeId == -1)
+                        {
+                            continue;
+                        }
+                        double mValue = 0.0;
+                        M[rowNodeId + offset, colNodeId] += mValue;
+                    }
+                    // rotation
+                    for (int col = 0; col < rElemNodeCnt; col++)
+                    {
+                        int colNodeId = rNodes[col];
+                        if (colNodeId == -1)
+                        {
+                            continue;
+                        }
+                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
                         M[rowNodeId + offset, colNodeId + offset] += mValue;
                     }
                 }

@@ -14,8 +14,8 @@ namespace IvyFEM
         public double MassDensity { get => Values[3]; set => Values[3] = value; }
         public double Young { get => Values[4]; set => Values[4] = value; }
         public double Poisson { get => Values[5]; set => Values[5] = value; }
-        public double TimoshenkoShearCoefficent { get => Values[6]; set => Values[6] = value; }
-        public double ShearCoefficent => Young / (2.0 * (1.0 + Poisson));
+        public double TimoshenkoShearCoefficient { get => Values[6]; set => Values[6] = value; }
+        public double ShearCoefficient => Young / (2.0 * (1.0 + Poisson));
 
         public TimoshenkoFrameMaterial()
         {
@@ -28,7 +28,7 @@ namespace IvyFEM
             MassDensity = 0.0;
             Young = 0.0;
             Poisson = 0.0;
-            TimoshenkoShearCoefficent = 5.0 / 6.0; // 長方形断面
+            TimoshenkoShearCoefficient = 5.0 / 6.0; // 長方形断面
         }
 
         public TimoshenkoFrameMaterial(TimoshenkoFrameMaterial src) : base(src)

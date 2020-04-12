@@ -266,6 +266,18 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
+        public static ComplexMatrix Scal(ComplexMatrix A, double b)
+        {
+            System.Numerics.Complex[] buffer = A.Buffer;
+            buffer = IvyFEM.Lapack.Functions.zscal(buffer, b);
+
+            int cRow = A.RowLength;
+            int cCol = A.ColumnLength;
+            bool alloc = false;
+            ComplexMatrix C = new ComplexMatrix(buffer, cRow, cCol, alloc);
+            return C;
+        }
+
         public bool AssertHermitian(double th)
         {
             System.Diagnostics.Debug.Assert(RowLength == ColumnLength);

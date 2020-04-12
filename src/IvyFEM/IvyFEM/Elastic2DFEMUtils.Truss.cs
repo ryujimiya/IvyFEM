@@ -23,7 +23,7 @@ namespace IvyFEM
                     ke[j, i] = ke[i, j];
                 }
             }
-            IvyFEM.Lapack.Functions.dscal(ke.Buffer, E * Ae / le);
+            ke = IvyFEM.Lapack.DoubleMatrix.Scal(ke, E * Ae / le);
             return ke;
         }
 
@@ -41,7 +41,7 @@ namespace IvyFEM
                     me[j, i] = me[i, j];
                 }
             }
-            IvyFEM.Lapack.Functions.dscal(me.Buffer, rho * Ae * le / 6.0);
+            me = IvyFEM.Lapack.DoubleMatrix.Scal(me, rho * Ae * le / 6.0);
             return me;
         }
     }

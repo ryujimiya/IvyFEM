@@ -83,10 +83,14 @@
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
     <Compile Include="Elastic2DEigenFEM.TimoshenkoBeam.cs" />
     <Compile Include="Elastic2DEigenFEM.TimoshenkoFrame.cs" />
+    <Compile Include="Elastic2DTDFEM.CorotationalFrame.cs" />
+    <Compile Include="Elastic2DFEM.CorotationalFrame.cs" />
+    <Compile Include="Elastic2DFEMUtils.CorotationalFrame.cs" />
     <Compile Include="Elastic2DTDFEM.TimoshenkoFrame.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoFrame.cs" />
     <Compile Include="Elastic2DTDFEM.TimoshenkoBeam.cs" />
     <Compile Include="FEM.ForceFixedCadsCondition.cs" />
+    <Compile Include="CorotationalFrameMaterial.cs" />
     <Compile Include="TimoshenkoFrameMaterial.cs" />
     <Compile Include="TimoshenkoBeamMaterial.cs" />
     <Compile Include="Elastic2DEigenFEM.Frame.cs" />

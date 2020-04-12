@@ -207,6 +207,18 @@ namespace IvyFEM.Lapack
             return c;
         }
 
+        public static DoubleMatrix Scal(DoubleMatrix A, double b)
+        {
+            double[] buffer = A.Buffer;
+            buffer = IvyFEM.Lapack.Functions.dscal(buffer, b);
+
+            int cRow = A.RowLength;
+            int cCol = A.ColumnLength;
+            bool alloc = false;
+            DoubleMatrix C = new DoubleMatrix(buffer, cRow, cCol, alloc);
+            return C;
+        }
+
         public static double DoubleDot(DoubleMatrix A, DoubleMatrix B)
         {
             System.Diagnostics.Debug.Assert(A.RowLength == B.ColumnLength);

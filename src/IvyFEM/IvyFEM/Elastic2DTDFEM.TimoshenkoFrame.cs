@@ -110,8 +110,8 @@ namespace IvyFEM
             double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
-            double G = ma.ShearCoefficent;
-            double kappa = ma.TimoshenkoShearCoefficent;
+            double G = ma.ShearCoefficient;
+            double kappa = ma.TimoshenkoShearCoefficient;
 
             // local dof
             double[] pt1 = vCoords[0];
@@ -201,25 +201,25 @@ namespace IvyFEM
                 localBeamMaxNodeCnt * (d2Dof + rDof), localBeamMaxNodeCnt * (d2Dof + rDof));
             var localMeBeam = new IvyFEM.Lapack.DoubleMatrix(
                 localBeamMaxNodeCnt * (d2Dof + rDof), localBeamMaxNodeCnt * (d2Dof + rDof));
-            IntegrationPoints ip;
-            if (d2LineFE.Order == 1 && rLineFE.Order == 1)
-            {
-                // 低減積分
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 1);
-            }
-            else
-            {
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 5);
-            }
             int beamDof = 2;
             int localBeamROffset = 1;
             System.Diagnostics.Debug.Assert(beamDof == (d2Dof + rDof));
             System.Diagnostics.Debug.Assert(localBeamROffset == d2Dof);
-            for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
+            IntegrationPoints ipK;
+            if (d2LineFE.Order == 1 && rLineFE.Order == 1)
             {
-                double[] L = ip.Ls[ipPt];
+                // 低減積分
+                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
+                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 1);
+            }
+            else
+            {
+                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
+                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 5);
+            }
+            for (int ipPt = 0; ipPt < ipK.PointCount; ipPt++)
+            {
+                double[] L = ipK.Ls[ipPt];
                 double[] d2N = d2LineFE.CalcN(L);
                 double[][] d2Nu = d2LineFE.CalcNu(L);
                 double[] d2Nx = d2Nu[0];
@@ -227,7 +227,7 @@ namespace IvyFEM
                 double[][] rNu = rLineFE.CalcNu(L);
                 double[] rNx = rNu[0];
                 double lineLen = d2LineFE.GetLineLength();
-                double weight = ip.Weights[ipPt];
+                double weight = ipK.Weights[ipPt];
                 double detJWeight = (lineLen / 2.0) * weight;
 
                 // displacement
@@ -237,17 +237,13 @@ namespace IvyFEM
                     for (int col = 0; col < d2ElemNodeCnt; col++)
                     {
                         double kValue = detJWeight * kappa * G * Ae * d2Nx[row] * d2Nx[col];
-                        double mValue = detJWeight * rho * Ae * d2N[row] * d2N[col];
                         localKeBeam[row * beamDof, col * beamDof] += kValue;
-                        localMeBeam[row * beamDof, col * beamDof] += mValue;
                     }
                     // rotation
                     for (int col = 0; col < rElemNodeCnt; col++)
                     {
                         double kValue = -1.0 * detJWeight * kappa * G * Ae * d2Nx[row] * rN[col];
-                        double mValue = 0.0;
                         localKeBeam[row * beamDof, col * beamDof + localBeamROffset] += kValue;
-                        localMeBeam[row * beamDof, col * beamDof + localBeamROffset] += mValue;
                     }
                 }
                 // rotation
@@ -257,18 +253,62 @@ namespace IvyFEM
                     for (int col = 0; col < d2ElemNodeCnt; col++)
                     {
                         double kValue = -1.0 * detJWeight * kappa * G * Ae * rN[row] * d2Nx[col];
-                        double mValue = 0.0;
                         localKeBeam[row * beamDof + localBeamROffset, col * beamDof] += kValue;
-                        localMeBeam[row * beamDof + localBeamROffset, col * beamDof] += mValue;
                     }
                     // rotation
                     for (int col = 0; col < rElemNodeCnt; col++)
                     {
                         double kValue1 = detJWeight * kappa * G * Ae * rN[row] * rN[col];
                         double kValue2 = detJWeight * E * Iz * rNx[row] * rNx[col];
-                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
                         localKeBeam[row * beamDof  + localBeamROffset, col * beamDof + localBeamROffset] +=
                             kValue1 + kValue2;
+                    }
+                }
+            }
+            IntegrationPoints ipM = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
+            System.Diagnostics.Debug.Assert(ipM.Ls.Length == 5);
+            for (int ipPt = 0; ipPt < ipM.PointCount; ipPt++)
+            {
+                double[] L = ipM.Ls[ipPt];
+                double[] d2N = d2LineFE.CalcN(L);
+                double[][] d2Nu = d2LineFE.CalcNu(L);
+                double[] d2Nx = d2Nu[0];
+                double[] rN = rLineFE.CalcN(L);
+                double[][] rNu = rLineFE.CalcNu(L);
+                double[] rNx = rNu[0];
+                double lineLen = d2LineFE.GetLineLength();
+                double weight = ipM.Weights[ipPt];
+                double detJWeight = (lineLen / 2.0) * weight;
+
+                // displacement
+                for (int row = 0; row < d2ElemNodeCnt; row++)
+                {
+                    // displacement
+                    for (int col = 0; col < d2ElemNodeCnt; col++)
+                    {
+                        double mValue = detJWeight * rho * Ae * d2N[row] * d2N[col];
+                        localMeBeam[row * beamDof, col * beamDof] += mValue;
+                    }
+                    // rotation
+                    for (int col = 0; col < rElemNodeCnt; col++)
+                    {
+                        double mValue = 0.0;
+                        localMeBeam[row * beamDof, col * beamDof + localBeamROffset] += mValue;
+                    }
+                }
+                // rotation
+                for (int row = 0; row < rElemNodeCnt; row++)
+                {
+                    // displacement
+                    for (int col = 0; col < d2ElemNodeCnt; col++)
+                    {
+                        double mValue = 0.0;
+                        localMeBeam[row * beamDof + localBeamROffset, col * beamDof] += mValue;
+                    }
+                    // rotation
+                    for (int col = 0; col < rElemNodeCnt; col++)
+                    {
+                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
                         localMeBeam[row * beamDof + localBeamROffset, col * beamDof + localBeamROffset] +=
                             mValue;
                     }
