@@ -104,7 +104,7 @@ namespace IvyFEM
             int[] vCoIds = d1LineFE.VertexCoordIds;
             uint elemVertexCnt = d1LineFE.VertexCount;
             double[][] vCoords = new double[elemVertexCnt][];
-            for (int iVertex = 0; iVertex < d1ElemNodeCnt; iVertex++)
+            for (int iVertex = 0; iVertex < elemVertexCnt; iVertex++)
             {
                 int coId = vCoIds[iVertex];
                 double[] coord = World.GetCoord(d1QuantityId, coId);

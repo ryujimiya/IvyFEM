@@ -432,7 +432,7 @@ namespace IvyFEM
             }
         }
         */
-        private void CalcTwoBodyContactMortarSegmentationQuantityAB(
+        private void SetTwoBodyContactMortarSegmentationQuantitySpecialBC(
             uint cQuantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint uQuantityId = 0;

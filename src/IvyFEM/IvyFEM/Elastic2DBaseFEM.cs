@@ -57,8 +57,13 @@ namespace IvyFEM
                     calcElementABForLine(feId, A, B);
                 }
             }
-            CalcMultipointConstraintAB(A, B);
-            CalcTwoBodyContactAB(A, B);
+        }
+
+        protected void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        {
+            SetExternalForceSpecialBC(A, B);
+            SetMultipointConstraintSpecialBC(A, B);
+            SetTwoBodyContactSpecialBC(A, B);
         }
 
         public override void Solve()
@@ -93,12 +98,16 @@ namespace IvyFEM
                     System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
+                    SetSpecialBC(A, B);
+                    System.Diagnostics.Debug.WriteLine("SetSpecialBC: t = " + (System.Environment.TickCount - t));
+
+                    t = System.Environment.TickCount;
                     DoubleSetFixedCadsCondtion(A, B);
                     System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
                     DoubleSetForceFixedCadsCondtion(A, B);
-                    System.Diagnostics.Debug.WriteLine("Condition: t = " + (System.Environment.TickCount - t));
+                    System.Diagnostics.Debug.WriteLine("Force Condition: t = " + (System.Environment.TickCount - t));
 
                     t = System.Environment.TickCount;
                     double[] AU = A * U;
@@ -146,12 +155,16 @@ namespace IvyFEM
                 System.Diagnostics.Debug.WriteLine("CalcAB: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
+                SetSpecialBC(A, B);
+                System.Diagnostics.Debug.WriteLine("SetSpecialBC: t = " + (System.Environment.TickCount - t));
+
+                t = System.Environment.TickCount;
                 DoubleSetFixedCadsCondtion(A, B);
                 System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
                 DoubleSetForceFixedCadsCondtion(A, B);
-                System.Diagnostics.Debug.WriteLine("Condtion: t = " + (System.Environment.TickCount - t));
+                System.Diagnostics.Debug.WriteLine("Force Condtion: t = " + (System.Environment.TickCount - t));
 
                 t = System.Environment.TickCount;
                 //-------------------------------

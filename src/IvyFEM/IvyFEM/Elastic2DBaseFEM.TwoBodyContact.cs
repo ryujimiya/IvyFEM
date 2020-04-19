@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public abstract partial class Elastic2DBaseFEM
     {
-        protected void CalcTwoBodyContactAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        protected void SetTwoBodyContactSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
             {
@@ -16,14 +16,14 @@ namespace IvyFEM
                 int masterCnt = World.GetContactMasterEIds(quantityId).Count;
                 if (slaveCnt > 0 && masterCnt > 0)
                 {
-                    //CalcTwoBodyContactSimpleQuantityAB(quantityId, A, B);
-                    //CalcTwoBodyContactSegmentationQuantityAB(quantityId, A, B);
-                    CalcTwoBodyContactMortarSegmentationQuantityAB(quantityId, A, B);
+                    //SetTwoBodyContactSimpleQuantitySpecialBC(quantityId, A, B);
+                    //SetTwoBodyContactSegmentationQuantitySpecialBC(quantityId, A, B);
+                    SetTwoBodyContactMortarSegmentationQuantitySpecialBC(quantityId, A, B);
                 }
             }
         }
 
-        private void CalcTwoBodyContactSimpleQuantityAB(
+        private void SetTwoBodyContactSimpleQuantitySpecialBC(
             uint cQuantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint uQuantityId = 0;
@@ -372,7 +372,7 @@ namespace IvyFEM
             }
         }
 
-        private void CalcTwoBodyContactSegmentationQuantityAB(
+        private void SetTwoBodyContactSegmentationQuantitySpecialBC(
             uint cQuantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint uQuantityId = 0;

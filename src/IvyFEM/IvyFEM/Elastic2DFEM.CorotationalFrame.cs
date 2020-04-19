@@ -126,7 +126,7 @@ namespace IvyFEM
             int[] vCoIds = d1LineFE.VertexCoordIds;
             uint elemVertexCnt = d1LineFE.VertexCount;
             double[][] vCoords = new double[elemVertexCnt][];
-            for (int iVertex = 0; iVertex < d1ElemNodeCnt; iVertex++)
+            for (int iVertex = 0; iVertex < elemVertexCnt; iVertex++)
             {
                 int coId = vCoIds[iVertex];
                 double[] coord = World.GetCoord(d1QuantityId, coId);
@@ -267,9 +267,7 @@ namespace IvyFEM
 
             //---------------------------------
             // f & K
-            double[] f;
-            IvyFEM.Lapack.Functions.dgemvAX(
-                out f, transbb.Buffer, transbb.RowLength, transbb.ColumnLength, IvyFEM.Lapack.TransposeType.Nop, fl);
+            double[] f = transbb * fl;
 
             var K = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             {

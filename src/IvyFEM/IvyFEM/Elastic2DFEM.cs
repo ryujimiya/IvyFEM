@@ -36,6 +36,7 @@ namespace IvyFEM
             CalcElementABsForLine.Add(CalcTimoshenkoBeamElementABForLine);
             CalcElementABsForLine.Add(CalcTimoshenkoFrameElementABForLine);
             CalcElementABsForLine.Add(CalcCorotationalFrameElementABForLine);
+            CalcElementABsForLine.Add(CalcFieldConsistentTLFrameElementABForLine);
         }
 
         //////////////////////////////////////////////////

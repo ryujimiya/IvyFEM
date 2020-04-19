@@ -89,7 +89,7 @@ namespace IvyFEM
             int[] vCoIds = d1LineFE.VertexCoordIds;
             uint elemVertexCnt = d1LineFE.VertexCount;
             double[][] vCoords = new double[elemVertexCnt][];
-            for (int iVertex = 0; iVertex < d1ElemNodeCnt; iVertex++)
+            for (int iVertex = 0; iVertex < elemVertexCnt; iVertex++)
             {
                 int coId = vCoIds[iVertex];
                 double[] coord = World.GetCoord(d1QuantityId, coId);
@@ -121,6 +121,7 @@ namespace IvyFEM
             int localD2Offset = d1Dof;
             int localROffset = localD2Offset + d2Dof;
             // 次数の高い要素に合わせる
+            System.Diagnostics.Debug.Assert(d1ElemNodeCnt == d2ElemNodeCnt);
             int localMaxNodeCnt = (int)Math.Max(Math.Max(d1ElemNodeCnt, d2ElemNodeCnt), rElemNodeCnt);
             var T = new IvyFEM.Lapack.DoubleMatrix(localMaxNodeCnt * localDof, localMaxNodeCnt * localDof);
             // d1

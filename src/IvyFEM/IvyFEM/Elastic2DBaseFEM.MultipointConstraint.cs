@@ -8,19 +8,19 @@ namespace IvyFEM
 {
     public abstract partial class Elastic2DBaseFEM
     {
-        protected void CalcMultipointConstraintAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
+        protected void SetMultipointConstraintSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
             {
                 int cnt = World.GetMultipointConstraintCount(quantityId);
                 if (cnt > 0)
                 {
-                    CalcMultipointConstraintQuantityAB(quantityId, A, B);
+                    SetMultipointConstraintQuantitySpecialBC(quantityId, A, B);
                 }
             }
         }
 
-        private void CalcMultipointConstraintQuantityAB(
+        private void SetMultipointConstraintQuantitySpecialBC(
             uint cQuantityId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint uQuantityId = 0;

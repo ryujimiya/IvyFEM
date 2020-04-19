@@ -32,6 +32,8 @@
 　　　　　　　　　　構造要素(幾何学的非線形)  
 　　　　　　　　　　　Co-rotational Beam(Frame) Formulation  
 　　　　　　　　　　　　shallow arch  
+　　　　　　　　　　　Total Lagrange法  
+　　　　　　　　　　　　Eular-Bernoulli Field-consistent Beam(Frame)  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -91,9 +93,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-04-12更新）**  
+　**バイナリ（2020-04-19更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.37  
+　　IvyFEM.dll version 0.0.0.38  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

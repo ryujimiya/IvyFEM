@@ -139,10 +139,9 @@ namespace IvyFEM
         SinModulation // 正弦波変調
     }
 
-    public enum EMWaveguideType
+    public enum ElasticBCType
     {
-        HPlane2D,
-        EPlane2D
+        ExternalForce
     }
 
     public enum FluidEquationType
@@ -168,5 +167,11 @@ namespace IvyFEM
         NoConstraint,
         NormalInflow,
         Outflow
+    }
+
+    public enum EMWaveguideType
+    {
+        HPlane2D,
+        EPlane2D
     }
 }
