@@ -11,23 +11,23 @@ namespace IvyFEM
         //////////////////////////////////////////
         // stiffness matrix
         public static void CalcSimpleCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             kl = new IvyFEM.Lapack.DoubleMatrix(3, 3);
             double n = (E * Ae / l0) * barU;
-            double m1 = (2.0 * E * I / l0) * (2.0 * barT1 + barT2);
-            double m2 = (2.0 * E * I / l0) * (barT1 + 2.0 * barT2);
+            double m1 = (2.0 * E * Iz / l0) * (2.0 * barT1 + barT2);
+            double m2 = (2.0 * E * Iz / l0) * (barT1 + 2.0 * barT2);
             kl[0, 0] = E * Ae / l0;
             kl[0, 1] = 0.0;
             kl[0, 2] = 0.0;
             kl[1, 0] = kl[0, 1];
-            kl[1, 1] = 4.0 * E * I / l0;
-            kl[1, 2] = 2.0 * E * I / l0;
+            kl[1, 1] = 4.0 * E * Iz / l0;
+            kl[1, 2] = 2.0 * E * Iz / l0;
             kl[2, 0] = kl[0, 2];
             kl[2, 1] = kl[1, 2];
-            kl[2, 2] = 4.0 * E * I / l0;
+            kl[2, 2] = 4.0 * E * Iz / l0;
 
             fl = new double[3];
             fl[0] = n;
@@ -36,7 +36,7 @@ namespace IvyFEM
         }
 
         public static void CalcBernoulliCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
@@ -56,7 +56,7 @@ namespace IvyFEM
                 double x = l0 * L[1];
 
                 double sigma = E * Ae * barU / l0;
-                double sigmaY = E * I * (
+                double sigmaY = E * Iz * (
                     (4.0 / l0 - (6.0 / (l0 * l0)) * x) * barT1 +
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * barT2
                     );
@@ -68,11 +68,11 @@ namespace IvyFEM
                 kl[0, 0] += detJWeight * (E * Ae / (l0 * l0));
                 kl[0, 1] += 0.0;
                 kl[0, 2] += 0.0;
-                kl[1, 1] += detJWeight * E * I *
+                kl[1, 1] += detJWeight * E * Iz *
                     (4.0 / l0 - (6.0 / (l0 * l0)) * x) * (4.0 / l0 - (6.0 / (l0 * l0)) * x);
-                kl[1, 2] += detJWeight * E * I *
+                kl[1, 2] += detJWeight * E * Iz *
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * (4.0 / l0 - (6.0 / (l0 * l0)) * x);
-                kl[2, 2] += detJWeight * E * I *
+                kl[2, 2] += detJWeight * E * Iz *
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * (2.0 / l0 - (6.0 / (l0 * l0)) * x);
             }
             kl[1, 0] = kl[0, 1];
@@ -86,7 +86,7 @@ namespace IvyFEM
         }
 
         public static void CalcShallowArchCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
@@ -111,7 +111,7 @@ namespace IvyFEM
                     (1.0 / 30.0) * barT1 * barT2 +
                     (1.0 / 15.0) * barT2 * barT2
                     );
-                double sigmaY = E * I * (
+                double sigmaY = E * Iz * (
                     (4.0 / l0 - (6.0 / (l0 * l0)) * x) * barT1 +
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * barT2
                     );
@@ -128,17 +128,17 @@ namespace IvyFEM
                 kl[1, 1] += detJWeight * E * Ae *
                     ((2.0 / 15.0) * barT1 - (1.0 / 30.0) * barT2) * ((2.0 / 15.0) * barT1 - (1.0 / 30.0) * barT2) +
                     detJWeight * (2.0 / 15.0) * sigma +
-                    detJWeight * E * I *
+                    detJWeight * E * Iz *
                     (4.0 / l0 - (6.0 / (l0 * l0)) * x) * (4.0 / l0 - (6.0 / (l0 * l0)) * x);
                 kl[1, 2] += detJWeight * E * Ae *
                     ((2.0 / 15.0) * barT1 - (1.0 / 30.0) * barT2) * ((2.0 / 15.0) * barT2 - (1.0 / 30.0) * barT1) -
                     detJWeight * (1.0 / 30.0) * sigma +
-                    detJWeight * E * I *
+                    detJWeight * E * Iz *
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * (4.0 / l0 - (6.0 / (l0 * l0)) * x);
                 kl[2, 2] += detJWeight * E * Ae *
                     ((2.0 / 15.0) * barT2 - (1.0 / 30.0) * barT1) * ((2.0 / 15.0) * barT2 - (1.0 / 30.0) * barT1) +
                     detJWeight * (2.0 / 15.0) * sigma +
-                    detJWeight * E * I *
+                    detJWeight * E * Iz *
                     (2.0 / l0 - (6.0 / (l0 * l0)) * x) * (2.0 / l0 - (6.0 / (l0 * l0)) * x);
             }
             kl[1, 0] = kl[0, 1];
@@ -154,7 +154,7 @@ namespace IvyFEM
         //////////////////////////////////////////
         // mass matrix
         public static IvyFEM.Lapack.DoubleMatrix CalcCorotationalFrameMl(
-            double rho, double Ae, double I, double l0)
+            double rho, double Ae, double Ix, double l0)
         {
             var ml1 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             double c1 = rho * Ae * l0 / 420.0;
@@ -187,7 +187,7 @@ namespace IvyFEM
                 }
             }
             var ml2 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
-            double c2 = rho * I / (30.0 * l0);
+            double c2 = rho * Ix / (30.0 * l0);
             ml2[0, 0] = c2 * 0.0;
             ml2[0, 1] = c2 * 0.0;
             ml2[0, 2] = c2 * 0.0;

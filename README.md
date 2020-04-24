@@ -31,9 +31,11 @@
 　　　　　　　　　　　　Timoshenko  
 　　　　　　　　　　構造要素(幾何学的非線形)  
 　　　　　　　　　　　Co-rotational Beam(Frame) Formulation  
-　　　　　　　　　　　　shallow arch  
+　　　　　　　　　　　　Euler-Bernoulli shallow arch  
+　　　　　　　　　　　　Timoshenko Beam(Frame)  
 　　　　　　　　　　　Total Lagrange法  
 　　　　　　　　　　　　Eular-Bernoulli Field-consistent Beam(Frame)  
+　　　　　　　　　　　　Timoshenko Beam(Frame)  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -93,9 +95,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-04-19更新）**  
+　**バイナリ（2020-04-24更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.38  
+　　IvyFEM.dll version 0.0.0.39  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

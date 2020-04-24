@@ -9,34 +9,34 @@ namespace IvyFEM
     public partial class Elastic2DFEM
     {
         protected void CalcSimpleCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             Elastic2DFEMUtils.CalcSimpleCorotationalFrameKl(
-                E, Ae, I,
+                E, Ae, Iz,
                 l0, barU, barT1, barT2,
                 out fl, out kl);
         }
 
         protected void CalcBernoulliCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             Elastic2DFEMUtils.CalcBernoulliCorotationalFrameKl(
-                E, Ae, I,
+                E, Ae, Iz,
                 l0, barU, barT1, barT2,
                 out fl, out kl);
         }
 
         protected void CalcShallowArchCorotationalFrameKl(
-            double E, double Ae, double I,
+            double E, double Ae, double Iz,
             double l0, double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             Elastic2DFEMUtils.CalcShallowArchCorotationalFrameKl(
-                E, Ae, I,
+                E, Ae, Iz,
                 l0, barU, barT1, barT2,
                 out fl, out kl);
         }
@@ -174,7 +174,8 @@ namespace IvyFEM
 
             var ma = ma0 as CorotationalFrameMaterial;
             double Ae = ma.Area;
-            double I = ma.SecondMomentOfArea;
+            double Iz = ma.SecondMomentOfArea;
+            double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
 
@@ -254,11 +255,11 @@ namespace IvyFEM
             IvyFEM.Lapack.DoubleMatrix kl;
 
             // 
-            //CalcSimpleCorotationalFrameKl(E, Ae, I, l0, barU, barT1, barT2, out fl, out kl);
+            //CalcSimpleCorotationalFrameKl(E, Ae, Iz, l0, barU, barT1, barT2, out fl, out kl);
             // Bernoulli
-            //CalcBernoulliCorotationalFrameKl(E, Ae, I, l0, barU, barT1, barT2, out fl, out kl);
+            //CalcBernoulliCorotationalFrameKl(E, Ae, Iz, l0, barU, barT1, barT2, out fl, out kl);
             // shallow arch beam
-            CalcShallowArchCorotationalFrameKl(E, Ae, I, l0, barU, barT1, barT2, out fl, out kl);
+            CalcShallowArchCorotationalFrameKl(E, Ae, Iz, l0, barU, barT1, barT2, out fl, out kl);
             
             double n = fl[0];
             double m1 = fl[1];

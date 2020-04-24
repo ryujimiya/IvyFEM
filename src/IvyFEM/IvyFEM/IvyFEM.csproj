@@ -81,6 +81,11 @@
   <ItemGroup>
     <Compile Include="AdvectionDiffusion2DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
+    <Compile Include="Elastic2DTDFEM.TimoshenkoCorotationalFrame.cs" />
+    <Compile Include="TimoshenkoCorotationalFrameMaterial.cs" />
+    <Compile Include="Elastic2DFEM.TimoshenkoCorotationalFrame.cs" />
+    <Compile Include="Elastic2DFEM.TimoshenkoTLFrame.cs" />
+    <Compile Include="Elastic2DFEMUtils.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="Elastic2DFEMUtils.FieldConsistentTLFrame.cs" />
     <Compile Include="FieldConsistentTLFrameMaterial.cs" />
     <Compile Include="Elastic2DBaseFEM.TwoBodyContactMortar.cs" />
@@ -95,6 +100,9 @@
     <Compile Include="Elastic2DTDFEM.TimoshenkoBeam.cs" />
     <Compile Include="FEM.ForceFixedCadsCondition.cs" />
     <Compile Include="CorotationalFrameMaterial.cs" />
+    <Compile Include="FrameBaseMaterial.cs" />
+    <Compile Include="TimoshenkoFrameBaseMaterial.cs" />
+    <Compile Include="TimoshenkoTLFrameMaterial.cs" />
     <Compile Include="TimoshenkoFrameMaterial.cs" />
     <Compile Include="TimoshenkoBeamMaterial.cs" />
     <Compile Include="Elastic2DEigenFEM.Frame.cs" />
