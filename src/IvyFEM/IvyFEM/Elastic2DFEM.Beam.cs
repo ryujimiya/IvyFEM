@@ -106,7 +106,7 @@ namespace IvyFEM
                 (pt2[0] - pt1[0]) * (pt2[0] - pt1[0]) +
                 (pt2[1] - pt1[1]) * (pt2[1] - pt1[1]));
 
-            var ke = CalcBeamLocalKe(le, E, I);
+            var Ke = CalcBeamLocalKe(le, E, I);
 
             // local dof
             int localDof = 2;
@@ -128,7 +128,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = ke[row * localDof, col * localDof];
+                    double kValue = Ke[row * localDof, col * localDof];
                     A[rowNodeId, colNodeId] += kValue;
                 }
                 // rotation
@@ -139,7 +139,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = ke[row * localDof, col * localDof + localOffset];
+                    double kValue = Ke[row * localDof, col * localDof + localOffset];
                     A[rowNodeId, colNodeId + offset] += kValue;
                 }
             }
@@ -159,7 +159,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = ke[row * localDof + localOffset, col * localDof];
+                    double kValue = Ke[row * localDof + localOffset, col * localDof];
                     A[rowNodeId + offset, colNodeId] += kValue;
                 }
                 // rotation
@@ -170,7 +170,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = ke[row * localDof + localOffset, col * localDof + localOffset];
+                    double kValue = Ke[row * localDof + localOffset, col * localDof + localOffset];
                     A[rowNodeId + offset, colNodeId + offset] += kValue;
                 }
             }

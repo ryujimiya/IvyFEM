@@ -20,10 +20,10 @@ namespace IvyFEM
         }
 
         protected IvyFEM.Lapack.DoubleMatrix CalcTimoshenkoCorotationalFrameMl(
-            double rho, double Ae, double Ix, double l0)
+            double rho, double Ae, double Iz, double l0)
         {
             return Elastic2DFEMUtils.CalcTimoshenkoCorotationalFrameMl(
-                rho, Ae, Ix, l0);
+                rho, Ae, Iz, l0);
         }
 
         protected void CalcTimoshenkoCorotationalFrameElementABForLine(
@@ -168,7 +168,6 @@ namespace IvyFEM
             var ma = ma0 as TimoshenkoCorotationalFrameMaterial;
             double Ae = ma.Area;
             double Iz = ma.SecondMomentOfArea;
-            double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
             double G = ma.ShearCoefficient;
@@ -260,7 +259,7 @@ namespace IvyFEM
             // f & K
             double[] f = transbb * fl;
 
-            var K = new IvyFEM.Lapack.DoubleMatrix(6, 6);
+            var Ke = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             {
                 var work1 = (transbb * kl) * bb;
                 var work2 = z * transz;
@@ -279,7 +278,7 @@ namespace IvyFEM
                 {
                     for (int j = 0; j < 6; j++)
                     {
-                        K[i, j] = work1[i, j] + work2[i, j] + work3[i, j];
+                        Ke[i, j] = work1[i, j] + work2[i, j] + work3[i, j];
                     }
                 }
             }
@@ -332,7 +331,7 @@ namespace IvyFEM
 
             //-----------------------------
             // local
-            var ml = CalcTimoshenkoCorotationalFrameMl(rho, Ae, Ix, l0);
+            var ml = CalcTimoshenkoCorotationalFrameMl(rho, Ae, Iz, l0);
             //---------------------------------
 
             //---------------------------------
@@ -376,7 +375,7 @@ namespace IvyFEM
             T[5, 4] = 0.0;
             T[5, 5] = 1.0;
             var transT = IvyFEM.Lapack.DoubleMatrix.Transpose(T);
-            var M = (transT * ml) * T;
+            var Me = (transT * ml) * T;
 
             var I0 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             I0[0, 0] = 0.0;
@@ -437,7 +436,7 @@ namespace IvyFEM
             }
             double[] fk = new double[6];
             {
-                var work1 = M * accPgM;
+                var work1 = Me * accPgM;
                 var work2 = dotM * velPgM;
                 double d3 = IvyFEM.Lapack.Functions.ddot((transvelPgM * Mb).Buffer, velPg);
                 var work3 = new IvyFEM.Lapack.DoubleMatrix(6, 1);
@@ -458,12 +457,12 @@ namespace IvyFEM
                 Ck1 = Mb * work;
             }
             var transCk1 = IvyFEM.Lapack.DoubleMatrix.Transpose(Ck1);
-            var Ck = new IvyFEM.Lapack.DoubleMatrix(6, 6);
+            var Cke = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             for (int i = 0; i < 6; i++)
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    Ck[i, j] = dotM[i, j] + Ck1[i, j] - transCk1[i, j];
+                    Cke[i, j] = dotM[i, j] + Ck1[i, j] - transCk1[i, j];
                 }
             }
 
@@ -549,12 +548,12 @@ namespace IvyFEM
                     }
                 }
             }
-            var Kk = new IvyFEM.Lapack.DoubleMatrix(6, 6);
+            var Kke = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             for (int i = 0; i < 6; i++)
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    Kk[i, j] = Kk1[i, j] + Kk2[i, j] - Kk3[i, j];
+                    Kke[i, j] = Kk1[i, j] + Kk2[i, j] - Kk3[i, j];
                 }
             }
             //-----------------------
@@ -586,10 +585,10 @@ namespace IvyFEM
                     double[] acc = d1FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof, col * localDof];
-                    double mValue = M[row * localDof, col * localDof];
-                    double ckValue = Ck[row * localDof, col * localDof];
-                    double kkValue = Kk[row * localDof, col * localDof];
+                    double kValue = Ke[row * localDof, col * localDof];
+                    double mValue = Me[row * localDof, col * localDof];
+                    double ckValue = Cke[row * localDof, col * localDof];
+                    double kkValue = Kke[row * localDof, col * localDof];
                     double curU = pg[col * localDof];
                     double curVel = velPg[col * localDof];
                     double curAcc = accPg[col * localDof];
@@ -626,10 +625,10 @@ namespace IvyFEM
                     double[] acc = d2FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof, col * localDof + localD2Offset];
-                    double mValue = M[row * localDof, col * localDof + localD2Offset];
-                    double ckValue = Ck[row * localDof, col * localDof + localD2Offset];
-                    double kkValue = Kk[row * localDof, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof, col * localDof + localD2Offset];
+                    double mValue = Me[row * localDof, col * localDof + localD2Offset];
+                    double ckValue = Cke[row * localDof, col * localDof + localD2Offset];
+                    double kkValue = Kke[row * localDof, col * localDof + localD2Offset];
                     double curU = pg[col * localDof + localD2Offset];
                     double curVel = velPg[col * localDof + localD2Offset];
                     double curAcc = accPg[col * localDof + localD2Offset];
@@ -666,10 +665,10 @@ namespace IvyFEM
                     double[] acc = rFV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof, col * localDof + localROffset];
-                    double mValue = M[row * localDof, col * localDof + localROffset];
-                    double ckValue = Ck[row * localDof, col * localDof + localROffset];
-                    double kkValue = Kk[row * localDof, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof, col * localDof + localROffset];
+                    double mValue = Me[row * localDof, col * localDof + localROffset];
+                    double ckValue = Cke[row * localDof, col * localDof + localROffset];
+                    double kkValue = Kke[row * localDof, col * localDof + localROffset];
                     double curU = pg[col * localDof + localROffset];
                     double curVel = velPg[col * localDof + localROffset];
                     double curAcc = accPg[col * localDof + localROffset];
@@ -715,10 +714,10 @@ namespace IvyFEM
                     double[] acc = d1FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localD2Offset, col * localDof];
-                    double mValue = M[row * localDof + localD2Offset, col * localDof];
-                    double ckValue = Ck[row * localDof + localD2Offset, col * localDof];
-                    double kkValue = Kk[row * localDof + localD2Offset, col * localDof];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof];
+                    double mValue = Me[row * localDof + localD2Offset, col * localDof];
+                    double ckValue = Cke[row * localDof + localD2Offset, col * localDof];
+                    double kkValue = Kke[row * localDof + localD2Offset, col * localDof];
                     double curU = pg[col * localDof];
                     double curVel = velPg[col * localDof];
                     double curAcc = accPg[col * localDof];
@@ -755,10 +754,10 @@ namespace IvyFEM
                     double[] acc = d2FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localD2Offset, col * localDof + localD2Offset];
-                    double mValue = M[row * localDof + localD2Offset, col * localDof + localD2Offset];
-                    double ckValue = Ck[row * localDof + localD2Offset, col * localDof + localD2Offset];
-                    double kkValue = Kk[row * localDof + localD2Offset, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localD2Offset];
+                    double mValue = Me[row * localDof + localD2Offset, col * localDof + localD2Offset];
+                    double ckValue = Cke[row * localDof + localD2Offset, col * localDof + localD2Offset];
+                    double kkValue = Kke[row * localDof + localD2Offset, col * localDof + localD2Offset];
                     double curU = pg[col * localDof + localD2Offset];
                     double curVel = velPg[col * localDof + localD2Offset];
                     double curAcc = accPg[col * localDof + localD2Offset];
@@ -795,10 +794,10 @@ namespace IvyFEM
                     double[] acc = rFV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localD2Offset, col * localDof + localROffset];
-                    double mValue = M[row * localDof + localD2Offset, col * localDof + localROffset];
-                    double ckValue = Ck[row * localDof + localD2Offset, col * localDof + localROffset];
-                    double kkValue = Kk[row * localDof + localD2Offset, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localROffset];
+                    double mValue = Me[row * localDof + localD2Offset, col * localDof + localROffset];
+                    double ckValue = Cke[row * localDof + localD2Offset, col * localDof + localROffset];
+                    double kkValue = Kke[row * localDof + localD2Offset, col * localDof + localROffset];
                     double curU = pg[col * localDof + localROffset];
                     double curVel = velPg[col * localDof + localROffset];
                     double curAcc = accPg[col * localDof + localROffset];
@@ -844,10 +843,10 @@ namespace IvyFEM
                     double[] acc = d1FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localROffset, col * localDof];
-                    double mValue = M[row * localDof + localROffset, col * localDof];
-                    double ckValue = Ck[row * localDof + localROffset, col * localDof];
-                    double kkValue = Kk[row * localDof + localROffset, col * localDof];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof];
+                    double mValue = Me[row * localDof + localROffset, col * localDof];
+                    double ckValue = Cke[row * localDof + localROffset, col * localDof];
+                    double kkValue = Kke[row * localDof + localROffset, col * localDof];
                     double curU = pg[col * localDof];
                     double curVel = velPg[col * localDof];
                     double curAcc = accPg[col * localDof];
@@ -884,10 +883,10 @@ namespace IvyFEM
                     double[] acc = d2FV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localROffset, col * localDof + localD2Offset];
-                    double mValue = M[row * localDof + localROffset, col * localDof + localD2Offset];
-                    double ckValue = Ck[row * localDof + localROffset, col * localDof + localD2Offset];
-                    double kkValue = Kk[row * localDof + localROffset, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof + localD2Offset];
+                    double mValue = Me[row * localDof + localROffset, col * localDof + localD2Offset];
+                    double ckValue = Cke[row * localDof + localROffset, col * localDof + localD2Offset];
+                    double kkValue = Kke[row * localDof + localROffset, col * localDof + localD2Offset];
                     double curU = pg[col * localDof + localD2Offset];
                     double curVel = velPg[col * localDof + localD2Offset];
                     double curAcc = accPg[col * localDof + localD2Offset];
@@ -924,10 +923,10 @@ namespace IvyFEM
                     double[] acc = rFV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                     int colDof = 0;
 
-                    double kValue = K[row * localDof + localROffset, col * localDof + localROffset];
-                    double mValue = M[row * localDof + localROffset, col * localDof + localROffset];
-                    double ckValue = Ck[row * localDof + localROffset, col * localDof + localROffset];
-                    double kkValue = Kk[row * localDof + localROffset, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof + localROffset];
+                    double mValue = Me[row * localDof + localROffset, col * localDof + localROffset];
+                    double ckValue = Cke[row * localDof + localROffset, col * localDof + localROffset];
+                    double kkValue = Kke[row * localDof + localROffset, col * localDof + localROffset];
                     double curU = pg[col * localDof + localROffset];
                     double curVel = velPg[col * localDof + localROffset];
                     double curAcc = accPg[col * localDof + localROffset];

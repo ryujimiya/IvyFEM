@@ -62,7 +62,7 @@ namespace IvyFEM
         //////////////////////////////////////////
         // mass matrix
         public static IvyFEM.Lapack.DoubleMatrix CalcTimoshenkoCorotationalFrameMl(
-            double rho, double Ae, double Ix, double l0)
+            double rho, double Ae, double Iz, double l0)
         {
             var ml1 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             double c1 = rho * Ae * l0 / 6.0;
@@ -95,7 +95,7 @@ namespace IvyFEM
                 }
             }
             var ml2 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
-            double c2 = rho * Ix / (6.0 * l0);
+            double c2 = rho * Iz / (6.0 * l0);
             ml2[0, 0] = c2 * 0.0;
             ml2[0, 1] = c2 * 0.0;
             ml2[0, 2] = c2 * 0.0;

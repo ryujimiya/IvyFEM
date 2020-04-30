@@ -71,6 +71,8 @@ namespace IvyFEM
             CalcElementABsForLine.Add(CalcTimoshenkoFrameElementABForLine);
             CalcElementABsForLine.Add(CalcCorotationalFrameElementABForLine);
             CalcElementABsForLine.Add(CalcTimoshenkoCorotationalFrameElementABForLine);
+            CalcElementABsForLine.Add(CalcFieldConsistentTLFrameElementABForLine);
+            CalcElementABsForLine.Add(CalcTimoshenkoTLFrameElementABForLine);
         }
 
         public void UpdateFieldValuesTimeDomain()

@@ -9,11 +9,10 @@ namespace IvyFEM
     public partial class Elastic2DFEM
     {
         protected void CalcFieldConsistentTLFrameKl(
-            double E, double Ae, double I,
-            double l0, double[] ul,
+            double l0, double E, double Ae, double Iz, double[] ul,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
-            Elastic2DFEMUtils.CalcFieldConsistentTLFrameKl(E, Ae, I, l0, ul, out fl, out kl);
+            Elastic2DFEMUtils.CalcFieldConsistentTLFrameKl(l0, E, Ae, Iz, ul, out fl, out kl);
         }
 
         protected void CalcFieldConsistentTLFrameElementABForLine(
@@ -143,7 +142,7 @@ namespace IvyFEM
 
             var ma = ma0 as FieldConsistentTLFrameMaterial;
             double Ae = ma.Area;
-            double I = ma.SecondMomentOfArea;
+            double Iz = ma.SecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
 
@@ -214,13 +213,13 @@ namespace IvyFEM
             double[] fl;
             IvyFEM.Lapack.DoubleMatrix kl;
 
-            CalcFieldConsistentTLFrameKl(E, Ae, I, l0, ul, out fl, out kl);
+            CalcFieldConsistentTLFrameKl(l0, E, Ae, Iz, ul, out fl, out kl);
             //---------------------------------
 
             //---------------------------------
             // f & K
             double[] f = transT * fl;
-            var K = (transT * kl) * T;
+            var Ke = (transT * kl) * T;
             //---------------------------------
 
             // local dof
@@ -244,7 +243,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof, col * localDof];
+                    double kValue = Ke[row * localDof, col * localDof];
                     A[rowNodeId, colNodeId] += kValue;
                     B[rowNodeId] += kValue * U[colNodeId];
                 }
@@ -256,7 +255,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof, col * localDof + localD2Offset];
                     A[rowNodeId, colNodeId + d2Offset] += kValue;
                     B[rowNodeId] += kValue * U[colNodeId + d2Offset];
                 }
@@ -268,7 +267,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof, col * localDof + localROffset];
                     A[rowNodeId, colNodeId + rOffset] += kValue;
                     B[rowNodeId] += kValue * U[colNodeId + rOffset];
                 }
@@ -289,7 +288,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localD2Offset, col * localDof];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof];
                     A[rowNodeId + d2Offset, colNodeId] += kValue;
                     B[rowNodeId + d2Offset] += kValue * U[colNodeId];
                 }
@@ -301,7 +300,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localD2Offset, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localD2Offset];
                     A[rowNodeId + d2Offset, colNodeId + d2Offset] += kValue;
                     B[rowNodeId + d2Offset] += kValue * U[colNodeId + d2Offset];
                 }
@@ -313,7 +312,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localD2Offset, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localROffset];
                     A[rowNodeId + d2Offset, colNodeId + rOffset] += kValue;
                     B[rowNodeId + d2Offset] += kValue * U[colNodeId + rOffset];
                 }
@@ -334,7 +333,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localROffset, col * localDof];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof];
                     A[rowNodeId + rOffset, colNodeId] += kValue;
                     B[rowNodeId + rOffset] += kValue * U[colNodeId];
                 }
@@ -346,7 +345,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localROffset, col * localDof + localD2Offset];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof + localD2Offset];
                     A[rowNodeId + rOffset, colNodeId + d2Offset] += kValue;
                     B[rowNodeId + rOffset] += kValue * U[colNodeId + d2Offset];
                 }
@@ -358,7 +357,7 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    double kValue = K[row * localDof + localROffset, col * localDof + localROffset];
+                    double kValue = Ke[row * localDof + localROffset, col * localDof + localROffset];
                     A[rowNodeId + rOffset, colNodeId + rOffset] += kValue;
                     B[rowNodeId + rOffset] += kValue * U[colNodeId + rOffset];
                 }

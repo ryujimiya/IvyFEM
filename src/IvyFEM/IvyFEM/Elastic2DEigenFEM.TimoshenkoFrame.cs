@@ -99,7 +99,6 @@ namespace IvyFEM
             var ma = ma0 as TimoshenkoFrameMaterial;
             double Ae = ma.Area;
             double Iz = ma.SecondMomentOfArea;
-            double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
             double G = ma.ShearCoefficient;
@@ -301,7 +300,7 @@ namespace IvyFEM
                     // rotation
                     for (int col = 0; col < rElemNodeCnt; col++)
                     {
-                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
+                        double mValue = detJWeight * rho * Iz * rN[row] * rN[col];
                         localMeBeam[row * beamDof + localBeamROffset, col * beamDof + localBeamROffset] +=
                             mValue;
                     }

@@ -11,8 +11,8 @@ namespace IvyFEM
         //////////////////////////////////////////
         // stiffness matrix
         public static void CalcSimpleCorotationalFrameKl(
-            double E, double Ae, double Iz,
-            double l0, double barU, double barT1, double barT2,
+            double l0, double E, double Ae, double Iz,
+            double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             kl = new IvyFEM.Lapack.DoubleMatrix(3, 3);
@@ -36,8 +36,8 @@ namespace IvyFEM
         }
 
         public static void CalcBernoulliCorotationalFrameKl(
-            double E, double Ae, double Iz,
-            double l0, double barU, double barT1, double barT2,
+            double l0, double E, double Ae, double Iz,
+            double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             kl = new IvyFEM.Lapack.DoubleMatrix(3, 3);
@@ -86,8 +86,8 @@ namespace IvyFEM
         }
 
         public static void CalcShallowArchCorotationalFrameKl(
-            double E, double Ae, double Iz,
-            double l0, double barU, double barT1, double barT2,
+            double l0, double E, double Ae, double Iz,
+            double barU, double barT1, double barT2,
             out double[] fl, out IvyFEM.Lapack.DoubleMatrix kl)
         {
             kl = new IvyFEM.Lapack.DoubleMatrix(3, 3);
@@ -154,7 +154,7 @@ namespace IvyFEM
         //////////////////////////////////////////
         // mass matrix
         public static IvyFEM.Lapack.DoubleMatrix CalcCorotationalFrameMl(
-            double rho, double Ae, double Ix, double l0)
+            double l0, double rho, double Ae, double Iz)
         {
             var ml1 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
             double c1 = rho * Ae * l0 / 420.0;
@@ -187,7 +187,7 @@ namespace IvyFEM
                 }
             }
             var ml2 = new IvyFEM.Lapack.DoubleMatrix(6, 6);
-            double c2 = rho * Ix / (30.0 * l0);
+            double c2 = rho * Iz / (30.0 * l0);
             ml2[0, 0] = c2 * 0.0;
             ml2[0, 1] = c2 * 0.0;
             ml2[0, 2] = c2 * 0.0;

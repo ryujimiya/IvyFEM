@@ -81,6 +81,8 @@
   <ItemGroup>
     <Compile Include="AdvectionDiffusion2DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
+    <Compile Include="Elastic2DTDFEM.TimoshenkoTLFrame.cs" />
+    <Compile Include="Elastic2DTDFEM.FieldConsistentTLFrame.cs" />
     <Compile Include="Elastic2DTDFEM.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="TimoshenkoCorotationalFrameMaterial.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoCorotationalFrame.cs" />

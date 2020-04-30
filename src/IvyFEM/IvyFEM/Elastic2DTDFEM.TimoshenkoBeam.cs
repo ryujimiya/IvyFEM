@@ -86,7 +86,6 @@ namespace IvyFEM
             var ma = ma0 as TimoshenkoBeamMaterial;
             double Ae = ma.Area;
             double Iz = ma.SecondMomentOfArea;
-            double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
             double G = ma.ShearCoefficient;
@@ -317,7 +316,7 @@ namespace IvyFEM
                         double[] acc = rFV.GetDoubleValue(colCoId, FieldDerivativeType.Acceleration);
                         int colDof = 0;
 
-                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
+                        double mValue = detJWeight * rho * Iz * rN[row] * rN[col];
                         A[rowNodeId + offset, colNodeId + offset] +=
                             (1.0 / (beta * dt * dt)) * mValue;
 

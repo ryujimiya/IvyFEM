@@ -79,7 +79,6 @@ namespace IvyFEM
             var ma = ma0 as TimoshenkoBeamMaterial;
             double Ae = ma.Area;
             double Iz = ma.SecondMomentOfArea;
-            double Ix = ma.PolarSecondMomentOfArea;
             double rho = ma.MassDensity;
             double E = ma.Young;
             double G = ma.ShearCoefficient;
@@ -262,7 +261,7 @@ namespace IvyFEM
                         {
                             continue;
                         }
-                        double mValue = detJWeight * rho * Ix * rN[row] * rN[col];
+                        double mValue = detJWeight * rho * Iz * rN[row] * rN[col];
                         M[rowNodeId + offset, colNodeId + offset] += mValue;
                     }
                 }

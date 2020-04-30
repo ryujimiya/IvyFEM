@@ -107,8 +107,8 @@ namespace IvyFEM
                 (pt2[0] - pt1[0]) * (pt2[0] - pt1[0]) +
                 (pt2[1] - pt1[1]) * (pt2[1] - pt1[1]));
 
-            var ke = CalcBeamLocalKe(le, E, I);
-            var me = CalcBeamLocalMe(le, rho, Ae);
+            var Ke = CalcBeamLocalKe(le, E, I);
+            var Me = CalcBeamLocalMe(le, rho, Ae);
 
             // local dof
             int localDof = 2;
@@ -129,8 +129,8 @@ namespace IvyFEM
                         continue;
                     }
 
-                    double kValue = ke[row * localDof, col * localDof];
-                    double mValue = me[row * localDof, col * localDof];
+                    double kValue = Ke[row * localDof, col * localDof];
+                    double mValue = Me[row * localDof, col * localDof];
                     K[rowNodeId, colNodeId] += kValue;
                     M[rowNodeId, colNodeId] += mValue;
                 }
@@ -143,8 +143,8 @@ namespace IvyFEM
                         continue;
                     }
 
-                    double kValue = ke[row * localDof, col * localDof + 1];
-                    double mValue = me[row * localDof, col * localDof + 1];
+                    double kValue = Ke[row * localDof, col * localDof + 1];
+                    double mValue = Me[row * localDof, col * localDof + 1];
                     K[rowNodeId, colNodeId + offset] += kValue;
                     M[rowNodeId, colNodeId + offset] += mValue;
                 }
@@ -166,8 +166,8 @@ namespace IvyFEM
                         continue;
                     }
 
-                    double kValue = ke[row * localDof + 1, col * localDof];
-                    double mValue = me[row * localDof + 1, col * localDof];
+                    double kValue = Ke[row * localDof + 1, col * localDof];
+                    double mValue = Me[row * localDof + 1, col * localDof];
                     K[rowNodeId + offset, colNodeId] += kValue;
                     M[rowNodeId + offset, colNodeId] += mValue;
                 }
@@ -180,8 +180,8 @@ namespace IvyFEM
                         continue;
                     }
 
-                    double kValue = ke[row * localDof + 1, col * localDof + 1];
-                    double mValue = me[row * localDof + 1, col * localDof + 1];
+                    double kValue = Ke[row * localDof + 1, col * localDof + 1];
+                    double mValue = Me[row * localDof + 1, col * localDof + 1];
                     K[rowNodeId + offset, colNodeId + offset] += kValue;
                     M[rowNodeId + offset, colNodeId + offset] += mValue;
                 }
