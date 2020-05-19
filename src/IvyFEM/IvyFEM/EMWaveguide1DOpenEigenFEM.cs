@@ -101,6 +101,9 @@ namespace IvyFEM
             {
                 return;
             }
+            System.Diagnostics.Debug.Assert(World.Mesh is Mesher2D);
+            Mesher2D mesh = World.Mesh as Mesher2D;
+
             IList<int> cornerCoIds = new List<int>(){ -1, -1 };
             {
                 IList<PortCondition> portcontitions = World.GetPortConditions(QuantityId);
@@ -108,7 +111,7 @@ namespace IvyFEM
                 IList<uint> eIds = portcondition.EIds;
 
                 uint eId1 = eIds[0];
-                Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
+                Edge2D e1 = mesh.Cad.GetEdge(eId1);
                 uint vId1 = e1.GetVertexId(true); // 始点
                 IList<int> coIds1 = World.GetCoordIdsFromCadId(QuantityId, vId1, CadElementType.Vertex);
                 System.Diagnostics.Debug.Assert(coIds1.Count == 1);
@@ -116,7 +119,7 @@ namespace IvyFEM
                 cornerCoIds[0] = coId1;
 
                 uint eId2 = eIds[eIds.Count - 1];
-                Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
+                Edge2D e2 = mesh.Cad.GetEdge(eId2);
                 uint vId2 = e2.GetVertexId(false); // 終点
                 IList<int> coIds2 = World.GetCoordIdsFromCadId(QuantityId, vId2, CadElementType.Vertex);
                 System.Diagnostics.Debug.Assert(coIds2.Count == 1);

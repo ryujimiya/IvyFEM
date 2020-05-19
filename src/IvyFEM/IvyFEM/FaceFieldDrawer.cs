@@ -127,9 +127,29 @@ namespace IvyFEM
                 }
             }
 
-            if (drawDim == 2) { SutableRotMode = RotMode.RotMode2D; }
-            else if (dim == 3) { SutableRotMode =RotMode.RotMode3D; }
-            else { SutableRotMode = RotMode.RotMode2DH; }
+            if (drawDim == 2)
+            {
+                SutableRotMode = RotMode.RotMode2D;
+            }
+            else if (drawDim == 3)
+            {
+                if (dim == 2)
+                {
+                    SutableRotMode = RotMode.RotMode2DH;
+                }
+                else if (dim == 3)
+                {
+                    SutableRotMode = RotMode.RotMode3D;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
 
             {
                 DrawParts.Clear();
@@ -314,7 +334,7 @@ namespace IvyFEM
                         VertexArray.VertexCoords[vertexs[2] * 3 + 2]);
                     double[] n;
                     double area;
-                    CadUtils.UnitNormalAreaTri3D(out n, out area, c0, c1, c2);
+                    CadUtils2D.UnitNormalAreaTri3D(out n, out area, c0, c1, c2);
                     NormalArray[vertexs[0] * 3 + 0] += n[0];
                     NormalArray[vertexs[0] * 3 + 1] += n[1];
                     NormalArray[vertexs[0] * 3 + 2] += n[2];

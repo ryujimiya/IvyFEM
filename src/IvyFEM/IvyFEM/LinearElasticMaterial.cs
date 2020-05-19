@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class LinearElasticMaterial : ElasticLameBaseMaterial
+    public class LinearElasticMaterial : ElasticBaseMaterial
     {
         public LinearElasticMaterial() : base()
         {

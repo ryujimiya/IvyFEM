@@ -360,6 +360,8 @@ namespace IvyFEM
             int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             int incidentPortId = World.GetIncidentPortId(QuantityId);
             int excitationPortId = portCnt + RefPortCount;
+            System.Diagnostics.Debug.Assert(World.Mesh is Mesher2D);
+            Mesher2D mesh = World.Mesh as Mesher2D;
 
             // 励振面から入射参照面までの距離と位相差の計算
             var portConditions = World.GetPortConditions(QuantityId);
@@ -371,10 +373,10 @@ namespace IvyFEM
                 OpenTK.Vector2d[] sePt = new OpenTK.Vector2d[2];
                 IList<uint> eIds = portCondition.BcEIdsForPeriodic1;
                 uint eId1 = eIds[0];
-                Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
+                Edge2D e1 = mesh.Cad.GetEdge(eId1);
                 sePt[0] = e1.GetVertexCoord(true);
                 uint eId2 = eIds[eIds.Count - 1];
-                Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
+                Edge2D e2 = mesh.Cad.GetEdge(eId2);
                 sePt[1] = e2.GetVertexCoord(false);
                 portSEPts.Add(sePt);
             }
@@ -385,7 +387,7 @@ namespace IvyFEM
                 OpenTK.Vector2d v1 = portSEPts[1][0];
                 OpenTK.Vector2d v2 = portSEPts[0][0];
                 OpenTK.Vector2d v3 = portSEPts[0][1];
-                double distanceX = Math.Abs(IvyFEM.CadUtils.TriHeight(v1, v2, v3));
+                double distanceX = Math.Abs(IvyFEM.CadUtils2D.TriHeight(v1, v2, v3));
 
                 System.Numerics.Complex betaX = SrcBetaXs[excitationPortId];
                 // 入射面（ポート1)における振幅を計算

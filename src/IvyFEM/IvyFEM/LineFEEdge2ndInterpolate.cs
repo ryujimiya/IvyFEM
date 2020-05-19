@@ -96,17 +96,11 @@ namespace IvyFEM
         public double[][] CalcEdgeN(double[] L)
         {
             double[][] edgeNs = new double[2][];
-            double[] a;
-            double[] b;
-            Owner.CalcTransMatrix(out a, out b);
-
             double l = Owner.GetLineLength();
             double[] normal = Owner.GetNormal();
             double[] tan = { normal[1], -normal[0] };
             double[] dir = { -tan[0], -tan[1] };
 
-            double gradL1 = b[0];
-            double gradL2 = b[1];
             for (int eIndex = 0; eIndex < 2; eIndex++)
             {
                 double[] edgeN = new double[2];
@@ -115,7 +109,7 @@ namespace IvyFEM
                 for (int idim = 0; idim < 2; idim++)
                 {
                     // x,y成分
-                    edgeN[idim] = L[eIndex] * gradL2 * dir[idim];
+                    edgeN[idim] = L[eIndex] * dir[idim];
                 }
             }
             return edgeNs;

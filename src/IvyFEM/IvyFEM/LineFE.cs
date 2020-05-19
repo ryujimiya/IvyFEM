@@ -76,9 +76,7 @@ namespace IvyFEM
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             co1 = AddDisplacement(0, co1);
             co2 = AddDisplacement(1, co2);
-            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
-            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            double l = (v2 - v1).Length;
+            double l = CadUtils.GetDistance(co1, co2);
             return l;
         }
 
@@ -88,7 +86,23 @@ namespace IvyFEM
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             co1 = AddDisplacement(0, co1);
             co2 = AddDisplacement(1, co2);
-            double[] normal = IvyFEM.CadUtils.GetNormal2D(co1, co2);
+            double[] normal;
+            if (World.Dimension == 2)
+            {
+                normal = IvyFEM.CadUtils2D.GetNormal2D(co1, co2);
+            }
+            else if (World.Dimension == 3)
+            {
+                // 三角形の辺なら面の法線ベクトルnfとdir=(co2-co1)から求めることができる
+                // 孤立の辺ならどうしようもない
+                System.Diagnostics.Debug.Assert(false);
+                throw new NotImplementedException();
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+                throw new NotImplementedException();
+            }
             return normal;
         }
 
@@ -106,14 +120,12 @@ namespace IvyFEM
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             co1 = AddDisplacement(0, co1);
             co2 = AddDisplacement(1, co2);
-            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
-            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            var dir = v2 - v1;
-            dir = CadUtils.Normalize(dir);
+            double[] dir = CadUtils.GetDirection(co1, co2);
             double l = GetLineLength();
             {
-                a[0] = (1.0 / l) * OpenTK.Vector2d.Dot(v2, dir);
-                a[1] = (1.0 / l) * OpenTK.Vector2d.Dot(-v1, dir);
+                a[0] = (1.0 / l) * CadUtils.Dot(co2, dir);
+                double[] work = IvyFEM.Lapack.Functions.dscal(co1, -1.0);
+                a[1] = (1.0 / l) * CadUtils.Dot(work, dir);
             }
             {
                 b[0] = (1.0 / l) * (-1.0);
@@ -123,7 +135,8 @@ namespace IvyFEM
 
         public double[] L2Coord(double[] L)
         {
-            double[] pt = new double[2];
+            uint dim = World.Dimension;
+            double[] pt = new double[dim];
             double[][] ptValue = new double[NodeCount][];
             int[] coIds = NodeCoordIds;
             for (int iNode = 0; iNode < NodeCount; iNode++)
@@ -135,7 +148,7 @@ namespace IvyFEM
             double[] N = CalcN(L);
             for (int iNode = 0; iNode < NodeCount; iNode++)
             {
-                for (int iDof = 0; iDof < 2; iDof++)
+                for (int iDof = 0; iDof < dim; iDof++)
                 {
                     pt[iDof] += N[iNode] * ptValue[iNode][iDof];
                 }
@@ -145,17 +158,11 @@ namespace IvyFEM
 
         public double[] Coord2L(double[] pt)
         {
-            System.Diagnostics.Debug.Assert(pt.Length == 2);
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
-            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
-            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            OpenTK.Vector2d v = new OpenTK.Vector2d(pt[0], pt[1]);
-            var dir12 = v2 - v1;
-            dir12 = CadUtils.Normalize(dir12);
-            var dir = v - v1;
-            dir = CadUtils.Normalize(dir);
-            double x = dir12[0] * dir[0] + dir12[1] * dir[1];
+            double[] dir12 = CadUtils.GetDirection(co1, co2);
+            double[] dir = CadUtils.GetDirection(co1, pt);
+            double x = CadUtils.Dot(dir12, dir);
 
             double[] a;
             double[] b;

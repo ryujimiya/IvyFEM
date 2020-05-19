@@ -22,9 +22,26 @@ namespace IvyFEM
         {
             get
             {
-                if (Type == ElementType.Line) { return 1; }
-                if (Type == ElementType.Tri || Type == ElementType.Quad) { return 2; }
-                if (Type == ElementType.Tet || Type == ElementType.Hex) { return 3; }
+                if (Type == ElementType.Point)
+                {
+                    return 0;
+                }
+                else if (Type == ElementType.Line)
+                {
+                    return 1;
+                }
+                else if (Type == ElementType.Tri)
+                {
+                    return 2;
+                }
+                else if (Type == ElementType.Tet)
+                {
+                    return 3;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
                 return 0;
             }
         }
@@ -90,11 +107,6 @@ namespace IvyFEM
                 Type = ElementType.Tri;
                 SetTri(world);
             }
-            else if (meshType == MeshType.Quad)
-            {
-                Type = ElementType.Quad;
-                SetQuad(world);
-            }
             else
             {
                 throw new NotImplementedException();
@@ -153,19 +165,6 @@ namespace IvyFEM
             }
         }
 
-        private void SetQuad(FEWorld world)
-        {
-            System.Diagnostics.Debug.Assert(Type == ElementType.Quad);
-            if (Type != ElementType.Quad)
-            {
-                return;
-            }
-            var mesh = world.Mesh;
-
-            // TODO: あとで
-            //throw new NotImplementedException();
-        }
-
         public void Update(uint valueId, FieldDerivativeType dt, VectorFieldDrawerType drawerType, FEWorld world)
         {
             DrawerType = drawerType;
@@ -213,11 +212,6 @@ namespace IvyFEM
                     }
                 }
             }
-            else if (Type == ElementType.Quad)
-            {
-                // TRIと同じでよいが要素IDを取得するメソッドが現状ない
-                throw new NotImplementedException();
-            }
         }
 
         private void UpdateSymmetricTensor2(uint valueId, FieldDerivativeType dt, FEWorld world)
@@ -261,11 +255,6 @@ namespace IvyFEM
                     Values[iTri * ValueDof + 4] = vecl[1];
                     Values[iTri * ValueDof + 5] = ll;
                 }
-            }
-            else if (Type == ElementType.Quad)
-            {
-                // TRIと同じでよいが要素IDを取得するメソッドが現状ない
-                throw new NotImplementedException();
             }
         }
 

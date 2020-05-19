@@ -10,8 +10,11 @@ namespace IvyFEM
     {
         protected void SetExternalForceSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
-            uint quantityId = 0;
-            SetExternalForceQuantitySpecialBC(quantityId, A, B);
+            int quantityCnt = World.GetQuantityCount();
+            for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+            {
+                SetExternalForceQuantitySpecialBC(quantityId, A, B);
+            }
         }
 
         private void SetExternalForceQuantitySpecialBC(
@@ -84,11 +87,8 @@ namespace IvyFEM
                             continue;
                         }
                         IList<double> param = portCondition.GetDoubleAdditionalParameters(rowCoId);
-                        System.Diagnostics.Debug.Assert(param.Count == 2); // 0: fx 1: fy
-                        System.Diagnostics.Debug.Assert(dof == 2);
-                        double fxValue = param[0];
-                        double fyValue = param[1];
-                        double[] f = { fxValue, fyValue };
+                        System.Diagnostics.Debug.Assert(param.Count == dof); // いまのところ 0: fx 1: fy
+                        double[] f = param.ToArray();
                         for (int rowDof = 0; rowDof < dof; rowDof++)
                         {
                             B[offset + rowNodeId * dof + rowDof] += sN[row] * f[rowDof];

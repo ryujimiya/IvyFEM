@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,11 +65,21 @@ namespace IvyFEM
             {
                 // 境界の辺だけ描画
                 LineFEs = new List<LineFE>();
-                IList<MeshBarArray> barArrays = mesh.GetBarArrays();
-                foreach (MeshBarArray barArray in barArrays)
+                
+                IList<uint> meshIds = mesh.GetIds();
+                foreach (uint meshId in meshIds)
                 {
-                    uint eCadId = barArray.ECadId;
-                    IList<int> allCoIds = world.GetCoordIdsFromCadId(quantityId, eCadId, CadElementType.Edge);
+                    uint elemCnt; 
+                    MeshType meshType;
+                    int loc;
+                    uint cadId;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                    if (meshType != MeshType.Bar)
+                    {
+                        continue;
+                    }
+                    uint eId = cadId;
+                    IList<int> allCoIds = world.GetCoordIdsFromCadId(quantityId, eId, CadElementType.Edge);
 
                     for (int i = 0; i < (allCoIds.Count - 1); i++)
                     {
@@ -84,6 +95,7 @@ namespace IvyFEM
                         }
                         LineFEs.Add(lineFE);
                     }
+
                 }
             }
 
@@ -110,10 +122,29 @@ namespace IvyFEM
             }
             VertexArray.SetSize(ptCnt, drawDim);
 
-            if (drawDim == 2) { SutableRotMode = RotMode.RotMode2D; }
-            else if (dim == 3) { SutableRotMode = RotMode.RotMode3D; }
-            else { SutableRotMode = RotMode.RotMode2DH; }
-
+            if (drawDim == 2)
+            {
+                SutableRotMode = RotMode.RotMode2D;
+            }
+            else if (drawDim == 3)
+            {
+                if (dim == 2)
+                {
+                    SutableRotMode = RotMode.RotMode2DH;
+                }
+                else if (dim == 3)
+                {
+                    SutableRotMode = RotMode.RotMode3D;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
 
             Update(world);
         }
@@ -129,7 +160,6 @@ namespace IvyFEM
 
             if (IsntDisplacementValue)
             {
-                System.Diagnostics.Debug.Assert(drawDim == 2); // いまはそうなってる
                 for (int iEdge = 0; iEdge < lineCnt; iEdge++)
                 {
                     LineFE lineFE = LineFEs[iEdge];
@@ -137,9 +167,10 @@ namespace IvyFEM
                     {
                         int coId = lineFE.NodeCoordIds[iPt];
                         double[] co = world.GetCoord(quantityId, coId);
-                        VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim  + 0] = co[0];
-                        VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim  + 1] = co[1];
-
+                        for (int idim = 0; idim < drawDim; idim++)
+                        {
+                            VertexArray.VertexCoords[(iEdge * LinePtCount + iPt) * drawDim + idim] = co[idim];
+                        }
                     }
                 }
             }

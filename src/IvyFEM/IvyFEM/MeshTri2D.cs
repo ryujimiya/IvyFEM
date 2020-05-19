@@ -20,22 +20,10 @@ namespace IvyFEM
 
         public MeshTri2D(MeshTri2D src)
         {
-            for  (int i = 0; i < 3; i++)
-            {
-                V[i] = src.V[i];
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                G2[i] = src.G2[i];
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                S2[i] = src.S2[i];
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                R2[i] = src.R2[i];
-            }
+            src.V.CopyTo(V, 0);
+            src.G2.CopyTo(G2, 0);
+            src.S2.CopyTo(S2, 0);
+            src.R2.CopyTo(R2, 0);
         }
     }
 }

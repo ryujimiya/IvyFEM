@@ -29,7 +29,7 @@ namespace IvyFEM
 
         private bool Set(Mesher2D mesher)
         {
-            SutableRotMode = RotMode.RotMode2D; // DrawMode 1 : 2D
+            SutableRotMode = RotMode.RotMode2D;
 
             int layerMin = 0;
             int layerMax = 0;
@@ -39,22 +39,6 @@ namespace IvyFEM
                 for (int itri = 0; itri < triArrays.Count; itri++)
                 {
                     int layer = triArrays[itri].Layer;
-                    if (isInited)
-                    {
-                        layerMin = (layer < layerMin) ? layer : layerMin;
-                        layerMax = (layer > layerMax) ? layer : layerMax;
-                    }
-                    else
-                    {
-                        layerMin = layer;
-                        layerMax = layer;
-                        isInited = true;
-                    }
-                }
-                IList<MeshQuadArray2D> quadArrays = mesher.GetQuadArrays();
-                for (int iquad = 0; iquad < quadArrays.Count; iquad++)
-                {
-                    int layer = quadArrays[iquad].Layer;
                     if (isInited)
                     {
                         layerMin = (layer < layerMin) ? layer : layerMin;
@@ -84,21 +68,8 @@ namespace IvyFEM
             }
 
             {
-                // 四角形要素をセット
-                IList<MeshQuadArray2D> quadArrays = mesher.GetQuadArrays();
-                for (int iquad = 0; iquad < quadArrays.Count; iquad++)
-                {
-                    Mesher2DDrawPart dp = new Mesher2DDrawPart(quadArrays[iquad]);
-                    int layer = quadArrays[iquad].Layer;
-                    dp.Height = (layer - layerMin) * layerHeight;
-
-                    DrawParts.Add(dp);
-                }
-            }
-
-            {
                 // 線要素をセット
-                IList<MeshBarArray> barArrays = mesher.GetBarArrays();
+                IList<MeshBarArray2D> barArrays = mesher.GetBarArrays();
                 for (int ibar = 0; ibar < barArrays.Count; ibar++)
                 {
                     double height = 0;
@@ -115,7 +86,7 @@ namespace IvyFEM
 
             {
                 // 頂点をセット
-                IList<MeshVertex> vertexs = mesher.GetVertexs();
+                IList<MeshVertex2D> vertexs = mesher.GetVertexs();
                 for (int iver = 0; iver < vertexs.Count; iver++)
                 {
                     double height = 0;
@@ -135,14 +106,14 @@ namespace IvyFEM
 
             {
                 // 座標をセット
-                IList<OpenTK.Vector2d> vec2Ds = mesher.GetVectors();
+                IList<OpenTK.Vector2d> vecs = mesher.GetVectors();
                 uint nDim = 2;
-                uint nVec = (uint)vec2Ds.Count;
+                uint nVec = (uint)vecs.Count;
                 VertexArray.SetSize(nVec, nDim);
                 for (int ivec = 0; ivec < nVec; ivec++)
                 {
-                    VertexArray.VertexCoords[ivec * nDim] = vec2Ds[ivec].X;
-                    VertexArray.VertexCoords[ivec * nDim + 1] = vec2Ds[ivec].Y;
+                    VertexArray.VertexCoords[ivec * nDim] = vecs[ivec].X;
+                    VertexArray.VertexCoords[ivec * nDim + 1] = vecs[ivec].Y;
                 }
             }
             return true;
@@ -200,7 +171,7 @@ namespace IvyFEM
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
                 Mesher2DDrawPart dp = DrawParts[idp];
-                if (!IsDrawFace && (dp.GetElemDim() == 2))
+                if (!IsDrawFace && (dp.Dimension == 2))
                 {
                     continue;
                 }

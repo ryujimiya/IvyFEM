@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public delegate void CalcElementDoubleAB(
-        uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
-
     public abstract partial class Elastic2DBaseFEM : FEM
     {
+        public delegate void CalcElementDoubleAB(
+           uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
+
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 

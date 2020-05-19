@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +9,8 @@ namespace IvyFEM
 {
     public class FEWorld
     {
-        public Mesher2D Mesh { get; set; } = null;
-        public uint Dimension { get; private set; } = 2;
+        public IMesher Mesh { get; set; } = null;
+        public uint Dimension => Mesh != null ? Mesh.Dimension : 0;
         private IList<double> VertexCoords = new List<double>();
         private ObjectArray<Material> MaterialArray = new ObjectArray<Material>();
         private Dictionary<uint, uint> CadEdge2Material = new Dictionary<uint, uint>();
@@ -76,7 +77,16 @@ namespace IvyFEM
         public double[] GetVertexCoord(int coId)
         {
             double[] coord = _GetVertexCoord(coId);
-            coord = GetRotCoord(coord, RotAngle, RotOrigin);
+            
+            // 回転移動
+            if (Dimension == 2)
+            {
+                coord = CadUtils2D.GetRotCoord2D(coord, RotAngle, RotOrigin);
+            }
+            else
+            {
+                // TODO:
+            }
             return coord;
         }
 
@@ -91,30 +101,6 @@ namespace IvyFEM
             return coord;
         }
 
-        /// <summary>
-        /// 回転移動する
-        /// </summary>
-        /// <param name="srcPt"></param>
-        /// <param name="rotAngle"></param>
-        /// <param name="rotOrigin"></param>
-        /// <returns></returns>
-        public static double[] GetRotCoord(double[] srcPt, double rotAngle, double[] rotOrigin = null)
-        {
-            double[] destPt = new double[2];
-            double x0 = 0;
-            double y0 = 0;
-            if (rotOrigin != null)
-            {
-                x0 = rotOrigin[0];
-                y0 = rotOrigin[1];
-            }
-            double cosA = Math.Cos(rotAngle);
-            double sinA = Math.Sin(rotAngle);
-            destPt[0] = cosA * (srcPt[0] - x0) + sinA * (srcPt[1] - y0);
-            destPt[1] = -sinA * (srcPt[0] - x0) + cosA * (srcPt[1] - y0);
-            return destPt;
-        }
-
         public uint GetFEOrder(uint quantityId)
         {
             return Quantitys[(int)quantityId].FEOrder;
@@ -125,14 +111,29 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].ZeroFieldFixedCads;
         }
 
+        public void SetZeroFieldFixedCads(uint quantityId, IList<FieldFixedCad> fixedCads)
+        {
+            Quantitys[(int)quantityId].ZeroFieldFixedCads = fixedCads;
+        }
+
         public IList<FieldFixedCad> GetFieldFixedCads(uint quantityId)
         {
             return Quantitys[(int)quantityId].FieldFixedCads;
         }
 
+        public void SetFieldFixedCads(uint quantityId, IList<FieldFixedCad> fixedCads)
+        {
+            Quantitys[(int)quantityId].FieldFixedCads = fixedCads;
+        }
+
         public IList<FieldFixedCad> GetForceFieldFixedCads(uint quantityId)
         {
             return Quantitys[(int)quantityId].ForceFieldFixedCads;
+        }
+
+        public void SetForceFieldFixedCads(uint quantityId, IList<FieldFixedCad> fixedCads)
+        {
+            Quantitys[(int)quantityId].ForceFieldFixedCads = fixedCads;
         }
 
         public int GetMultipointConstraintCount(uint quantityId)
@@ -161,9 +162,19 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].ContactSlaveEIds;
         }
 
+        public void SetContactSlaveEIds(uint quantityId, IList<uint> slaveIds)
+        {
+            Quantitys[(int)quantityId].ContactSlaveEIds = slaveIds;
+        }
+
         public IList<uint> GetContactMasterEIds(uint quantityId)
         {
             return Quantitys[(int)quantityId].ContactMasterEIds;
+        }
+
+        public void SetContactMasterEIds(uint quantityId, IList<uint> masterIds)
+        {
+            Quantitys[(int)quantityId].ContactMasterEIds = masterIds;
         }
 
         public uint GetCoordCount(uint quantityId)

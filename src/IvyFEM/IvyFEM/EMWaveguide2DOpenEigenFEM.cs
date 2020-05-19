@@ -368,15 +368,18 @@ namespace IvyFEM
                     double le = zLineFE.GetLineLength();
                     double[] normal = zLineFE.GetNormal();
                     bool isYDirection = true;
+                    double normalSgn = 1.0;
                     if (Math.Abs(normal[0]) >= 1.0e-12 && Math.Abs(normal[1]) < 1.0e-12)
                     {
                         // n = ax
                         isYDirection = true;
+                        normalSgn = normal[0] >= 0.0 ? 1.0 : -1.0;
                     }
                     else if (Math.Abs(normal[0]) < 1.0e-12 && Math.Abs(normal[1]) >= 1.0e-12)
                     {
                         // n = ay
                         isYDirection = false;
+                        normalSgn = normal[1] >= 0.0 ? 1.0 : -1.0;
                     }
                     else
                     {
@@ -467,11 +470,11 @@ namespace IvyFEM
                                 double utnVal = 0;
                                 if (isYDirection)
                                 {
-                                    utnVal = detJWeight * maPzz * tN[row][1] * tTriNy[kENode][0];
+                                    utnVal = detJWeight * maPzz * tN[row][1] * normalSgn * tTriNy[kENode][0];
                                 }
                                 else
                                 {
-                                    utnVal = detJWeight * maPzz * tN[row][0] * tTriNx[kENode][1];
+                                    utnVal = detJWeight * maPzz * tN[row][0] * normalSgn * tTriNx[kENode][1];
                                 }
                                 Utn[rowEdgeNodeId, kEdgeNodeId] += rowEdgeSgn * kEdgeSgn * utnVal;
                             }
@@ -503,11 +506,11 @@ namespace IvyFEM
                                 double uznVal = 0;
                                 if (isYDirection)
                                 {
-                                    uznVal = -1.0 * detJWeight * maPyy * N[row] * tTriN[kENode][0];
+                                    uznVal = -1.0 * detJWeight * maPyy * N[row] * normalSgn * tTriN[kENode][0];
                                 }
                                 else
                                 {
-                                    uznVal = -1.0 * detJWeight * maPxx * N[row] * tTriN[kENode][1];
+                                    uznVal = -1.0 * detJWeight * maPxx * N[row] * normalSgn * tTriN[kENode][1];
                                 }
                                 Uzn[rowNodeId, kEdgeNodeId] += kEdgeSgn * uznVal;
                             }

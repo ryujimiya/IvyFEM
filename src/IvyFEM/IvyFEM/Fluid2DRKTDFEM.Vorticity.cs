@@ -126,7 +126,7 @@ namespace IvyFEM
                     double[] pt1 = World.GetCoord(wQuantityId, coId1);
                     double[] pt2 = World.GetCoord(wQuantityId, coId2);
                     double[] adjPt = World.GetCoord(wQuantityId, adjCoId);
-                    double hn = Math.Abs(IvyFEM.CadUtils.TriHeight(
+                    double hn = Math.Abs(IvyFEM.CadUtils2D.TriHeight(
                         new OpenTK.Vector2d(adjPt[0], adjPt[1]), // 点
                         new OpenTK.Vector2d(pt1[0], pt1[1]), // 辺の点1
                         new OpenTK.Vector2d(pt2[0], pt2[1]) // 辺の点2
@@ -266,7 +266,7 @@ namespace IvyFEM
                     int coId2 = wCoIds[1];
                     double[] pt1 = World.GetCoord(wQuantityId, coId1);
                     double[] pt2 = World.GetCoord(wQuantityId, coId2);
-                    double[] dir = IvyFEM.CadUtils.GetDirection2D(pt1, pt2);
+                    double[] dir = IvyFEM.CadUtils2D.GetDirection2D(pt1, pt2);
 
                     for (int row = 0; row < elemNodeCnt; row++)
                     {
@@ -279,7 +279,7 @@ namespace IvyFEM
                         int rowCoId2 = wCoIds[(row + 1) % elemNodeCnt];
                         double[] rowPt = World.GetCoord(wQuantityId, rowCoId);
                         double[] rowPt2 = World.GetCoord(wQuantityId, rowCoId2);
-                        double[] rowDir = IvyFEM.CadUtils.GetDirection2D(rowPt, rowPt2);
+                        double[] rowDir = IvyFEM.CadUtils2D.GetDirection2D(rowPt, rowPt2);
                         double h = dir[0] * (rowPt2[0] - rowPt[0]) + dir[1] * (rowPt2[1] - rowPt[0]); // マイナスもある
 
                         // ψの補間なのでωの節点にはそのままでは使えない
@@ -469,7 +469,7 @@ namespace IvyFEM
                     double[] pt1 = World.GetCoord(pQuantityId, coId1);
                     double[] pt2 = World.GetCoord(pQuantityId, coId2);
                     double[] adjPt = World.GetCoord(pQuantityId, adjCoId);
-                    double[] dir = IvyFEM.CadUtils.GetDirection2D(pt1, pt2);
+                    double[] dir = IvyFEM.CadUtils2D.GetDirection2D(pt1, pt2);
                     int adjCoId2 = -1;
                     {
                         IList<uint> triFEIds = World.GetTriangleFEIdsFromCoord(pQuantityId, adjCoId);
@@ -489,7 +489,7 @@ namespace IvyFEM
                                     continue;
                                 }
                                 double[] tmpPt = World.GetCoord(pQuantityId, coId);
-                                double[] tmpDir = IvyFEM.CadUtils.GetDirection2D(adjPt, tmpPt);
+                                double[] tmpDir = IvyFEM.CadUtils2D.GetDirection2D(adjPt, tmpPt);
                                 double tmpProj = dir[0] * tmpDir[0] + dir[1] * tmpDir[1];
                                 //if (tmpProj > proj) // 同じ方向
                                 if (Math.Abs(tmpProj) > Math.Abs(proj)) // projectionが大きければ方向は逆も許容

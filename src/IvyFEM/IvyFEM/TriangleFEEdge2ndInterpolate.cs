@@ -165,14 +165,14 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeN[idim] = L[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim]; 
+                            edgeN[idim] = lens[vEIndex] * L[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim]; 
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeN[idim] = -L[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeN[idim] = -lens[vEIndex] * L[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
                         }
                     }
                 }
@@ -221,32 +221,32 @@ namespace IvyFEM
             {
                 int eIndex = 0;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[0] * gradLigradLiplus1;
             }
             {
                 int eIndex = 1;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[0] * gradLigradLiplus1;
             }
             {
                 int eIndex = 2;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[1] * gradLigradLiplus1;
             }
             {
                 int eIndex = 3;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[1] * gradLigradLiplus1;
             }
             {
                 int eIndex = 4;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[2] * gradLigradLiplus1;
             }
             {
                 int eIndex = 5;
                 // z成分
-                rotEdgeNs[eIndex] = gradLigradLiplus1;
+                rotEdgeNs[eIndex] = lens[2] * gradLigradLiplus1;
             }
             {
                 int eIndex = 6;
@@ -324,14 +324,14 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNx[idim] = b[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                            edgeNx[idim] = lens[vEIndex] * b[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNx[idim] = -b[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeNx[idim] = -lens[vEIndex] * b[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
                         }
                     }
                 }
@@ -367,14 +367,14 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNy[idim] = c[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                            edgeNy[idim] = lens[vEIndex] * c[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNy[idim] = -c[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeNy[idim] = -lens[vEIndex] * c[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
                         }
                     }
                 }

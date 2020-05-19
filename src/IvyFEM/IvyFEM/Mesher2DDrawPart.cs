@@ -14,13 +14,40 @@ namespace IvyFEM
         public IList<uint> SelectedElems { get; set; } = new List<uint>();
         public uint MeshId { get; set; } = 0;
         public uint CadId { get; set; } = 0;
-        public double[] Color { get; } = new double[3] { 0.8f, 0.8f, 0.8f };
+        public double[] Color { get; set;  } = new double[3] { 0.8, 0.8, 0.8 };
         public uint LineWidth { get; set; } = 1;
         public uint ElemCount { get; set; } = 0;
         public int[] ElemIndexs { get; set; } = null;
         public uint EdgeCount { get; set; } = 0;
         public int[] EdgeIndexs { get; set; } = null;
         public double Height { get; set; } = 0;
+        public uint Dimension
+        {
+            get
+            {
+                if (Type == ElementType.Point)
+                {
+                    return 1;
+                }
+                else if (Type == ElementType.Line)
+                {
+                    return 1;
+                }
+                else if (Type == ElementType.Tri)
+                {
+                    return 2;
+                }
+                else if (Type == ElementType.Tet)
+                {
+                    return 3;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+                return 0;
+            }
+        }
 
         private ElementType Type;
 
@@ -36,10 +63,7 @@ namespace IvyFEM
             SelectedElems = new List<uint>(src.SelectedElems);
             MeshId = src.MeshId;
             CadId = src.CadId;
-            for (int i = 0; i < 3; i++)
-            {
-                Color[i] = src.Color[i];
-            }
+            src.Color.CopyTo(Color, 0);
             LineWidth = src.LineWidth;
             ElemCount = src.ElemCount;
             ElemIndexs = null;
@@ -59,62 +83,11 @@ namespace IvyFEM
             Type = src.Type;
         }
 
-        public Mesher2DDrawPart(MeshQuadArray2D quadArray)
-        {
-            IsSelected = false;
-            IsShown = true;
-            Color[0] = 0.8;
-            Color[1] = 0.8;
-            Color[2] = 0.8;
-            LineWidth = 1;
-            Height = 0;
-            CadId = quadArray.LCadId;
-            MeshId = quadArray.Id;
-            System.Diagnostics.Debug.Assert(MeshId != 0);
-            Type = ElementType.Quad;
-            ElemIndexs = null;
-            EdgeIndexs = null;
-
-            ElemCount = (uint)quadArray.Quads.Count;
-            {
-                // 面のセット
-                ElemIndexs = new int[ElemCount * 4];
-                for (int iquad = 0; iquad < ElemCount; iquad++)
-                {
-                    ElemIndexs[iquad * 4 + 0] = (int)quadArray.Quads[iquad].V[0];
-                    ElemIndexs[iquad * 4 + 1] = (int)quadArray.Quads[iquad].V[1];
-                    ElemIndexs[iquad * 4 + 2] = (int)quadArray.Quads[iquad].V[2];
-                    ElemIndexs[iquad * 4 + 3] = (int)quadArray.Quads[iquad].V[3];
-                }
-            }
-            {
-                // 辺のセット
-                EdgeCount = ElemCount * 4;
-                EdgeIndexs = new int[EdgeCount * 2];
-                for (int iquad = 0; iquad < ElemCount; iquad++)
-                {
-                    EdgeIndexs[(iquad * 4) * 2 + 0] = (int)quadArray.Quads[iquad].V[0];
-                    EdgeIndexs[(iquad * 4) * 2 + 1] = (int)quadArray.Quads[iquad].V[1];
-
-                    EdgeIndexs[(iquad * 4 + 1) * 2 + 0] = (int)quadArray.Quads[iquad].V[1];
-                    EdgeIndexs[(iquad * 4 + 1) * 2 + 1] = (int)quadArray.Quads[iquad].V[2];
-
-                    EdgeIndexs[(iquad * 4 + 2) * 2 + 0] = (int)quadArray.Quads[iquad].V[2];
-                    EdgeIndexs[(iquad * 4 + 2) * 2 + 1] = (int)quadArray.Quads[iquad].V[3];
-
-                    EdgeIndexs[(iquad * 4 + 3) * 2 + 0] = (int)quadArray.Quads[iquad].V[3];
-                    EdgeIndexs[(iquad * 4 + 3) * 2 + 1] = (int)quadArray.Quads[iquad].V[0];
-                }
-            }
-        }
-
         public Mesher2DDrawPart(MeshTriArray2D triArray)
         {
             IsSelected = false;
             IsShown = true;
-            Color[0] = 0.8;
-            Color[1] = 0.8;
-            Color[2] = 0.8;
+            Color = new double[3] { 0.8, 0.8, 0.8 };
             LineWidth = 1;
             Height = 0;
             ElemIndexs = null;
@@ -157,13 +130,11 @@ namespace IvyFEM
             }
         }
 
-        public Mesher2DDrawPart(MeshBarArray barArray)
+        public Mesher2DDrawPart(MeshBarArray2D barArray)
         {
             IsSelected = false;
             IsShown = true;
-            Color[0] = 0.8;
-            Color[1] = 0.8;
-            Color[2] = 0.8;
+            Color = new double[3] { 0.8, 0.8, 0.8 };
             LineWidth = 1;
             Height = 0;
             ElemIndexs = null;
@@ -184,13 +155,11 @@ namespace IvyFEM
             }
         }
 
-        public Mesher2DDrawPart(MeshVertex vtx)
+        public Mesher2DDrawPart(MeshVertex2D vtx)
         {
             IsSelected = false;
             IsShown = true;
-            Color[0] = 0.8;
-            Color[1] = 0.8;
-            Color[2] = 0.8;
+            Color = new double[3] { 0.8, 0.8, 0.8 };
             LineWidth = 1;
             Height = 0;
             ElemIndexs = null;
@@ -221,17 +190,13 @@ namespace IvyFEM
             {
                 DrawElementsTri();
             }
-            else if (Type == ElementType.Quad)
-            {
-                DrawElementsQuad();
-            }
             else if (Type == ElementType.Tet)
             {
                 new NotImplementedException();
             }
-            else if (Type == ElementType.Hex)
+            else
             {
-                new NotImplementedException();
+                System.Diagnostics.Debug.Assert(false);
             }
         }
 
@@ -249,113 +214,16 @@ namespace IvyFEM
             {
                 DrawElementsSelectionTri();
             }
-            else if (Type == ElementType.Quad)
-            {
-                DrawElementsSelectionQuad();
-            }
             else if (Type == ElementType.Tet)
             {
                 new NotImplementedException();
-            }
-            else if (Type == ElementType.Hex)
-            {
-                new NotImplementedException();
-            }
-        }
-
-        public uint GetElemDim()
-        {
-            if (Type == ElementType.Point)
-            {
-                return 1;
-            }
-            else if (Type == ElementType.Line)
-            {
-                return 1;
-            }
-            else if (Type == ElementType.Tri)
-            {
-                return 2;
-            }
-            else if (Type == ElementType.Quad)
-            {
-                return 2;
-            }
-            else if (Type == ElementType.Tet)
-            {
-                return 3;
-            }
-            else if (Type == ElementType.Hex)
-            {
-                return 3;
-            }
-            return 0;
-        }
-
-        private void DrawElementsQuad()
-        {
-            if (!IsShown)
-            {
-                return;
-            }
-
-            // 辺を描画
-            /*
-            if (IsSelected)
-            {
-                GL.LineWidth(LineWidth + 1);
-                GL.Color3(1.0, 1.0, 0.0);
             }
             else
             {
-                GL.LineWidth(LineWidth);
-                GL.Color3(0.0, 0.0, 0.0);
-            }
-            */
-            GL.LineWidth(LineWidth);
-            GL.Color3(0.0, 0.0, 0.0);
-            GL.DrawElements(PrimitiveType.Lines, (int)EdgeCount * 2, DrawElementsType.UnsignedInt, EdgeIndexs);
-
-            GL.Color3(1.0, 0.0, 0.0);
-            GL.Begin(PrimitiveType.Quads);
-            for (int iiElem = 0; iiElem < SelectedElems.Count; iiElem++)
-            {
-                uint iElem0 = SelectedElems[iiElem];
-
-                GL.ArrayElement(ElemIndexs[iElem0 * 4]);
-                GL.ArrayElement(ElemIndexs[iElem0 * 4 + 1]);
-                GL.ArrayElement(ElemIndexs[iElem0 * 4 + 2]);
-                GL.ArrayElement(ElemIndexs[iElem0 * 4 + 3]);
-            }
-            GL.End();
-
-            // 面を描画
-            GL.Color3(Color);
-            GL.DrawElements(PrimitiveType.Quads, (int)ElemCount * 4, DrawElementsType.UnsignedInt, ElemIndexs);
-        }
-
-        private void DrawElementsSelectionQuad()
-        {
-            if (!IsShown)
-            {
-                return;
-            }
-
-            // 面を描画
-            for (int iquad = 0; iquad < ElemCount; iquad++)
-            {
-                GL.PushName(iquad);
-                GL.Begin(PrimitiveType.Quads);
-
-                GL.ArrayElement(ElemIndexs[iquad * 4]);
-                GL.ArrayElement(ElemIndexs[iquad * 4 + 1]);
-                GL.ArrayElement(ElemIndexs[iquad * 4 + 2]);
-                GL.ArrayElement(ElemIndexs[iquad * 4 + 3]);
-
-                GL.End();
-                GL.PopName();
+                System.Diagnostics.Debug.Assert(false);
             }
         }
+
 
         private void DrawElementsTri()
         {

@@ -47,9 +47,7 @@ namespace IvyFEM
         Vertex,
         Bar,
         Tri,
-        Quad,
-        Tet,
-        Hex
+        Tet
     }
 
     public enum ElementType
@@ -58,9 +56,7 @@ namespace IvyFEM
         Point,
         Line,
         Tri,
-        Quad,
-        Tet,
-        Hex
+        Tet
     }
 
     public enum FieldValueType

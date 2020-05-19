@@ -13,19 +13,36 @@ namespace IvyFEM
         public uint MeshId { get; set; } = 0; 
         public ElementType Type { get; private set; } = ElementType.NotSet;
         public int Layer { get; set; } = 0;
-        public double[] Color { get; } = new double[3] { 0.8, 0.8, 0.8 };
+        public double[] Color { get; set; } = new double[3] { 0.8, 0.8, 0.8 };
         public uint ElemCount { get; set; } = 0;
         public uint ElemPtCount { get; set; } = 0;
         public uint[] Indexs { get; set; } = null;
-        public float[] Colors { get; set; } = null;
+        public double[] Colors { get; set; } = null;
 
         public uint Dimension
         {
             get
             {
-                if (Type == ElementType.Line) { return 1; }
-                if (Type == ElementType.Tri || Type == ElementType.Quad) { return 2; }
-                if (Type == ElementType.Tet || Type == ElementType.Hex) { return 3; }
+                if (Type == ElementType.Point)
+                {
+                    return 0;
+                }
+                else if (Type == ElementType.Line)
+                {
+                    return 1;
+                }
+                else if (Type == ElementType.Tri)
+                {
+                    return 2;
+                }
+                else if (Type == ElementType.Tet)
+                {
+                    return 3;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
                 return 0;
             }
         }
@@ -41,10 +58,7 @@ namespace IvyFEM
             MeshId = src.MeshId;
             Type = src.Type;
             Layer = src.Layer;
-            for (int i = 0; i < 3; i++)
-            {
-                Color[i] = src.Color[i];
-            }
+            src.Color.CopyTo(Color, 0);
             ElemCount = src.ElemCount;
             ElemPtCount = src.ElemPtCount;
             Indexs = null;
@@ -56,7 +70,7 @@ namespace IvyFEM
             Colors = null;
             if (src.Colors != null)
             {
-                Colors = new float[src.Colors.Length];
+                Colors = new double[src.Colors.Length];
                 src.Colors.CopyTo(Colors, 0);
             }
         }
@@ -83,27 +97,18 @@ namespace IvyFEM
             if (meshType == MeshType.Vertex)
             {
                 Type = ElementType.Point;
-                Color[0] = 0;
-                Color[1] = 0;
-                Color[2] = 0;
+                Color = new double[3] { 0.0, 0.0, 0.0 };
             }
             else if (meshType == MeshType.Bar)
             {
                 Type = ElementType.Line;
-                Color[0] = 0;
-                Color[1] = 0;
-                Color[2] = 0;
+                Color = new double[3] { 0.0, 0.0, 0.0 };
                 SetLine(world, valueId);
             }
             else if (meshType == MeshType.Tri)
             {
                 Type = ElementType.Tri;
                 SetTri(world, valueId);
-            }
-            else if (meshType == MeshType.Quad)
-            {
-                Type = ElementType.Quad;
-                SetQuad(world);
             }
             else
             {
@@ -175,16 +180,6 @@ namespace IvyFEM
             }
         }
 
-        private void SetQuad(FEWorld world)
-        {
-            System.Diagnostics.Debug.Assert(Type == ElementType.Quad);
-            if (Type != ElementType.Quad)
-            {
-                return;
-            }
-            throw new NotImplementedException();
-        }
-
         public void SetColors(uint bubbleValueId, FieldDerivativeType dt, FEWorld world, IColorMap colorMap)
         {
             FieldValue fv = world.GetFieldValue(bubbleValueId);
@@ -197,7 +192,7 @@ namespace IvyFEM
 
             if (Type == ElementType.Tri)
             {
-                Colors = new float[ElemCount * 3];
+                Colors = new double[ElemCount * 3];
                 for (int iTri = 0; iTri < ElemCount; iTri++)
                 {
                     // Bubble
@@ -207,14 +202,9 @@ namespace IvyFEM
                     var color = colorMap.GetColor(value);
                     for (int iColor = 0; iColor < 3; iColor++)
                     {
-                        Colors[iTri * 3 + iColor] = (float)color[iColor];
+                        Colors[iTri * 3 + iColor] = color[iColor];
                     }
                 }
-            }
-            else if (Type == ElementType.Quad)
-            {
-                // TRIと同じでよいが要素IDを取得するメソッドが現状ない
-                throw new NotImplementedException();
             }
         }
 
@@ -291,10 +281,6 @@ namespace IvyFEM
                         GL.End();
                     }
                 }
-                else if (Type == ElementType.Quad || Type == ElementType.Hex)
-                {
-                    throw new NotImplementedException();
-                }
                 return;
             }
 
@@ -313,10 +299,6 @@ namespace IvyFEM
                     }
                 }
                 GL.End();
-            }
-            else if (Type == ElementType.Quad || Type == ElementType.Hex)
-            {
-                throw new NotImplementedException();
             }
         }
 

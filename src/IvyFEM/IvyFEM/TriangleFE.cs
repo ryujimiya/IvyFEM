@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class TriangleFE : FE
+    public partial class TriangleFE : FE
     {
         public TriangleFE() : base()
         {
@@ -66,10 +66,7 @@ namespace IvyFEM
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
-            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
-            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            OpenTK.Vector2d v3 = new OpenTK.Vector2d(co3[0], co3[1]);
-            double area = CadUtils.TriArea(v1, v2, v3);
+            double area = CadUtils.TriArea(co1, co2, co3);
             return area;
         }
 
@@ -101,13 +98,30 @@ namespace IvyFEM
             a = new double[3];
             b = new double[3];
             c = new double[3];
-            double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
-            double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
-            double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
-            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co1[0], co1[1]);
-            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2[0], co2[1]);
-            OpenTK.Vector2d v3 = new OpenTK.Vector2d(co3[0], co3[1]);
-            double A = CadUtils.TriArea(v1, v2, v3);
+            double[] co2D1;
+            double[] co2D2;
+            double[] co2D3;
+            if (World.Dimension == 2)
+            {
+                co2D1 = World.GetVertexCoord(VertexCoordIds[0]);
+                co2D2 = World.GetVertexCoord(VertexCoordIds[1]);
+                co2D3 = World.GetVertexCoord(VertexCoordIds[2]);
+            }
+            else if (World.Dimension == 3)
+            {
+                OpenTK.Vector2d[] projected = ProjectVertexsFrom3D();
+                co2D1 = new double[2] { projected[0].X, projected[0].Y };
+                co2D2 = new double[2] { projected[1].X, projected[1].Y };
+                co2D3 = new double[2] { projected[2].X, projected[2].Y };
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+            OpenTK.Vector2d v1 = new OpenTK.Vector2d(co2D1[0], co2D1[1]);
+            OpenTK.Vector2d v2 = new OpenTK.Vector2d(co2D2[0], co2D2[1]);
+            OpenTK.Vector2d v3 = new OpenTK.Vector2d(co2D3[0], co2D3[1]);
+            double A = CadUtils2D.TriArea(v1, v2, v3);
             OpenTK.Vector2d[] v = { v1, v2, v3 };
             for (int k = 0; k < 3; k++)
             {
@@ -121,6 +135,7 @@ namespace IvyFEM
 
         public double[] L2Coord(double[] L)
         {
+            uint dim = World.Dimension;
             double[] pt = new double[2];
             double[][] ptValue = new double[NodeCount][];
             int[] coIds = NodeCoordIds;
@@ -133,7 +148,7 @@ namespace IvyFEM
             double[] N = CalcN(L);
             for (int iNode = 0; iNode < NodeCount; iNode++)
             {
-                for (int iDof = 0; iDof < 2; iDof++)
+                for (int iDof = 0; iDof < dim; iDof++)
                 {
                     pt[iDof] += N[iNode] * ptValue[iNode][iDof];
                 }
@@ -143,10 +158,23 @@ namespace IvyFEM
 
         public double[] Coord2L(double[] pt)
         {
-            System.Diagnostics.Debug.Assert(pt.Length == 2);
+            double[] pt2D;
+            if (World.Dimension == 2)
+            {
+                pt2D = pt; 
+            }
+            else if (World.Dimension == 3)
+            {
+                OpenTK.Vector2d projected = ProjectFrom3D(new OpenTK.Vector3d(pt[0], pt[1], pt[2]));
+                pt2D = new double[] { projected.X, projected.Y };
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
 
-            double x = pt[0];
-            double y = pt[1];
+            double x = pt2D[0];
+            double y = pt2D[1];
             double[] a;
             double[] b;
             double[] c;

@@ -1727,12 +1727,14 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(nodeCnt == fVec.Length);
             System.Diagnostics.Debug.Assert(nodeCnt == fxVec.Length);
             System.Diagnostics.Debug.Assert(nodeCnt == fyVec.Length);
+            System.Diagnostics.Debug.Assert(World.Mesh is Mesher2D);
+            Mesher2D mesh = World.Mesh as Mesher2D;
 
             IList<uint> bcEIds = WgPortInfo.BcEdgeIds1;
             uint eId1 = bcEIds[0];
             uint eId2 = bcEIds[bcEIds.Count - 1];
-            Edge2D e1 = World.Mesh.Cad.GetEdge(eId1);
-            Edge2D e2 = World.Mesh.Cad.GetEdge(eId2);
+            Edge2D e1 = mesh.Cad.GetEdge(eId1);
+            Edge2D e2 = mesh.Cad.GetEdge(eId2);
             OpenTK.Vector2d firstPt = e1.GetVertexCoord(true);
             OpenTK.Vector2d lastPt = e2.GetVertexCoord(false);
             double[] firstCoord = { firstPt.X, firstPt.Y };

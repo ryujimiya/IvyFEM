@@ -19,7 +19,7 @@ namespace IvyFEM
         /// <param name="x2"></param>
         /// <param name="y2"></param>
         public static void DivideBoundary(
-            CadObject2D cad, uint eId, int divCnt, double x1, double y1, double x2, double y2)
+            Cad2D cad, uint eId, int divCnt, double x1, double y1, double x2, double y2)
         {
             double signedWidthX = x2 - x1;
             double signedWidthY = y2 - y1;
@@ -46,7 +46,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddRod(
-            CadObject2D cad,
+            Cad2D cad,
             uint baseLoopId, double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv)
         {
             IList<OpenTK.Vector2d> pts = new List<OpenTK.Vector2d>();
@@ -95,7 +95,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddLeftRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv)
         {
@@ -122,7 +122,7 @@ namespace IvyFEM
         /// <param name="isReverseAddVertex"></param>
         /// <returns></returns>
         public static uint AddExactlyHalfRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv,
             double startAngle, bool isReverseAddVertex)
@@ -210,7 +210,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddRightRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv)
         {
@@ -235,7 +235,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddTopRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv)
         {
@@ -260,7 +260,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddBottomRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv)
         {
@@ -283,7 +283,7 @@ namespace IvyFEM
         /// <param name="rodRadiusDiv"></param>
         /// <returns></returns>
         public static uint AddPartialRod(
-            CadObject2D cad, uint baseLoopId,
+            Cad2D cad, uint baseLoopId,
             uint vId0, uint vId1, uint vId2,
             double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv,
             double startAngle, double endAngle, bool isReverseAddVertex = false)
@@ -386,7 +386,7 @@ namespace IvyFEM
         /// <param name="isReverseAddVertex"></param>
         /// <returns></returns>
         public static uint AddExactlyQuarterRod(
-            CadObject2D cad,
+            Cad2D cad,
             uint baseLoopId, double x0, double y0, double rodRadius, int rodCircleDiv, int rodRadiusDiv,
             uint vId0, uint vId1, uint vId2, double startAngle, bool isReverseAddVertex)
         {
@@ -464,10 +464,12 @@ namespace IvyFEM
         public static void GetRotOriginRotAngleFromY(
             FEWorld world, uint[] bcEIds, out double rotAngle, out double[] rotOrigin)
         {
+            System.Diagnostics.Debug.Assert(world.Mesh is Mesher2D);
+            Mesher2D mesh = world.Mesh as Mesher2D;
             uint eId1 = bcEIds[0];
             uint eId2 = bcEIds[bcEIds.Length - 1];
-            Edge2D e1 = world.Mesh.Cad.GetEdge(eId1);
-            Edge2D e2 = world.Mesh.Cad.GetEdge(eId2);
+            Edge2D e1 = mesh.Cad.GetEdge(eId1);
+            Edge2D e2 = mesh.Cad.GetEdge(eId2);
             OpenTK.Vector2d firstPt = e1.GetVertexCoord(true);
             OpenTK.Vector2d lastPt = e2.GetVertexCoord(false);
             double[] firstCoord = { firstPt.X, firstPt.Y };

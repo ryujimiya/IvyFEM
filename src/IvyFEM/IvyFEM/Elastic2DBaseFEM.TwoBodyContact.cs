@@ -846,7 +846,7 @@ namespace IvyFEM
                     av.X += normal[0];
                     av.Y += normal[1];
                 }
-                av = CadUtils.Normalize(av);
+                av = OpenTK.Vector2d.Normalize(av);
                 co2Normal[coId] = new double[] { av.X, av.Y };
             }
             return co2Normal;
@@ -1040,7 +1040,7 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(false);
                     }
                     n = new OpenTK.Vector2d(normal[0], normal[1]);
-                    n = CadUtils.Normalize(n); // こちらは規格化する
+                    n = OpenTK.Vector2d.Normalize(n); // こちらは規格化する
 
                     var g = v2 - L2 * v1;
                     double[] gap = { g.X, g.Y };

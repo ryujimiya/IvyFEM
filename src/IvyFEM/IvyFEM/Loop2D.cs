@@ -9,19 +9,13 @@ namespace IvyFEM
     public class Loop2D : IObject
     {
         public uint Layer { get; set; } = 0;
-        public double[] Color { get; } = new double[3];
+        public double[] Color { get; set; } = new double[3];
 
         public Loop2D()
         {
             Layer = 0;
-            /*
-            Color[0] = 0.8;
-            Color[1] = 0.8;
-            Color[2] = 0.8;
-            */
-            Color[0] = 0.2;
-            Color[1] = 0.2;
-            Color[2] = 0.2;
+            //Color = new double[3] { 0.8, 0.8, 0.8 };
+            Color = new double[3] { 0.2, 0.2, 0.2 };
         }
 
         public Loop2D(Loop2D src)

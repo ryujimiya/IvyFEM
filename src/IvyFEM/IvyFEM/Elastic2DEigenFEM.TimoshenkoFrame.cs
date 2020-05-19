@@ -102,7 +102,7 @@ namespace IvyFEM
             double rho = ma.MassDensity;
             double E = ma.Young;
             double G = ma.ShearCoefficient;
-            double kappa = ma.TimoshenkoShearCoefficient;
+            double kappa = ma.ShearCorrectionFactor;
 
             // local dof
             double[] pt1 = vCoords[0];

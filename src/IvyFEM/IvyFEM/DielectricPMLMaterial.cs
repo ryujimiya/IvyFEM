@@ -126,7 +126,7 @@ namespace IvyFEM
 
             double[] pmlOriginCoord = { OriginPointX, OriginPointY };
             double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
-            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = XThickness;
             double ep = Epxx;
             double mu = Muxx;
@@ -150,7 +150,7 @@ namespace IvyFEM
 
             double[] pmlOriginCoord = { OriginPointX, OriginPointY };
             double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
-            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = YThickness;
             double ep = Epyy;
             double mu = Muyy;
@@ -203,7 +203,7 @@ namespace IvyFEM
 
             double[] pmlOriginCoord = { OriginPointX, OriginPointY };
             double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
-            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = XThickness;
             double ep = Epxx;
             double mu = Muxx;
@@ -238,7 +238,7 @@ namespace IvyFEM
 
             double[] pmlOriginCoord = { OriginPointX, OriginPointY };
             double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
-            pmlOriginCoord = FEWorld.GetRotCoord(pmlOriginCoord, RotAngle, rotOriginCoord);
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
             double thickness = YThickness;
             double ep = Epyy;
             double mu = Muyy;

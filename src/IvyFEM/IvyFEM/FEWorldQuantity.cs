@@ -14,9 +14,9 @@ namespace IvyFEM
         public uint FEOrder { get; set; } = 1;
         public int IdBaseOffset { get; set; } = 0;
         public FiniteElementType FEType { get; set; } = FiniteElementType.ScalarLagrange;
-        public IList<FieldFixedCad> ZeroFieldFixedCads { get; private set; } = new List<FieldFixedCad>();
-        public IList<FieldFixedCad> FieldFixedCads { get; private set; } = new List<FieldFixedCad>();
-        public IList<FieldFixedCad> ForceFieldFixedCads { get; private set; } = new List<FieldFixedCad>();
+        public IList<FieldFixedCad> ZeroFieldFixedCads { get; set; } = new List<FieldFixedCad>();
+        public IList<FieldFixedCad> FieldFixedCads { get; set; } = new List<FieldFixedCad>();
+        public IList<FieldFixedCad> ForceFieldFixedCads { get; set; } = new List<FieldFixedCad>();
         private Dictionary<int, IList<FieldFixedCad>> Co2FixedCads = new Dictionary<int, IList<FieldFixedCad>>();
         private Dictionary<int, IList<FieldFixedCad>> Co2ForceFixedCads = new Dictionary<int, IList<FieldFixedCad>>();
         private IList<double> Coords = new List<double>();
@@ -139,7 +139,18 @@ namespace IvyFEM
         public double[] GetCoord(int coId, double rotAngle, double[] rotOrigin)
         {
             double[] coord = _GetCoord(coId);
-            coord = FEWorld.GetRotCoord(coord, rotAngle, rotOrigin);
+            if (Dimension == 2)
+            {
+                coord = CadUtils2D.GetRotCoord2D(coord, rotAngle, rotOrigin);
+            }
+            else if (Dimension == 3)
+            {
+                // 未実装
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
             return coord;
         }
 
@@ -212,22 +223,24 @@ namespace IvyFEM
             IList<int> coIds = GetPortCoIds(world, portId);
             // Note: 始点、終点とは限らない
             int coId1 = coIds[0];
-            double[] coord1 = GetCoord(coId1, rotAngle, rotOrigin);
-            OpenTK.Vector2d pt1 = new OpenTK.Vector2d(coord1[0], coord1[1]);
+            double[] pt1 = GetCoord(coId1, rotAngle, rotOrigin);
             int coId2 = coIds[1];
-            double[] coord2 = GetCoord(coId2, rotAngle, rotOrigin);
-            OpenTK.Vector2d pt2 = new OpenTK.Vector2d(coord2[0], coord2[1]);
-            var dir = pt2 - pt1;
-            dir.Normalize();
+            double[] pt2 = GetCoord(coId2, rotAngle, rotOrigin);
+            double[] dir = CadUtils.GetDirection(pt1, pt2);
+            uint dim = Dimension;
 
             double minX = double.MaxValue;
             double maxX = double.MinValue;
             foreach (int coId in coIds)
             {
-                double[] coord = GetCoord(coId, rotAngle, rotOrigin);
-                OpenTK.Vector2d pt = new OpenTK.Vector2d(coord[0], coord[1]);
-                var vec = pt - pt1;
-                double X = OpenTK.Vector2d.Dot(vec, dir);
+                double[] pt = GetCoord(coId, rotAngle, rotOrigin);
+                //pt - pt1
+                double[] vec = new double[(int)dim];
+                for (int idim = 0; idim < dim; idim++)
+                {
+                    vec[idim] = pt[idim] - pt1[idim];
+                }
+                double X = CadUtils.Dot(vec, dir);
                 if (minX > X)
                 {
                     minX = X;
@@ -319,7 +332,7 @@ namespace IvyFEM
 
         public IList<int> GetCoordIdsFromCadId(FEWorld world, uint cadId, CadElementType cadElemType)
         {
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
             IList<int> coIds = null;
             if (cadElemType == CadElementType.Vertex)
             {
@@ -403,7 +416,7 @@ namespace IvyFEM
         public IList<int[]> GetEdgeCoordIdssFromCadId(FEWorld world, uint cadId)
         {
             CadElementType cadElemType = CadElementType.Edge;
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
             IList<int[]> edgeCoIdss = null;
             {
                 edgeCoIdss = new List<int[]>();
@@ -721,7 +734,7 @@ namespace IvyFEM
             Dictionary<uint, uint> cadLoop2Material,
             Dictionary<uint, uint> cadEdge2Material)
         {
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
             System.Diagnostics.Debug.Assert(mesh != null);
 
             if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
@@ -853,10 +866,19 @@ namespace IvyFEM
                                 {
                                     double[] vPt1 = world.GetVertexCoord(v1);
                                     double[] vPt2 = world.GetVertexCoord(v2);
-                                    double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
-                                    midPtCoId = (int)(Coords.Count / Dimension);
-                                    Coords.Add(midPt[0]);
-                                    Coords.Add(midPt[1]);
+                                    uint dim = Dimension;
+                                    System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                                    System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                                    double[] midPt = new double[dim];
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                                    }
+                                    midPtCoId = (int)(Coords.Count / dim);
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        Coords.Add(midPt[idim]);
+                                    }
                                     var list = new List<int>();
                                     list.Add(midPtCoId);
                                     edge2MidPt[edgeKey] = list;
@@ -907,10 +929,19 @@ namespace IvyFEM
                                 {
                                     double[] vPt1 = world.GetVertexCoord(v1);
                                     double[] vPt2 = world.GetVertexCoord(v2);
-                                    double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
-                                    midPtCoId = (int)(Coords.Count / Dimension);
-                                    Coords.Add(midPt[0]);
-                                    Coords.Add(midPt[1]);
+                                    uint dim = Dimension;
+                                    System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                                    System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                                    double[] midPt = new double[dim];
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                                    }
+                                    midPtCoId = (int)(Coords.Count / dim);
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        Coords.Add(midPt[idim]);
+                                    }
                                     var list = new List<int>();
                                     list.Add(midPtCoId);
                                     edge2MidPt[edgeKey] = list;
@@ -1066,10 +1097,19 @@ namespace IvyFEM
                         {
                             double[] vPt1 = world.GetVertexCoord(v1);
                             double[] vPt2 = world.GetVertexCoord(v2);
-                            double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
-                            midPtCoId = (int)(Coords.Count / Dimension);
-                            Coords.Add(midPt[0]);
-                            Coords.Add(midPt[1]);
+                            uint dim = Dimension;
+                            System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                            System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                            double[] midPt = new double[dim];
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                            }
+                            midPtCoId = (int)(Coords.Count / dim);
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                Coords.Add(midPt[idim]);
+                            }
                             var list = new List<int>();
                             list.Add(midPtCoId);
                             edge2MidPt[edgeKey] = list;
@@ -1120,10 +1160,19 @@ namespace IvyFEM
                         {
                             double[] vPt1 = world.GetVertexCoord(v1);
                             double[] vPt2 = world.GetVertexCoord(v2);
-                            double[] midPt = { (vPt1[0] + vPt2[0]) / 2.0, (vPt1[1] + vPt2[1]) / 2.0 };
-                            midPtCoId = (int)(Coords.Count / Dimension);
-                            Coords.Add(midPt[0]);
-                            Coords.Add(midPt[1]);
+                            uint dim = Dimension;
+                            System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                            System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                            double[] midPt = new double[dim];
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                            }
+                            midPtCoId = (int)(Coords.Count / dim);
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                Coords.Add(midPt[idim]);
+                            }
                             var list = new List<int>();
                             list.Add(midPtCoId);
                             edge2MidPt[edgeKey] = list;
@@ -1160,7 +1209,7 @@ namespace IvyFEM
         // ポート上の線要素の節点ナンバリング
         private void NumberPortNodes(FEWorld world, IList<int> zeroCoordIds)
         {
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
 
             // ポート上の線要素の抽出と節点ナンバリング
             uint portCnt = GetPortCount();
@@ -1194,7 +1243,7 @@ namespace IvyFEM
 
         // 通常のポート（境界のみ）
         private void NumberNormalPortNodes(
-            uint portId, FEWorld world, Mesher2D mesh, PortCondition portCondition, IList<int> zeroCoordIds)
+            uint portId, FEWorld world, IMesher mesh, PortCondition portCondition, IList<int> zeroCoordIds)
         {
             System.Diagnostics.Debug.Assert(!portCondition.IsPeriodic);
             IList<uint> portEIds = portCondition.EIds;
@@ -1253,7 +1302,7 @@ namespace IvyFEM
 
         // 周期構造のポート（2つ(or4つ)の境界と内部領域）
         private void NumberPeriodicPortNodes(
-            uint portId, FEWorld world, Mesher2D mesh, PortCondition portCondition, IList<int> zeroCoordIds)
+            uint portId, FEWorld world, IMesher mesh, PortCondition portCondition, IList<int> zeroCoordIds)
         {
             System.Diagnostics.Debug.Assert(portCondition.IsPeriodic);
 
@@ -1371,30 +1420,45 @@ namespace IvyFEM
         }
 
         private void SortPortCoIds(
-            FEWorld world, Mesher2D mesh, uint eId1, uint eId2, IList<int> bcCoIds, out IList<int> sortedCoIds)
+            FEWorld world, IMesher mesh, uint eId1, uint eId2, IList<int> bcCoIds, out IList<int> sortedCoIds)
         {
             sortedCoIds = null;
 
+            uint dim = Dimension;
             // 境界の方向順に節点番号を振る
-            OpenTK.Vector2d pt1;
+            double[] pt1;
             {
-                Edge2D e = mesh.Cad.GetEdge(eId1);
-                pt1 = e.GetVertexCoord(true); // 始点の座標
+                uint meshId = mesh.GetIdFromCadId(eId1, CadElementType.Edge);
+                MeshType meshType;
+                uint elemCnt;
+                int[] vertexs;
+                mesh.GetConnectivity(meshId, out meshType, out vertexs);
+                int coId = vertexs[0]; // 始点の座標
+                pt1 = GetCoord(coId, world.RotAngle, world.RotOrigin);
             }
-            OpenTK.Vector2d pt2;
+            double[] pt2;
             {
-                Edge2D e = mesh.Cad.GetEdge(eId2);
-                pt2 = e.GetVertexCoord(false); //終点の座標
+                uint meshId = mesh.GetIdFromCadId(eId2, CadElementType.Edge);
+                MeshType meshType;
+                uint elemCnt;
+                int[] vertexs;
+                mesh.GetConnectivity(meshId, out meshType, out vertexs);
+                int coId = vertexs[1]; // 終点の座標
+                pt2 = GetCoord(coId, world.RotAngle, world.RotOrigin);
             }
-            var dir = pt2 - pt1;
-            dir.Normalize();
+            double[] dir = CadUtils.GetDirection(pt1, pt2);
 
             var coIdLineXs = new List<KeyValuePair<int, double>>();
             foreach (int coId in bcCoIds)
             {
-                double[] coord = world.GetCoord(Id, coId);
-                OpenTK.Vector2d pt = new OpenTK.Vector2d(coord[0], coord[1]);
-                double lineX = OpenTK.Vector2d.Dot(dir, pt - pt1);
+                double[] pt = world.GetCoord(Id, coId);
+                // pt - pt1
+                double[] vec = new double[Dimension];
+                for (int idim = 0; idim < dim; idim++)
+                {
+                    vec[idim] = pt[idim] - pt1[idim];
+                }
+                double lineX = CadUtils.Dot(dir, vec);
                 coIdLineXs.Add(new KeyValuePair<int, double>(coId, lineX));
             }
             coIdLineXs.Sort((a, b) =>
@@ -1457,7 +1521,7 @@ namespace IvyFEM
         // 接触解析のMaster/Slave線要素を準備する
         private void SetupContactMasterSlaveLineElements(FEWorld world)
         {
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
 
             IList<uint> feIds = LineFEArray.GetObjectIds();
             foreach (var feId in feIds)
@@ -1492,7 +1556,7 @@ namespace IvyFEM
             {
                 return;
             }
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
 
             // ナンバリング
             int nodeId = 0;
@@ -1534,7 +1598,7 @@ namespace IvyFEM
             {
                 return;
             }
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
 
             // ナンバリング
             int edgeNodeId = 0;
@@ -1582,7 +1646,7 @@ namespace IvyFEM
             {
                 return;
             }
-            Mesher2D mesh = world.Mesh;
+            var mesh = world.Mesh;
 
             // ナンバリング
             // これまでに三角形要素の節点番号としてナンバリングした数を取得する

@@ -79,7 +79,7 @@ namespace IvyFEM
             t = Ut[ino * 3 + 2];
         }
 
-        public void SetCadEdge(CadObject2D cad, uint eId, OpenTK.Vector2d pickPos)
+        public void SetCadEdge(Cad2D cad, uint eId, OpenTK.Vector2d pickPos)
         {
             this.PickPos = pickPos;
             this.ECadId = eId;
@@ -154,7 +154,7 @@ namespace IvyFEM
             SetFixedBoundaryFlag((uint)PickedDivIndex + 1, 1);
         }
 
-        public void Drag(CadObject2D cad, OpenTK.Vector2d distPos)
+        public void Drag(Cad2D cad, OpenTK.Vector2d distPos)
         {
             OpenTK.Vector2d del = distPos - PickPos;
             SetDisp((uint)PickedDivIndex, 0, del.X);
@@ -194,7 +194,7 @@ namespace IvyFEM
             {
                 double[] x1 = { IniX[idiv * 2 + 0] + Ut[idiv * 3 + 0], IniX[idiv * 2 + 1] + Ut[idiv * 3 + 1] };
                 double[] x2 = { IniX[idiv * 2 + 2] + Ut[idiv * 3 + 3], IniX[idiv * 2 + 3] + Ut[idiv * 3 + 4] };
-                double t = CadUtils.FindNearestPointParameterLinePoint(
+                double t = CadUtils2D.FindNearestPointParameterLinePoint(
                     new OpenTK.Vector2d(x0[0], x0[1]),
                     new OpenTK.Vector2d(x1[0], x1[1]),
                     new OpenTK.Vector2d(x2[0], x2[0]));
