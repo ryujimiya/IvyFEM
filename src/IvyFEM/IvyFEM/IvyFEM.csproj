@@ -89,9 +89,15 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="Elastic3DEigenFEM.MindlinPlate.cs" />
+    <Compile Include="Elastic3DTDFEM.MindlinPlate.cs" />
+    <Compile Include="MindlinPlateMaterial.cs" />
     <Compile Include="Edge3D.cs" />
+    <Compile Include="Elastic2DFEMUtils.TimoshenkoBeam.cs" />
     <Compile Include="Elastic3DEigen.cs" />
     <Compile Include="Elastic3DEigenFEM.DKTPlate.cs" />
+    <Compile Include="Elastic3DFEM.MindlinPlate.cs" />
+    <Compile Include="Elastic3DFEMUtils.MindlinPlate.cs" />
     <Compile Include="Elastic3DTDFEM.DKTPlate.cs" />
     <Compile Include="Elastic3DTDFEM.cs" />
     <Compile Include="Elastic3DFEM.cs" />
@@ -102,6 +108,7 @@
     <Compile Include="Elastic2DTDFEM.FieldConsistentTLFrame.cs" />
     <Compile Include="Elastic2DTDFEM.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="Elastic3DFEMUtils.DKTPlate.cs" />
+    <Compile Include="DKTPlateMaterial.cs" />
     <Compile Include="IMesher.cs" />
     <Compile Include="Loop3D.cs" />
     <Compile Include="MeshBarArray3D.cs" />
@@ -114,7 +121,7 @@
     <Compile Include="MeshTri3D.cs" />
     <Compile Include="MeshTriArray3D.cs" />
     <Compile Include="MeshVertex3D.cs" />
-    <Compile Include="PlateMaterial.cs" />
+    <Compile Include="PlateBaseMaterial.cs" />
     <Compile Include="TimoshenkoCorotationalFrameMaterial.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoTLFrame.cs" />

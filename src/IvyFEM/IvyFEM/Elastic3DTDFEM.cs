@@ -55,6 +55,7 @@ namespace IvyFEM
 
             // Plate
             CalcElementABs.Add(CalcDKTPlateElementAB);
+            CalcElementABs.Add(CalcMindlinPlateElementAB);
         }
 
         public void UpdateFieldValuesTimeDomain()

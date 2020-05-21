@@ -11,10 +11,9 @@ namespace IvyFEM
     partial class Elastic3DFEM
     {
         protected IvyFEM.Lapack.DoubleMatrix CalcDKTPlateKl(
-            double h, IvyFEM.Lapack.DoubleMatrix C, TriangleFE d1TriFE)
+            TriangleFE d1TriFE, double h, IvyFEM.Lapack.DoubleMatrix C)
         {
-            return Elastic3DFEMUtils.CalcDKTPlateKl(
-                h, C, d1TriFE);
+            return Elastic3DFEMUtils.CalcDKTPlateKl(d1TriFE, h, C);
         }
 
         protected void CalcDKTPlateElementAB(
@@ -29,7 +28,7 @@ namespace IvyFEM
                     return;
                 }
                 Material workMa0 = World.GetMaterial(workMaId);
-                if (!(workMa0 is PlateMaterial))
+                if (!(workMa0 is DKTPlateMaterial))
                 {
                     return;
                 }
@@ -68,7 +67,7 @@ namespace IvyFEM
                 return;
             }
             Material ma0 = World.GetMaterial(maId);
-            System.Diagnostics.Debug.Assert(ma0 is PlateMaterial);
+            System.Diagnostics.Debug.Assert(ma0 is DKTPlateMaterial);
 
             int[] d1CoIds = d1TriFE.NodeCoordIds;
             uint d1ElemNodeCnt = d1TriFE.NodeCount;
@@ -124,7 +123,7 @@ namespace IvyFEM
                 vCoords[iVertex] = coord;
             }
 
-            var ma = ma0 as PlateMaterial;
+            var ma = ma0 as DKTPlateMaterial;
             double h = ma.Thickness;
             double rho = ma.MassDensity;
             double E = ma.Young;
@@ -150,7 +149,7 @@ namespace IvyFEM
 
             //------------------------------------------
             // local
-            var Kl = CalcDKTPlateKl(h, C, d1TriFE);
+            var Kl = CalcDKTPlateKl(d1TriFE, h, C);
 
             //-------------------------------------------
             // global

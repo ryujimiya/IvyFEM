@@ -196,124 +196,17 @@ namespace IvyFEM
             var localMeTruss = CalcTrussLocalMe(le, rho, Ae);
 
             // Timoshenko Beam
-            int localBeamMaxNodeCnt =(int) Math.Max(d2ElemNodeCnt, rElemNodeCnt);
-            var localKeBeam = new IvyFEM.Lapack.DoubleMatrix(
-                localBeamMaxNodeCnt * (d2Dof + rDof), localBeamMaxNodeCnt * (d2Dof + rDof));
-            var localMeBeam = new IvyFEM.Lapack.DoubleMatrix(
-                localBeamMaxNodeCnt * (d2Dof + rDof), localBeamMaxNodeCnt * (d2Dof + rDof));
+            var localKeBeam = CalcTimoshenkoBeamKl(
+                d2ElemNodeCnt, rElemNodeCnt, d2Dof, rDof, d2LineFE, rLineFE,
+                E, G, kappa, Ae, Iz);
+            var localMeBeam = CalcTimoshenkoBeamMl(
+                d2ElemNodeCnt, rElemNodeCnt, d2Dof, rDof, d2LineFE, rLineFE,
+                rho, Ae, Iz);
+
             int beamDof = 2;
             int localBeamROffset = 1;
             System.Diagnostics.Debug.Assert(beamDof == (d2Dof + rDof));
             System.Diagnostics.Debug.Assert(localBeamROffset == d2Dof);
-            IntegrationPoints ipK;
-            if (d2LineFE.Order == 1 && rLineFE.Order == 1)
-            {
-                // 低減積分
-                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
-                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 1);
-            }
-            else
-            {
-                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 5);
-            }
-            for (int ipPt = 0; ipPt < ipK.PointCount; ipPt++)
-            {
-                double[] L = ipK.Ls[ipPt];
-                double[] d2N = d2LineFE.CalcN(L);
-                double[][] d2Nu = d2LineFE.CalcNu(L);
-                double[] d2Nx = d2Nu[0];
-                double[] rN = rLineFE.CalcN(L);
-                double[][] rNu = rLineFE.CalcNu(L);
-                double[] rNx = rNu[0];
-                double lineLen = d2LineFE.GetLineLength();
-                double weight = ipK.Weights[ipPt];
-                double detJWeight = (lineLen / 2.0) * weight;
-
-                // displacement
-                for (int row = 0; row < d2ElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double kValue = detJWeight * kappa * G * Ae * d2Nx[row] * d2Nx[col];
-                        localKeBeam[row * beamDof, col * beamDof] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * d2Nx[row] * rN[col];
-                        localKeBeam[row * beamDof, col * beamDof + localBeamROffset] += kValue;
-                    }
-                }
-                // rotation
-                for (int row = 0; row < rElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * rN[row] * d2Nx[col];
-                        localKeBeam[row * beamDof + localBeamROffset, col * beamDof] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double kValue1 = detJWeight * kappa * G * Ae * rN[row] * rN[col];
-                        double kValue2 = detJWeight * E * Iz * rNx[row] * rNx[col];
-                        localKeBeam[row * beamDof  + localBeamROffset, col * beamDof + localBeamROffset] +=
-                            kValue1 + kValue2;
-                    }
-                }
-            }
-            IntegrationPoints ipM = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-            System.Diagnostics.Debug.Assert(ipM.Ls.Length == 5);
-            for (int ipPt = 0; ipPt < ipM.PointCount; ipPt++)
-            {
-                double[] L = ipM.Ls[ipPt];
-                double[] d2N = d2LineFE.CalcN(L);
-                double[][] d2Nu = d2LineFE.CalcNu(L);
-                double[] d2Nx = d2Nu[0];
-                double[] rN = rLineFE.CalcN(L);
-                double[][] rNu = rLineFE.CalcNu(L);
-                double[] rNx = rNu[0];
-                double lineLen = d2LineFE.GetLineLength();
-                double weight = ipM.Weights[ipPt];
-                double detJWeight = (lineLen / 2.0) * weight;
-
-                // displacement
-                for (int row = 0; row < d2ElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double mValue = detJWeight * rho * Ae * d2N[row] * d2N[col];
-                        localMeBeam[row * beamDof, col * beamDof] += mValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double mValue = 0.0;
-                        localMeBeam[row * beamDof, col * beamDof + localBeamROffset] += mValue;
-                    }
-                }
-                // rotation
-                for (int row = 0; row < rElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double mValue = 0.0;
-                        localMeBeam[row * beamDof + localBeamROffset, col * beamDof] += mValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double mValue = detJWeight * rho * Iz * rN[row] * rN[col];
-                        localMeBeam[row * beamDof + localBeamROffset, col * beamDof + localBeamROffset] +=
-                            mValue;
-                    }
-                }
-            }
 
             var localKe = new IvyFEM.Lapack.DoubleMatrix(localMaxNodeCnt * localDof, localMaxNodeCnt * localDof);
             var localMe = new IvyFEM.Lapack.DoubleMatrix(localMaxNodeCnt * localDof, localMaxNodeCnt * localDof);

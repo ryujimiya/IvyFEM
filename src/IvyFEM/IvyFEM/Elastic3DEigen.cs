@@ -40,6 +40,7 @@ namespace IvyFEM
 
             // Plate
             CalcElementKMs.Add(CalcDKTPlateElementKM);
+            CalcElementKMs.Add(CalcMindlinPlateElementKM);
         }
 
         protected int GetOffset(uint quantityId)

@@ -187,74 +187,11 @@ namespace IvyFEM
             var localKeTruss = CalcTrussLocalKe(le, E, Ae);
 
             // Timoshenko Beam
-            int localBeamMaxNodeCnt =(int) Math.Max(d2ElemNodeCnt, rElemNodeCnt);
-            var localKeBeam = new IvyFEM.Lapack.DoubleMatrix(
-                localBeamMaxNodeCnt * (d2Dof + rDof), localBeamMaxNodeCnt * (d2Dof + rDof));
-            IntegrationPoints ip;
-            if (d2LineFE.Order == 1 && rLineFE.Order == 1)
-            {
-                // 低減積分
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 1);
-            }
-            else
-            {
-                ip = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-                System.Diagnostics.Debug.Assert(ip.Ls.Length == 5);
-            }
-            int beamDof = 2;
+            var localKeBeam = CalcTimoshenkoBeamKl(
+                d2ElemNodeCnt, rElemNodeCnt, d2Dof, rDof, d2LineFE, rLineFE,
+                E, G, kappa, Ae, Iz);
+
             int localBeamROffset = 1;
-            System.Diagnostics.Debug.Assert(beamDof == (d2Dof + rDof));
-            System.Diagnostics.Debug.Assert(localBeamROffset == d2Dof);
-            for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
-            {
-                double[] L = ip.Ls[ipPt];
-                double[] d2N = d2LineFE.CalcN(L);
-                double[][] d2Nu = d2LineFE.CalcNu(L);
-                double[] d2Nx = d2Nu[0];
-                double[] rN = rLineFE.CalcN(L);
-                double[][] rNu = rLineFE.CalcNu(L);
-                double[] rNx = rNu[0];
-                double lineLen = d2LineFE.GetLineLength();
-                double weight = ip.Weights[ipPt];
-                double detJWeight = (lineLen / 2.0) * weight;
-
-                // displacement
-                for (int row = 0; row < d2ElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double kValue = detJWeight * kappa * G * Ae * d2Nx[row] * d2Nx[col];
-                        localKeBeam[row * beamDof, col * beamDof] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * d2Nx[row] * rN[col]; 
-                        localKeBeam[row * beamDof, col * beamDof + localBeamROffset] += kValue;
-                    }
-                }
-                // rotation
-                for (int row = 0; row < rElemNodeCnt; row++)
-                {
-                    // displacement
-                    for (int col = 0; col < d2ElemNodeCnt; col++)
-                    {
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * rN[row] * d2Nx[col];
-                        localKeBeam[row * beamDof + localBeamROffset, col * beamDof] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        double kValue1 = detJWeight * kappa * G * Ae * rN[row] * rN[col];
-                        double kValue2 = detJWeight * E * Iz * rNx[row] * rNx[col];
-                        localKeBeam[row * beamDof  + localBeamROffset, col * beamDof + localBeamROffset] +=
-                            kValue1 + kValue2;
-                    }
-                }
-            }
-
             var localKe = new IvyFEM.Lapack.DoubleMatrix(localMaxNodeCnt * localDof, localMaxNodeCnt * localDof);
             // d1
             for (int row = 0; row < d1ElemNodeCnt; row++)

@@ -8,6 +8,28 @@ namespace IvyFEM
 {
     public partial class Elastic2DEigenFEM
     {
+        protected IvyFEM.Lapack.DoubleMatrix CalcTimoshenkoBeamKl(
+            uint dElemNodeCnt, uint rElemNodeCnt, int dDof, int rDof,
+            LineFE dLineFE, LineFE rLineFE,
+            double E, double G, double kappa, double Ae, double Iz)
+        {
+            return Elastic2DFEMUtils.CalcTimoshenkoBeamKl(
+                dElemNodeCnt, rElemNodeCnt, dDof, rDof,
+                dLineFE, rLineFE,
+                E, G, kappa, Ae, Iz);
+        }
+
+        protected IvyFEM.Lapack.DoubleMatrix CalcTimoshenkoBeamMl(
+            uint dElemNodeCnt, uint rElemNodeCnt, int dDof, int rDof,
+            LineFE dLineFE, LineFE rLineFE,
+            double rho, double Ae, double Iz)
+        {
+            return Elastic2DFEMUtils.CalcTimoshenkoBeamMl(
+                dElemNodeCnt, rElemNodeCnt, dDof, rDof,
+                dLineFE, rLineFE,
+                rho, Ae, Iz);
+        }
+
         protected void CalcTimoshenkoBeamElementKMForLine(
             uint feId, IvyFEM.Lapack.DoubleMatrix K, IvyFEM.Lapack.DoubleMatrix M)
         {
@@ -93,177 +115,86 @@ namespace IvyFEM
                 (pt2[0] - pt1[0]) * (pt2[0] - pt1[0]) +
                 (pt2[1] - pt1[1]) * (pt2[1] - pt1[1]));
 
+            var Ke = CalcTimoshenkoBeamKl(
+                dElemNodeCnt, rElemNodeCnt, dDof, rDof, dLineFE, rLineFE,
+                E, G, kappa, Ae, Iz);
+            var Me = CalcTimoshenkoBeamMl(
+                dElemNodeCnt, rElemNodeCnt, dDof, rDof, dLineFE, rLineFE,
+                rho, Ae, Iz);
+
             // local dof
             int localDof = 2;
             System.Diagnostics.Debug.Assert(localDof == (dDof + rDof));
             int localOffset = dDof;
 
-            IntegrationPoints ipK;
-            if (dLineFE.Order == 1 && rLineFE.Order == 1)
+            // displacement
+            for (int row = 0; row < dElemNodeCnt; row++)
             {
-                // 低減積分
-                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point1);
-                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 1);
-            }
-            else
-            {
-                ipK = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-                System.Diagnostics.Debug.Assert(ipK.Ls.Length == 5);
-            }
-            for (int ipPt = 0; ipPt < ipK.PointCount; ipPt++)
-            {
-                double[] L = ipK.Ls[ipPt];
-                double[] dN = dLineFE.CalcN(L);
-                double[][] dNu = dLineFE.CalcNu(L);
-                double[] dNx = dNu[0];
-                double[] rN = rLineFE.CalcN(L);
-                double[][] rNu = rLineFE.CalcNu(L);
-                double[] rNx = rNu[0];
-                double lineLen = dLineFE.GetLineLength();
-                double weight = ipK.Weights[ipPt];
-                double detJWeight = (lineLen / 2.0) * weight;
-
-                // displacement
-                for (int row = 0; row < dElemNodeCnt; row++)
+                int rowNodeId = dNodes[row];
+                if (rowNodeId == -1)
                 {
-                    int rowNodeId = dNodes[row];
-                    if (rowNodeId == -1)
+                    continue;
+                }
+                // displacement
+                for (int col = 0; col < dElemNodeCnt; col++)
+                {
+                    int colNodeId = dNodes[col];
+                    if (colNodeId == -1)
                     {
                         continue;
                     }
-                    // displacement
-                    for (int col = 0; col < dElemNodeCnt; col++)
-                    {
-                        int colNodeId = dNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double kValue = detJWeight * kappa * G * Ae * dNx[row] * dNx[col];
-                        K[rowNodeId, colNodeId] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        int colNodeId = rNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * dNx[row] * rN[col];
-                        K[rowNodeId, colNodeId + offset] += kValue;
-                    }
+                    double kValue = Ke[row * localDof, col * localDof];
+                    double mValue = Me[row * localDof, col * localDof];
+                    K[rowNodeId, colNodeId] += kValue;
+                    M[rowNodeId, colNodeId] += mValue;
                 }
                 // rotation
-                for (int row = 0; row < rElemNodeCnt; row++)
+                for (int col = 0; col < rElemNodeCnt; col++)
                 {
-                    int rowNodeId = rNodes[row];
-                    if (rowNodeId == -1)
+                    int colNodeId = rNodes[col];
+                    if (colNodeId == -1)
                     {
                         continue;
                     }
-                    // displacement
-                    for (int col = 0; col < dElemNodeCnt; col++)
-                    {
-                        int colNodeId = dNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double kValue = -1.0 * detJWeight * kappa * G * Ae * rN[row] * dNx[col];
-                        K[rowNodeId + offset, colNodeId] += kValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        int colNodeId = rNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double kValue1 = detJWeight * kappa * G * Ae * rN[row] * rN[col];
-                        double kValue2 = detJWeight * E * Iz * rNx[row] * rNx[col];
-                        K[rowNodeId + offset, colNodeId + offset] +=
-                            kValue1 + kValue2;
-                    }
+                    double kValue = Ke[row * localDof, col * localDof + localOffset];
+                    double mValue = Me[row * localDof, col * localDof + localOffset];
+                    K[rowNodeId, colNodeId + offset] += kValue;
+                    M[rowNodeId, colNodeId + offset] += mValue;
                 }
             }
-            IntegrationPoints ipM = LineFE.GetIntegrationPoints(LineIntegrationPointCount.Point5);
-            System.Diagnostics.Debug.Assert(ipM.Ls.Length == 5);
-            for (int ipPt = 0; ipPt < ipM.PointCount; ipPt++)
+            // rotation
+            for (int row = 0; row < rElemNodeCnt; row++)
             {
-                double[] L = ipM.Ls[ipPt];
-                double[] dN = dLineFE.CalcN(L);
-                double[][] dNu = dLineFE.CalcNu(L);
-                double[] dNx = dNu[0];
-                double[] rN = rLineFE.CalcN(L);
-                double[][] rNu = rLineFE.CalcNu(L);
-                double[] rNx = rNu[0];
-                double lineLen = dLineFE.GetLineLength();
-                double weight = ipM.Weights[ipPt];
-                double detJWeight = (lineLen / 2.0) * weight;
-
-                // displacement
-                for (int row = 0; row < dElemNodeCnt; row++)
+                int rowNodeId = rNodes[row];
+                if (rowNodeId == -1)
                 {
-                    int rowNodeId = dNodes[row];
-                    if (rowNodeId == -1)
+                    continue;
+                }
+                // displacement
+                for (int col = 0; col < dElemNodeCnt; col++)
+                {
+                    int colNodeId = dNodes[col];
+                    if (colNodeId == -1)
                     {
                         continue;
                     }
-                    // displacement
-                    for (int col = 0; col < dElemNodeCnt; col++)
-                    {
-                        int colNodeId = dNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double mValue = detJWeight * rho * Ae * dN[row] * dN[col];
-                        M[rowNodeId, colNodeId] += mValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        int colNodeId = rNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double mValue = 0.0;
-                        M[rowNodeId, colNodeId + offset] += mValue;
-                    }
+                    double kValue = Ke[row * localDof + localOffset, col * localDof];
+                    double mValue = Me[row * localDof + localOffset, col * localDof];
+                    K[rowNodeId + offset, colNodeId] += kValue;
+                    M[rowNodeId + offset, colNodeId] += mValue;
                 }
                 // rotation
-                for (int row = 0; row < rElemNodeCnt; row++)
+                for (int col = 0; col < rElemNodeCnt; col++)
                 {
-                    int rowNodeId = rNodes[row];
-                    if (rowNodeId == -1)
+                    int colNodeId = rNodes[col];
+                    if (colNodeId == -1)
                     {
                         continue;
                     }
-                    // displacement
-                    for (int col = 0; col < dElemNodeCnt; col++)
-                    {
-                        int colNodeId = dNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double mValue = 0.0;
-                        M[rowNodeId + offset, colNodeId] += mValue;
-                    }
-                    // rotation
-                    for (int col = 0; col < rElemNodeCnt; col++)
-                    {
-                        int colNodeId = rNodes[col];
-                        if (colNodeId == -1)
-                        {
-                            continue;
-                        }
-                        double mValue = detJWeight * rho * Iz * rN[row] * rN[col];
-                        M[rowNodeId + offset, colNodeId + offset] += mValue;
-                    }
+                    double kValue = Ke[row * localDof + localOffset, col * localDof + localOffset];
+                    double mValue = Me[row * localDof + localOffset, col * localDof + localOffset];
+                    K[rowNodeId + offset, colNodeId + offset] += kValue;
+                    M[rowNodeId + offset, colNodeId + offset] += mValue;
                 }
             }
         }

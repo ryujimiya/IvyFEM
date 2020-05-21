@@ -93,7 +93,7 @@ namespace IvyFEM
         }
 
         public static IvyFEM.Lapack.DoubleMatrix CalcDKTPlateKl(
-            double h, IvyFEM.Lapack.DoubleMatrix C, TriangleFE d1TriFE)
+            TriangleFE d1TriFE, double h, IvyFEM.Lapack.DoubleMatrix C)
         {
             double Ae = d1TriFE.GetArea();
             // DKT要素の補間用に2次三角形要素を作る
@@ -112,7 +112,7 @@ namespace IvyFEM
 
             //------------------------------------
             // CST membrane element
-            IvyFEM.Lapack.DoubleMatrix Kml = new IvyFEM.Lapack.DoubleMatrix(6, 6);
+            IvyFEM.Lapack.DoubleMatrix Kml;
             {
                 // Nuを求める 定数なのでLはどこでもいい
                 double[] L = { 0.5, 0.5, 0.5 }; // 重心
@@ -153,7 +153,7 @@ namespace IvyFEM
                 double[] Nx = Nu[0];
                 double[] Ny = Nu[1];
                 double detJ = triFE2nd.GetDetJacobian(L);
-                double weight = ip.Weights[0];
+                double weight = ip.Weights[ipPt];
                 double detJWeight = (1.0 / 2.0) * weight * detJ;
 
                 double[] Hx;
@@ -242,7 +242,7 @@ namespace IvyFEM
         }
 
         public static IvyFEM.Lapack.DoubleMatrix CalcDKTPlateMl(
-            double h, double rho, TriangleFE d1TriFE)
+            TriangleFE d1TriFE, double h, double rho)
         {
             double Ae = d1TriFE.GetArea();
             // DKT要素の補間用に2次三角形要素を作る
@@ -268,11 +268,13 @@ namespace IvyFEM
             double[] he;
             CalcDKTHFunctionCoeffs(pt2Ds, out ha, out hb, out hc, out hd, out he);
 
+            // CST+DKT
             double rhom = rho * h;
             double rhomb = 0.0;
             double rhob = rho * h * h * h / 12.0;
-            IntegrationPoints ip = TriangleFE.GetIntegrationPoints(TriangleIntegrationPointCount.Point3);
-            System.Diagnostics.Debug.Assert(ip.Ls.Length == 3);
+            // Point3だと不十分
+            IntegrationPoints ip = TriangleFE.GetIntegrationPoints(TriangleIntegrationPointCount.Point7);
+            System.Diagnostics.Debug.Assert(ip.Ls.Length == 7);
             for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
             {
                 double[] L = ip.Ls[ipPt];
@@ -281,7 +283,7 @@ namespace IvyFEM
                 double[] Nx = Nu[0];
                 double[] Ny = Nu[1];
                 double detJ = triFE2nd.GetDetJacobian(L);
-                double weight = ip.Weights[0];
+                double weight = ip.Weights[ipPt];
                 double detJWeight = (1.0 / 2.0) * weight * detJ;
 
                 double[] Hx;

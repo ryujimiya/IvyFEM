@@ -186,7 +186,11 @@ namespace IvyFEM
                 {
                     // null
                 }
-                else if (ma is PlateMaterial)
+                else if (ma is DKTPlateMaterial)
+                {
+                    // linear
+                }
+                else if (ma is MindlinPlateMaterial)
                 {
                     // linear
                 }
