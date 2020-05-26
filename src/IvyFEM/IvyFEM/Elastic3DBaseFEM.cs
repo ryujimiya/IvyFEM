@@ -194,6 +194,10 @@ namespace IvyFEM
                 {
                     // linear
                 }
+                else if (ma is MITCLinearPlateMaterial)
+                {
+                    // linear
+                }
                 else
                 {
                     hasNonlinear = true;

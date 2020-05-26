@@ -119,15 +119,6 @@ namespace IvyFEM
                 int nodeId = World.Coord2Node(r2QuantityId, coId);
                 r2Nodes[iNode] = nodeId;
             }
-            int[] vCoIds = d1TriFE.VertexCoordIds;
-            uint elemVertexCnt = d1TriFE.VertexCount;
-            double[][] vCoords = new double[elemVertexCnt][];
-            for (int iVertex = 0; iVertex < elemVertexCnt; iVertex++)
-            {
-                int coId = vCoIds[iVertex];
-                double[] coord = World.GetCoord(d1QuantityId, coId);
-                vCoords[iVertex] = coord;
-            }
 
             var ma = ma0 as MindlinPlateMaterial;
             double h = ma.Thickness;

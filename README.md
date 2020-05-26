@@ -31,6 +31,7 @@
 　　　　　　　　　　　　Timoshenko  
 　　　　　　　　　　　DKT薄板要素(Discrete Kirchhoff Flat Plates)  
 　　　　　　　　　　　Mindlin厚板要素(Reisner-Mindlin Thick Plates)  
+　　　　　　　　　　　MITC3シェル要素(MITC: Mixed Interpolation of Tensorial Components)  
 　　　　　　　　　　構造要素(幾何学的非線形)  
 　　　　　　　　　　　Co-rotational Beam(Frame) Formulation  
 　　　　　　　　　　　　Euler-Bernoulli shallow arch  
@@ -97,9 +98,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-05-21更新）**  
+　**バイナリ（2020-05-26更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.42  
+　　IvyFEM.dll version 0.0.0.43  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

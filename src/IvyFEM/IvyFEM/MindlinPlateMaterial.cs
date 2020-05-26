@@ -13,7 +13,7 @@ namespace IvyFEM
 
         }
 
-        public MindlinPlateMaterial(DKTPlateMaterial src) : base(src)
+        public MindlinPlateMaterial(MindlinPlateMaterial src) : base(src)
         {
 
         }
