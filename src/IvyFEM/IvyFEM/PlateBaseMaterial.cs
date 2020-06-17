@@ -14,6 +14,8 @@ namespace IvyFEM
         public double Poisson { get => Values[3]; set => Values[3] = value; }
         public double ShearCorrectionFactor { get => Values[4]; set => Values[4] = value; }
         public double ShearCoefficient => Young / (2.0 * (1.0 + Poisson));
+        public double LameLambda => Young * Poisson / ((1.0 + Poisson) * (1 - 2.0 * Poisson));
+        public double LameMu => Young / (2.0 * (1.0 + Poisson));
 
         public PlateBaseMaterial()
         {

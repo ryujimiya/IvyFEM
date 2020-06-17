@@ -22,7 +22,7 @@ namespace IvyFEM
 
             // Linear/Staint Venant
             CalcElementABs.Add(CalcLinearElasticElementAB);
-            CalcElementABs.Add(CalcSaintVenantHyperelasticElementAB);
+            CalcElementABs.Add(CalcStVenantHyperelasticElementAB);
 
             // Hyperelastic
             CalcElementABs.Add(CalcMooneyRivlinHyperelasticElementAB);

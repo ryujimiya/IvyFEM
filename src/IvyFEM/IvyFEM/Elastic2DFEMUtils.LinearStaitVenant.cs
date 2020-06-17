@@ -48,9 +48,9 @@ namespace IvyFEM
                     lambda = ma1.LameLambda;
                     mu = ma1.LameMu;
                 }
-                else if (ma is SaintVenantHyperelasticMaterial)
+                else if (ma is StVenantHyperelasticMaterial)
                 {
-                    var ma1 = ma as SaintVenantHyperelasticMaterial;
+                    var ma1 = ma as StVenantHyperelasticMaterial;
                     lambda = ma1.LameLambda;
                     mu = ma1.LameMu;
                 }
@@ -86,7 +86,7 @@ namespace IvyFEM
                     eps[1, 0] = (1.0 / 2.0) * (uu[1, 0] + uu[0, 1]);
                     eps[1, 1] = (1.0 / 2.0) * (uu[1, 1] + uu[1, 1]);
                 }
-                else if (ma is SaintVenantHyperelasticMaterial)
+                else if (ma is StVenantHyperelasticMaterial)
                 {
                     eps[0, 0] = (1.0 / 2.0) * (uu[0, 0] + uu[0, 0] + uu[0, 0] * uu[0, 0] + uu[1, 0] * uu[1, 0]);
                     eps[0, 1] = (1.0 / 2.0) * (uu[0, 1] + uu[1, 0] + uu[0, 0] * uu[0, 1] + uu[1, 1] * uu[1, 0]);

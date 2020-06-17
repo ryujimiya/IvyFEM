@@ -91,10 +91,14 @@
     <Compile Include="Camera3D.cs" />
     <Compile Include="Elastic3DEigenFEM.MindlinPlate.cs" />
     <Compile Include="Elastic3DEigenFEM.MITCLinearPlate.cs" />
+    <Compile Include="Elastic3DTDFEM.MITCStVenantPlate.cs" />
+    <Compile Include="Elastic3DFEM.MITCStVenantPlate.cs" />
+    <Compile Include="Elastic3DFEMUtils.MITCNonlinearPlate.cs" />
     <Compile Include="Elastic3DTDFEM.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DFEM.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DFEMUtils.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DTDFEM.MindlinPlate.cs" />
+    <Compile Include="MITCStVenantPlateMaterial.cs" />
     <Compile Include="MITCLinearPlateMaterial.cs" />
     <Compile Include="MindlinPlateMaterial.cs" />
     <Compile Include="Edge3D.cs" />
@@ -156,7 +160,7 @@
     <Compile Include="Elastic2DTDFEM.Frame.cs" />
     <Compile Include="Elastic2DTDFEM.Beam.cs" />
     <Compile Include="Elastic2DEigenFEM.Truss.cs" />
-    <Compile Include="Elastic2DEigenFEM.SaintVenantHyperelastic.cs" />
+    <Compile Include="Elastic2DEigenFEM.StVenantHyperelastic.cs" />
     <Compile Include="Elastic2DTDFEM.Truss.cs" />
     <Compile Include="FrameMaterial.cs" />
     <Compile Include="BoundingBox2D.cs" />
@@ -255,10 +259,10 @@
     <Compile Include="Elastic2DFEMUtils.LinearStaitVenant.cs" />
     <Compile Include="Elastic2DFEM.cs" />
     <Compile Include="Elastic2DFEM.LinearElastic.cs" />
-    <Compile Include="Elastic2DFEM.SaintVenantHyperelastic.cs" />
+    <Compile Include="Elastic2DFEM.StVenantHyperelastic.cs" />
     <Compile Include="Elastic2DTDFEM.cs" />
     <Compile Include="Elastic2DTDFEM.LinearElastic.cs" />
-    <Compile Include="Elastic2DTDFEM.SaintVenantHyperelastic.cs" />
+    <Compile Include="Elastic2DTDFEM.StVenantHyperelastic.cs" />
     <Compile Include="ElasticBaseMaterial.cs" />
     <Compile Include="EMWaveguide1DEigenFEM.cs" />
     <Compile Include="EMWaveguide2DHPlaneFEM.cs" />
@@ -375,7 +379,7 @@
     <Compile Include="PoissonMaterial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectDrawer.cs" />
-    <Compile Include="SaintVenantHyperelasticMaterial.cs" />
+    <Compile Include="StVenantHyperelasticMaterial.cs" />
     <Compile Include="SelectedObject.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="TriangleFE1stInterpolate.cs" />

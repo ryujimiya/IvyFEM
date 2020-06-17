@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using OpenTK; // System.Numericsと衝突するので注意
+// // System.Numericsと衝突するので注意
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System.IO;

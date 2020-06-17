@@ -15,7 +15,7 @@
 　　*1 いま用意しているのは  
 　　　　弾性体力学：線形弾性体  
 　　　　　　　　　　超弾性体  
-　　　　　　　　　　Saint Venant Kirchhoff  
+　　　　　　　　　　St.Venant Kirchhoff  
 　　　　　　　　　　Mooney-Rivlin (非圧縮、微圧縮)  
 　　　　　　　　　　Ogden (非圧縮、微圧縮)  
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
@@ -39,6 +39,8 @@
 　　　　　　　　　　　Total Lagrange法  
 　　　　　　　　　　　　Eular-Bernoulli Field-consistent Beam(Frame)  
 　　　　　　　　　　　　Timoshenko Beam(Frame)  
+　　　　　　　　　　　MITC3シェル要素  
+　　　　　　　　　　　　St.Venant-Kirchhoff  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -98,9 +100,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-05-26更新）**  
+　**バイナリ（2020-06-17更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.43  
+　　IvyFEM.dll version 0.0.0.44  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

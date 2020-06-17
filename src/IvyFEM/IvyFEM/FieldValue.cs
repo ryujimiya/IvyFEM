@@ -12,7 +12,29 @@ namespace IvyFEM
         public FieldValueType Type { get; protected set; } = FieldValueType.NoValue;
         public FieldDerivativeType DerivativeType { get; protected set; } = 0;
         public uint Dof { get; protected set; } = 1;
-        public bool IsBubble { get; protected set; } = false;
+        public FieldValueNodeType NodeType { get; protected set; } = FieldValueNodeType.Node;
+        public bool IsBubble
+        {
+            get
+            {
+                bool isBubble = false;
+                if (NodeType == FieldValueNodeType.Node)
+                {
+                    isBubble = false;
+                }
+                else if (NodeType == FieldValueNodeType.Bubble)
+                {
+                    isBubble = true;
+                }
+                else
+                {
+                    // NodeかBubbleしか想定していない
+                    System.Diagnostics.Debug.Assert(false);
+                    throw new NotImplementedException();
+                }
+                return isBubble;
+            }
+        }
         public FieldShowType ShowType { get; protected set; } = FieldShowType.Real;
         public double[] DoubleValues { get; protected set; } = null;
         public double[] DoubleVelocityValues { get; protected set; } = null;
@@ -27,13 +49,13 @@ namespace IvyFEM
         }
 
         public FieldValue(uint quantityId, FieldValueType type, FieldDerivativeType dt,
-            bool isBubble, FieldShowType showType, uint pointCnt)
+            FieldValueNodeType nodeType, FieldShowType showType, uint pointCnt)
         {
             QuantityId = quantityId;
             Type = type;
             Dof = GetDof(Type);
             DerivativeType = dt;
-            IsBubble = isBubble;
+            NodeType = nodeType;
             ShowType = showType;
             AllocValues(pointCnt);
         }
@@ -50,7 +72,7 @@ namespace IvyFEM
             DerivativeType = srcFV.DerivativeType;
             QuantityId = srcFV.QuantityId;
             Dof = srcFV.Dof;
-            IsBubble = srcFV.IsBubble;
+            NodeType = srcFV.NodeType;
             ShowType = srcFV.ShowType;
             CopyValues(srcFV);
         }

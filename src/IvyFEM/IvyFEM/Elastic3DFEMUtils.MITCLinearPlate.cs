@@ -1,5 +1,4 @@
-﻿using OpenTK;
-using OpenTK.Input;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +16,9 @@ namespace IvyFEM
             int nodeCnt = xPts.Length;
             System.Diagnostics.Debug.Assert(nodeCnt == 3);
             OpenTK.Vector3d normal = CadUtils3D.TriNormal(xPts[0], xPts[1], xPts[2]);
-            OpenTK.Vector3d e1 = new Vector3d(1.0, 0.0, 0.0);
-            OpenTK.Vector3d e2 = new Vector3d(0.0, 1.0, 0.0);
-            OpenTK.Vector3d e3 = new Vector3d(0.0, 0.0, 1.0);
+            OpenTK.Vector3d e1 = new OpenTK.Vector3d(1.0, 0.0, 0.0);
+            OpenTK.Vector3d e2 = new OpenTK.Vector3d(0.0, 1.0, 0.0);
+            OpenTK.Vector3d e3 = new OpenTK.Vector3d(0.0, 0.0, 1.0);
             // director vectors etc
             Vns = new OpenTK.Vector3d[nodeCnt];
             V1s = new OpenTK.Vector3d[nodeCnt];
@@ -112,7 +111,8 @@ namespace IvyFEM
         }
 
         protected static OpenTK.Vector3d[][] CalcMITCLinearUiCoeffVectors(
-            int dof, int nodeCnt, double h, OpenTK.Vector3d[] Vns, OpenTK.Vector3d[] V1s, OpenTK.Vector3d[] V2s, double[] r)
+            int dof, int nodeCnt,
+            double h, OpenTK.Vector3d[] Vns, OpenTK.Vector3d[] V1s, OpenTK.Vector3d[] V2s, double[] r)
         {
             System.Diagnostics.Debug.Assert(dof == 6);
             System.Diagnostics.Debug.Assert(nodeCnt == 3);
@@ -158,13 +158,13 @@ namespace IvyFEM
                         (1.0 / 2.0) * deltai3 * Ns[k] * h * V2s[k];
                     coeffAis[i][k * dof + 4] = (r3 / 2.0) * Nrs[k][i] * h * V1s[k] +
                         (1.0 / 2.0) * deltai3 * Ns[k] * h * V1s[k];
-                    coeffAis[i][k * dof + 5] = new Vector3d();
+                    coeffAis[i][k * dof + 5] = new OpenTK.Vector3d();
                 }
             }
             return coeffAis;
         }
 
-        protected static double[,,] CalcMITCLinearCovariantStrainCoeff(
+        protected static double[,,] CalcMITCLinearStrainCoeff(
             int dof, int nodeCnt, OpenTK.Vector3d[] gs, OpenTK.Vector3d[][] coeffAis)
         {
             System.Diagnostics.Debug.Assert(dof == 6);
@@ -213,12 +213,12 @@ namespace IvyFEM
                 }
                 coeffBs[k * dof + 3] = -(r3 / 2.0) * Ns[k] * h * V2s[k];
                 coeffBs[k * dof + 4] = (r3 / 2.0) * Ns[k] * h * V1s[k];
-                coeffBs[k * dof + 5] = new Vector3d();
+                coeffBs[k * dof + 5] = new OpenTK.Vector3d();
             }
             return coeffBs;
         }
 
-        public static IvyFEM.Lapack.DoubleMatrix CalcTransferMatrix(
+        public static IvyFEM.Lapack.DoubleMatrix CalcMITCLinearTransferMatrix(
             int dof, int nodeCnt, OpenTK.Vector3d[] Vns, OpenTK.Vector3d[] V1s, OpenTK.Vector3d[] V2s)
         {
             IvyFEM.Lapack.DoubleMatrix T = new Lapack.DoubleMatrix(nodeCnt * dof, nodeCnt * dof);
@@ -264,14 +264,17 @@ namespace IvyFEM
             OpenTK.Vector3d[] V2s;
             CalcMITCLinearDirectorVectors(xPts, out Vns, out V1s, out V2s);
 
-            int dof = 6;
-            int dofu = 3;
-            int doftxy = 2;
-            int doftz = 1;
-            int offsettz = dofu + doftxy;
-            System.Diagnostics.Debug.Assert(dof == dofu + doftxy + doftz);
+            int uDof = 3;
+            int aDof = 1;
+            int bDof = 1;
+            int zDof = 1;
+            int dof = uDof + aDof + bDof + zDof;
+            int aOffset = uDof;
+            int bOffset = aOffset + aDof;
+            int zOffset = bOffset + bDof;
+            System.Diagnostics.Debug.Assert(dof == 6);
 
-            IvyFEM.Lapack.DoubleMatrix localKe = new IvyFEM.Lapack.DoubleMatrix(dof * 3, dof * 3);
+            IvyFEM.Lapack.DoubleMatrix localKe = new IvyFEM.Lapack.DoubleMatrix(nodeCnt * dof, nodeCnt * dof);
 
             //------------------------------------
             // sampling for MITC
@@ -283,11 +286,11 @@ namespace IvyFEM
             for (int iSample = 0; iSample < 3; iSample++)
             {
                 double[] sampleR = sampleRs[iSample];
-                OpenTK.Vector3d[] sampleGs = CalcMITCLinearCovariantBasisVectors(xPts, h, Vns, sampleR);
-                OpenTK.Vector3d[][] sampleCoeffAis = CalcMITCLinearUiCoeffVectors(
+                OpenTK.Vector3d[] gs = CalcMITCLinearCovariantBasisVectors(xPts, h, Vns, sampleR);
+                OpenTK.Vector3d[][] coeffAis = CalcMITCLinearUiCoeffVectors(
                     dof, nodeCnt, h, Vns, V1s, V2s, sampleR);
-                double[,,] sampleSmallBmn = CalcMITCLinearCovariantStrainCoeff(dof, nodeCnt, sampleGs, sampleCoeffAis);
-                sampleSmallBmns[iSample] = sampleSmallBmn;
+                double[,,] smallBmn = CalcMITCLinearStrainCoeff(dof, nodeCnt, gs, coeffAis);
+                sampleSmallBmns[iSample] = smallBmn;
             }
             double[] sampleSmallB13Pt1 = new double[nodeCnt * dof];
             double[] sampleSmallB23Pt2 = new double[nodeCnt * dof];
@@ -331,29 +334,26 @@ namespace IvyFEM
                     OpenTK.Vector3d[] hs = CalcMITCLinearContravariantBasisVectors(gs);
                     OpenTK.Vector3d[] lVecs = CalcMITCLinearLocalBasicVectors(gs);
                     OpenTK.Vector3d[][] coeffAis = CalcMITCLinearUiCoeffVectors(dof, nodeCnt, h, Vns, V1s, V2s, r);
-                    double[,,] smallBmn = CalcMITCLinearCovariantStrainCoeff(dof, nodeCnt, gs, coeffAis);
+                    double[,,] smallBmn = CalcMITCLinearStrainCoeff(dof, nodeCnt, gs, coeffAis);
 
+                    //-------------------------------------
                     // MITC
-                    double[] hSmallB13 = new double[nodeCnt * dof];
-                    double[] hSmallB23 = new double[nodeCnt * dof];
                     for (int k = 0; k < nodeCnt * dof; k++)
                     {
                         double coeffC = sampleSmallB13Pt3[k] - sampleSmallB13Pt1[k] -
                             (sampleSmallB23Pt3[k] - sampleSmallB23Pt2[k]);
-                        hSmallB13[k] = sampleSmallB13Pt1[k] + coeffC * r2;
-                        hSmallB23[k] = sampleSmallB23Pt2[k] - coeffC * r1;
-                    }
-
-                    // MITCに置き換え
-                    for (int k = 0; k < nodeCnt * dof; k++)
-                    {
                         // rt
-                        smallBmn[0, 2, k] = hSmallB13[k];
-                        smallBmn[2, 0, k] = hSmallB13[k];
+                        double hSmallB13 = sampleSmallB13Pt1[k] + coeffC * r2;
+                        double hSmallB23 = sampleSmallB23Pt2[k] - coeffC * r1;
+
+                        // rt
+                        smallBmn[0, 2, k] = hSmallB13;
+                        smallBmn[2, 0, k] = hSmallB13;
                         // st
-                        smallBmn[1, 2, k] = hSmallB23[k];
-                        smallBmn[2, 1, k] = hSmallB23[k];
+                        smallBmn[1, 2, k] = hSmallB23;
+                        smallBmn[2, 1, k] = hSmallB23;
                     }
+                    //-------------------------------------
 
                     double[,,] Bij = new double[3, 3, nodeCnt * dof];
                     for (int i = 0; i < 3; i++)
@@ -409,13 +409,13 @@ namespace IvyFEM
             }
 
             //------------------------------------
-            for (int i = 0; i < 3; i++)
+            for (int iNode = 0; iNode < 3; iNode++)
             {
                 // fictitious stiffness value
                 double f = 0.0;
-                for (int k = 0; k < (dofu + doftxy); k++)
+                for (int k = 0; k < (uDof + aDof + bDof); k++)
                 {
-                    double diagVal = localKe[k + i * dof, k + i * dof];
+                    double diagVal = localKe[iNode * dof + k, iNode * dof + k];
                     System.Diagnostics.Debug.Assert(diagVal >= IvyFEM.Constants.PrecisionLowerLimit);
                     if (diagVal > f)
                     {
@@ -423,12 +423,12 @@ namespace IvyFEM
                     }
                 }
                 f *= 1.0e-3;
-                localKe[i * dof + offsettz, i * dof + offsettz] = f;
+                localKe[iNode * dof + zOffset, iNode * dof + zOffset] = f;
             }
 
             //-------------------------------------------
             // global
-            var T = CalcTransferMatrix(dof, nodeCnt, Vns, V1s, V2s);
+            var T = CalcMITCLinearTransferMatrix(dof, nodeCnt, Vns, V1s, V2s);
             var transT = IvyFEM.Lapack.DoubleMatrix.Transpose(T);
             var Ke = transT * localKe * T;
 
@@ -436,7 +436,7 @@ namespace IvyFEM
         }
 
         public static IvyFEM.Lapack.DoubleMatrix CalcMITCLinearPlateMe(
-            TriangleFE d1TriFE, double h, OpenTK.Vector3d[] xPts, double rho)
+            TriangleFE dTriFE, double h, OpenTK.Vector3d[] xPts, double rho)
         {
             int nodeCnt = xPts.Length;
             System.Diagnostics.Debug.Assert(nodeCnt == 3);
@@ -446,12 +446,15 @@ namespace IvyFEM
             OpenTK.Vector3d[] V2s;
             CalcMITCLinearDirectorVectors(xPts, out Vns, out V1s, out V2s);
 
-            int dof = 6;
-            int dofu = 3;
-            int doftxy = 2;
-            int doftz = 1;
-            int offsettz = dofu + doftxy;
-            System.Diagnostics.Debug.Assert(dof == dofu + doftxy + doftz);
+            int uDof = 3;
+            int aDof = 1;
+            int bDof = 1;
+            int zDof = 1;
+            int dof = uDof + aDof + bDof + zDof;
+            int aOffset = uDof;
+            int bOffset = aOffset + aDof;
+            int zOffset = bOffset + bDof;
+            System.Diagnostics.Debug.Assert(dof == 6);
 
             IvyFEM.Lapack.DoubleMatrix localMe = new IvyFEM.Lapack.DoubleMatrix(dof * 3, dof * 3);
 
@@ -471,7 +474,7 @@ namespace IvyFEM
                 for (int ipXYPt = 0; ipXYPt < ipXY.PointCount; ipXYPt++)
                 {
                     double[] L = ipXY.Ls[ipXYPt];
-                    double detJ = d1TriFE.GetDetJacobian(L);
+                    double detJ = dTriFE.GetDetJacobian(L);
                     double weight = ipXY.Weights[ipXYPt];
                     double detJWeight = (1.0 / 2.0) * weight * detJ;
 
@@ -503,7 +506,7 @@ namespace IvyFEM
 
             //-------------------------------------------
             // global
-            var T = CalcTransferMatrix(dof, nodeCnt, Vns, V1s, V2s);
+            var T = CalcMITCLinearTransferMatrix(dof, nodeCnt, Vns, V1s, V2s);
             var transT = IvyFEM.Lapack.DoubleMatrix.Transpose(T);
             var Me = transT * localMe * T;
 

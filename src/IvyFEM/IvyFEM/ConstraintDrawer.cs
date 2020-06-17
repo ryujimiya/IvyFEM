@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace IvyFEM
@@ -21,7 +20,7 @@ namespace IvyFEM
             Constraint = constraint;
         }
 
-        public BoundingBox3D GetBoundingBox(Matrix3d rot)
+        public BoundingBox3D GetBoundingBox(OpenTK.Matrix3d rot)
         {
             return Constraint.GetBoundingBox(rot);
         }

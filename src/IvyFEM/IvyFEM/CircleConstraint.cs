@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK;
 
 namespace IvyFEM
 {
@@ -82,7 +81,7 @@ namespace IvyFEM
             return value;
         }
 
-        public override BoundingBox3D GetBoundingBox(Matrix3d rot)
+        public override BoundingBox3D GetBoundingBox(OpenTK.Matrix3d rot)
         {
             // 2D
             IList<double> coords = new List<double>();

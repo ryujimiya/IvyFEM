@@ -35,34 +35,21 @@ namespace IvyFEM
                 }
             }
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 2);
+            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 1);
             System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[1] == 1);
-            uint d1QuantityId = 0; // displacement
-            uint d2QuantityId = 1; // displacement
-            uint r1QuantityId = 2; // rotation
-            uint r2QuantityId = 1; // rotation
-            System.Diagnostics.Debug.Assert(World.GetDof(d1QuantityId) == 2);
-            System.Diagnostics.Debug.Assert(World.GetDof(d2QuantityId) == 1);
-            System.Diagnostics.Debug.Assert(World.GetDof(r1QuantityId) == 2);
-            System.Diagnostics.Debug.Assert(World.GetDof(r2QuantityId) == 1);
-            int d1Dof = 2; // u v
-            int d2Dof = 1; // w
-            int r1Dof = 2; //θx θy
-            int r2Dof = 1; //θz
-            int d1NodeCnt = (int)World.GetNodeCount(d1QuantityId);
-            int d2NodeCnt = (int)World.GetNodeCount(d2QuantityId);
-            int r1NodeCnt = (int)World.GetNodeCount(r1QuantityId);
-            int r2NodeCnt = (int)World.GetNodeCount(r2QuantityId);
-            int d2Offset = d1NodeCnt * d1Dof;
-            int r1Offset = d2Offset + d2NodeCnt * d2Dof;
-            int r2Offset = r1Offset + r1NodeCnt * r1Dof;
+            uint dQuantityId = 0; // displacement
+            uint rQuantityId = 1; // rotation
+            System.Diagnostics.Debug.Assert(World.GetDof(dQuantityId) == 3);
+            System.Diagnostics.Debug.Assert(World.GetDof(rQuantityId) == 3);
+            int dDof = 3; // u v w
+            int rDof = 3; //θx θy θz
+            int dNodeCnt = (int)World.GetNodeCount(dQuantityId);
+            int rNodeCnt = (int)World.GetNodeCount(rQuantityId);
+            int rOffset = dNodeCnt * dDof;
 
-            TriangleFE d1TriFE = World.GetTriangleFE(d1QuantityId, feId);
-            TriangleFE d2TriFE = World.GetTriangleFE(d2QuantityId, feId);
-            TriangleFE r1TriFE = World.GetTriangleFE(r1QuantityId, feId);
-            TriangleFE r2TriFE = World.GetTriangleFE(r2QuantityId, feId);
-            uint maId = d1TriFE.MaterialId;
+            TriangleFE dTriFE = World.GetTriangleFE(dQuantityId, feId);
+            TriangleFE rTriFE = World.GetTriangleFE(rQuantityId, feId);
+            uint maId = dTriFE.MaterialId;
             if (!World.IsMaterialId(maId))
             {
                 return;
@@ -70,56 +57,34 @@ namespace IvyFEM
             Material ma0 = World.GetMaterial(maId);
             System.Diagnostics.Debug.Assert(ma0 is MITCLinearPlateMaterial);
 
-            int[] d1CoIds = d1TriFE.NodeCoordIds;
-            uint d1ElemNodeCnt = d1TriFE.NodeCount;
+            int[] dCoIds = dTriFE.NodeCoordIds;
+            uint dElemNodeCnt = dTriFE.NodeCount;
             // 暫定で要素マトリクスをこのメソッド内に直接記述
-            System.Diagnostics.Debug.Assert(d1ElemNodeCnt == 3); // 1次要素
-            int[] d1Nodes = new int[d1ElemNodeCnt];
-            for (int iNode = 0; iNode < d1ElemNodeCnt; iNode++)
+            System.Diagnostics.Debug.Assert(dElemNodeCnt == 3); // 1次要素
+            int[] dNodes = new int[dElemNodeCnt];
+            for (int iNode = 0; iNode < dElemNodeCnt; iNode++)
             {
-                int coId = d1CoIds[iNode];
-                int nodeId = World.Coord2Node(d1QuantityId, coId);
-                d1Nodes[iNode] = nodeId;
+                int coId = dCoIds[iNode];
+                int nodeId = World.Coord2Node(dQuantityId, coId);
+                dNodes[iNode] = nodeId;
             }
-            int[] d2CoIds = d2TriFE.NodeCoordIds;
-            uint d2ElemNodeCnt = d2TriFE.NodeCount;
+            int[] rCoIds = rTriFE.NodeCoordIds;
+            uint rElemNodeCnt = rTriFE.NodeCount;
             // 暫定で要素マトリクスをこのメソッド内に直接記述
-            System.Diagnostics.Debug.Assert(d2ElemNodeCnt == 3); // 1次要素
-            int[] d2Nodes = new int[d2ElemNodeCnt];
-            for (int iNode = 0; iNode < d2ElemNodeCnt; iNode++)
+            System.Diagnostics.Debug.Assert(rElemNodeCnt == 3); // 1次要素
+            int[] rNodes = new int[rElemNodeCnt];
+            for (int iNode = 0; iNode < rElemNodeCnt; iNode++)
             {
-                int coId = d2CoIds[iNode];
-                int nodeId = World.Coord2Node(d2QuantityId, coId);
-                d2Nodes[iNode] = nodeId;
+                int coId = rCoIds[iNode];
+                int nodeId = World.Coord2Node(rQuantityId, coId);
+                rNodes[iNode] = nodeId;
             }
-            int[] r1CoIds = r1TriFE.NodeCoordIds;
-            uint r1ElemNodeCnt = r1TriFE.NodeCount;
-            // 暫定で要素マトリクスをこのメソッド内に直接記述
-            System.Diagnostics.Debug.Assert(r1ElemNodeCnt == 3); // 1次要素
-            int[] r1Nodes = new int[r1ElemNodeCnt];
-            for (int iNode = 0; iNode < r1ElemNodeCnt; iNode++)
+            OpenTK.Vector3d[] dPts = new OpenTK.Vector3d[dElemNodeCnt];
+            for (int iNode = 0; iNode < dElemNodeCnt; iNode++)
             {
-                int coId = r1CoIds[iNode];
-                int nodeId = World.Coord2Node(r1QuantityId, coId);
-                r1Nodes[iNode] = nodeId;
-            }
-            int[] r2CoIds = r2TriFE.NodeCoordIds;
-            uint r2ElemNodeCnt = r2TriFE.NodeCount;
-            // 暫定で要素マトリクスをこのメソッド内に直接記述
-            System.Diagnostics.Debug.Assert(r1ElemNodeCnt == 3); // 1次要素
-            int[] r2Nodes = new int[r2ElemNodeCnt];
-            for (int iNode = 0; iNode < r2ElemNodeCnt; iNode++)
-            {
-                int coId = r2CoIds[iNode];
-                int nodeId = World.Coord2Node(r2QuantityId, coId);
-                r2Nodes[iNode] = nodeId;
-            }
-            OpenTK.Vector3d[] d1Pts = new OpenTK.Vector3d[d1ElemNodeCnt];
-            for (int iNode = 0; iNode < d1ElemNodeCnt; iNode++)
-            {
-                int coId = d1CoIds[iNode];
-                double[] coord = World.GetCoord(d1QuantityId, coId);
-                d1Pts[iNode] = new OpenTK.Vector3d(coord[0], coord[1], coord[2]);
+                int coId = dCoIds[iNode];
+                double[] coord = World.GetCoord(dQuantityId, coId);
+                dPts[iNode] = new OpenTK.Vector3d(coord[0], coord[1], coord[2]);
             }
 
             var ma = ma0 as MITCLinearPlateMaterial;
@@ -156,274 +121,98 @@ namespace IvyFEM
 
             //------------------------------------------
             // local
-            var Ke = CalcMITCLinearPlateKe(d1TriFE, h, d1Pts, Cb, Cs, kappa);
+            var Ke = CalcMITCLinearPlateKe(dTriFE, h, dPts, Cb, Cs, kappa);
             // Note: グローバル座標へ変換済み
-            
+
             // local dof
             int localDof = 6;
-            System.Diagnostics.Debug.Assert(localDof == (d1Dof + d2Dof + r1Dof + r2Dof));
-            int localD2Offset = d1Dof;
-            int localR1Offset = localD2Offset + d2Dof;
-            int localR2Offset = localR1Offset + r1Dof;
-            // displacement 1
-            for (int row = 0; row < d1ElemNodeCnt; row++)
+            System.Diagnostics.Debug.Assert(localDof == (dDof + rDof));
+            int localROffset = dDof;
+            // displacement
+            for (int row = 0; row < dElemNodeCnt; row++)
             {
-                int rowNodeId = d1Nodes[row];
+                int rowNodeId = dNodes[row];
                 if (rowNodeId == -1)
                 {
                     continue;
                 }
-                // displacement 1
-                for (int col = 0; col < d1ElemNodeCnt; col++)
+                // displacement
+                for (int col = 0; col < dElemNodeCnt; col++)
                 {
-                    int colNodeId = d1Nodes[col];
+                    int colNodeId = dNodes[col];
                     if (colNodeId == -1)
                     {
                         continue;
                     }
-                    for (int rowDof = 0; rowDof < d1Dof; rowDof++)
+                    for (int rowDof = 0; rowDof < dDof; rowDof++)
                     {
-                        for (int colDof = 0; colDof < d1Dof; colDof++)
+                        for (int colDof = 0; colDof < dDof; colDof++)
                         {
                             double kValue = Ke[row * localDof + rowDof, col * localDof + colDof];
-                            A[rowNodeId * d1Dof + rowDof, colNodeId * d1Dof + colDof] += kValue;
+                            A[rowNodeId * dDof + rowDof, colNodeId * dDof + colDof] += kValue;
                         }
                     }
                 }
-                // displacement 2
-                for (int col = 0; col < d2ElemNodeCnt; col++)
+                // rotation
+                for (int col = 0; col < rElemNodeCnt; col++)
                 {
-                    int colNodeId = d2Nodes[col];
+                    int colNodeId = rNodes[col];
                     if (colNodeId == -1)
                     {
                         continue;
                     }
-                    for (int rowDof = 0; rowDof < d1Dof; rowDof++)
+                    for (int rowDof = 0; rowDof < dDof; rowDof++)
                     {
-                        double kValue = Ke[row * localDof + rowDof, col * localDof + localD2Offset];
-                        A[rowNodeId * d1Dof + rowDof, colNodeId + d2Offset] += kValue;
-                    }
-                }
-                // rotation 1
-                for (int col = 0; col < r1ElemNodeCnt; col++)
-                {
-                    int colNodeId = r1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int rowDof = 0; rowDof < d1Dof; rowDof++)
-                    {
-                        for (int colDof = 0; colDof < r1Dof; colDof++)
+                        for (int colDof = 0; colDof < rDof; colDof++)
                         {
-                            double kValue = Ke[row * localDof + rowDof, col * localDof + colDof + localR1Offset];
-                            A[rowNodeId * d1Dof + rowDof, colNodeId * r1Dof + colDof + r1Offset] += kValue;
+                            double kValue = Ke[row * localDof + rowDof, col * localDof + colDof + localROffset];
+                            A[rowNodeId * dDof + rowDof, colNodeId * rDof + colDof + rOffset] += kValue;
                         }
-                    }
-                }
-                // rotation 2
-                for (int col = 0; col < r2ElemNodeCnt; col++)
-                {
-                    int colNodeId = r2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int rowDof = 0; rowDof < d1Dof; rowDof++)
-                    {
-                        double kValue = Ke[row * localDof + rowDof, col * localDof + localR2Offset];
-                        A[rowNodeId * d1Dof + rowDof, colNodeId + r2Offset] += kValue;
                     }
                 }
             }
-            // displacement 2
-            for (int row = 0; row < d2ElemNodeCnt; row++)
+            // rotation
+            for (int row = 0; row < rElemNodeCnt; row++)
             {
-                int rowNodeId = d2Nodes[row];
+                int rowNodeId = rNodes[row];
                 if (rowNodeId == -1)
                 {
                     continue;
                 }
-                // displacement 1
-                for (int col = 0; col < d1ElemNodeCnt; col++)
+                // displacement
+                for (int col = 0; col < dElemNodeCnt; col++)
                 {
-                    int colNodeId = d1Nodes[col];
+                    int colNodeId = dNodes[col];
                     if (colNodeId == -1)
                     {
                         continue;
                     }
-                    for (int colDof = 0; colDof < d1Dof; colDof++)
+                    for (int rowDof = 0; rowDof < rDof; rowDof++)
                     {
-                        double kValue = Ke[row * localDof + localD2Offset, col * localDof + colDof];
-                        A[rowNodeId + d2Offset, colNodeId * d1Dof + colDof] += kValue;
-                    }
-                }
-                // displacement 2
-                for (int col = 0; col < d2ElemNodeCnt; col++)
-                {
-                    int colNodeId = d2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localD2Offset];
-                    A[rowNodeId + d2Offset, colNodeId + d2Offset] += kValue;
-                }
-                // rotation 1
-                for (int col = 0; col < r1ElemNodeCnt; col++)
-                {
-                    int colNodeId = r1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int colDof = 0; colDof < r1Dof; colDof++)
-                    {
-                        double kValue = Ke[row * localDof + localD2Offset, col * localDof + colDof + localR1Offset];
-                        A[rowNodeId + d2Offset, colNodeId * r1Dof + colDof + r1Offset] += kValue;
-                    }
-                }
-                // rotation 2
-                for (int col = 0; col < r2ElemNodeCnt; col++)
-                {
-                    int colNodeId = r2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    double kValue = Ke[row * localDof + localD2Offset, col * localDof + localR2Offset];
-                    A[rowNodeId + d2Offset, colNodeId + r2Offset] += kValue;
-                }
-            }
-            // rotation 1
-            for (int row = 0; row < r1ElemNodeCnt; row++)
-            {
-                int rowNodeId = r1Nodes[row];
-                if (rowNodeId == -1)
-                {
-                    continue;
-                }
-                // displacement 1
-                for (int col = 0; col < d1ElemNodeCnt; col++)
-                {
-                    int colNodeId = d1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int rowDof = 0; rowDof < r1Dof; rowDof++)
-                    {
-                        for (int colDof = 0; colDof < d1Dof; colDof++)
+                        for (int colDof = 0; colDof < dDof; colDof++)
                         {
-                            double kValue = Ke[row * localDof + rowDof + localR1Offset, col * localDof + colDof];
-                            A[rowNodeId * r1Dof + rowDof + r1Offset, colNodeId * d1Dof + colDof] += kValue;
+                            double kValue = Ke[row * localDof + rowDof + localROffset, col * localDof + colDof];
+                            A[rowNodeId * rDof + rowDof + rOffset, colNodeId * dDof + colDof] += kValue;
                         }
                     }
                 }
-                // displacement 2
-                for (int col = 0; col < d2ElemNodeCnt; col++)
+                // rotation
+                for (int col = 0; col < rElemNodeCnt; col++)
                 {
-                    int colNodeId = d2Nodes[col];
+                    int colNodeId = rNodes[col];
                     if (colNodeId == -1)
                     {
                         continue;
                     }
-                    for (int rowDof = 0; rowDof < r1Dof; rowDof++)
+                    for (int rowDof = 0; rowDof < rDof; rowDof++)
                     {
-                        double kValue = Ke[row * localDof + rowDof + localR1Offset, col * localDof + localD2Offset];
-                        A[rowNodeId * r1Dof + rowDof + r1Offset, colNodeId + d2Offset] += kValue;
-                    }
-                }
-                // rotation 1
-                for (int col = 0; col < r1ElemNodeCnt; col++)
-                {
-                    int colNodeId = r1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int rowDof = 0; rowDof < r1Dof; rowDof++)
-                    {
-                        for (int colDof = 0; colDof < r1Dof; colDof++)
+                        for (int colDof = 0; colDof < rDof; colDof++)
                         {
                             double kValue = 
-                                Ke[row * localDof + rowDof + localR1Offset, col * localDof + colDof + localR1Offset];
-                            A[rowNodeId * r1Dof + rowDof + r1Offset, colNodeId * r1Dof + colDof + r1Offset] += kValue;
+                                Ke[row * localDof + rowDof + localROffset, col * localDof + colDof + localROffset];
+                            A[rowNodeId * rDof + rowDof + rOffset, colNodeId * rDof + colDof + rOffset] += kValue;
                         }
                     }
-                }
-                // rotation 2
-                for (int col = 0; col < r2ElemNodeCnt; col++)
-                {
-                    int colNodeId = r2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int rowDof = 0; rowDof < r1Dof; rowDof++)
-                    {
-                        double kValue = Ke[row * localDof + rowDof + localR1Offset, col * localDof + localR2Offset];
-                        A[rowNodeId * r1Dof + rowDof + r1Offset, colNodeId + r2Offset] += kValue;
-                    }
-                }
-            }
-            // rotation 2
-            for (int row = 0; row < r2ElemNodeCnt; row++)
-            {
-                int rowNodeId = r2Nodes[row];
-                if (rowNodeId == -1)
-                {
-                    continue;
-                }
-                // displacement 1
-                for (int col = 0; col < d1ElemNodeCnt; col++)
-                {
-                    int colNodeId = d1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int colDof = 0; colDof < d1Dof; colDof++)
-                    {
-                        double kValue = Ke[row * localDof + localR2Offset, col * localDof + colDof];
-                        A[rowNodeId + r2Offset, colNodeId * d1Dof + colDof] += kValue;
-                    }
-                }
-                // displacement 2
-                for (int col = 0; col < d2ElemNodeCnt; col++)
-                {
-                    int colNodeId = d2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    double kValue = Ke[row * localDof + localR2Offset, col * localDof + localD2Offset];
-                    A[rowNodeId + r2Offset, colNodeId + d2Offset] += kValue;
-                }
-                // rotation 1
-                for (int col = 0; col < r1ElemNodeCnt; col++)
-                {
-                    int colNodeId = r1Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    for (int colDof = 0; colDof < r1Dof; colDof++)
-                    {
-                        double kValue = Ke[row * localDof + localR2Offset, col * localDof + colDof + localR1Offset];
-                        A[rowNodeId + r2Offset, colNodeId * r1Dof + colDof + r1Offset] += kValue;
-                    }
-                }
-                // rotation 2
-                for (int col = 0; col < r2ElemNodeCnt; col++)
-                {
-                    int colNodeId = r2Nodes[col];
-                    if (colNodeId == -1)
-                    {
-                        continue;
-                    }
-                    double kValue = Ke[row * localDof + localR2Offset, col * localDof + localR2Offset];
-                    A[rowNodeId + r2Offset, colNodeId + r2Offset] += kValue;
                 }
             }
         }

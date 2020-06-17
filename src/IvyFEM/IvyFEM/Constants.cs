@@ -71,6 +71,13 @@ namespace IvyFEM
         ZVector3
     }
 
+    public enum FieldValueNodeType
+    {
+        Node,
+        Bubble,
+        ElementNode
+    }
+
     [Flags]
     public enum FieldDerivativeType
     {

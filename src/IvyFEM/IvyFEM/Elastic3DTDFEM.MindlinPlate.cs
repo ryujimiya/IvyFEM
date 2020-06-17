@@ -46,7 +46,7 @@ namespace IvyFEM
             uint d1QuantityId = 0; // displacement
             uint d2QuantityId = 1; // displacement
             uint r1QuantityId = 2; // rotation
-            uint r2QuantityId = 1; // rotation
+            uint r2QuantityId = 3; // rotation
             System.Diagnostics.Debug.Assert(World.GetDof(d1QuantityId) == 2);
             System.Diagnostics.Debug.Assert(World.GetDof(d2QuantityId) == 1);
             System.Diagnostics.Debug.Assert(World.GetDof(r1QuantityId) == 2);

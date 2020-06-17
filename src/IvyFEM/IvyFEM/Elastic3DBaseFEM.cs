@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,16 +9,32 @@ namespace IvyFEM
 {
     public abstract partial class Elastic3DBaseFEM : FEM
     {
+        // for incremental solution
+        public delegate void SetNodeValues(uint quantityId, int coId);
+        public delegate void SetElementValues(uint feId);
+
         public delegate void CalcElementDoubleAB(
            uint feId, IvyFEM.Linear.DoubleSparseMatrix A, double[] B);
 
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
+        // Init
+        public int TimeIndexForInit { get; set; } = -1;
+        protected IList<SetNodeValues> InitNodeValuess { get; set; } = new List<SetNodeValues>();
+        protected IList<SetElementValues> InitElementValuess { get; set; } = new List<SetElementValues>();
+
+        // Update
+        protected IList<SetNodeValues> UpdateNodeValuess { get; set; } = new List<SetNodeValues>();
+        protected IList<SetElementValues> UpdateElementValuess { get; set; } = new List<SetElementValues>();
+
         // Calc Matrix
         protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
 
         public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
+
+        // Init/Update
+        public IList<uint> AdditionalValueIds { get; set; } = new List<uint>();
 
         //Solve
         // Output
@@ -33,6 +50,68 @@ namespace IvyFEM
                 cnt += quantityDof * quantityNodeCnt;
             }
             return cnt;
+        }
+
+        public void InitValues()
+        {
+            // node 
+            {
+                int quantityCnt = World.GetQuantityCount();
+                for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+                {
+                    int coCnt = (int)World.GetCoordCount(quantityId);
+                    for (int coId = 0; coId < coCnt; coId++)
+                    {
+                        foreach (var initNodeValues in InitNodeValuess)
+                        {
+                            initNodeValues(quantityId, coId);
+                        }
+                    }
+                }
+            }
+            // element
+            {
+                uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
+                IList<uint> feIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in feIds)
+                {
+                    foreach (var initElementValues in InitElementValuess)
+                    {
+                        initElementValues(feId);
+                    }
+                }
+            }
+        }
+
+        public void UpdateValues()
+        {
+            // node 
+            {
+                int quantityCnt = World.GetQuantityCount();
+                for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+                {
+                    int coCnt = (int)World.GetCoordCount(quantityId);
+                    for (int coId = 0; coId < coCnt; coId++)
+                    {
+                        foreach (var updateNodeValues in UpdateNodeValuess)
+                        {
+                            updateNodeValues(quantityId, coId);
+                        }
+                    }
+                }
+            }
+            // element
+            {
+                uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
+                IList<uint> feIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in feIds)
+                {
+                    foreach (var updateElementValues in UpdateElementValuess)
+                    {
+                        updateElementValues(feId);
+                    }
+                }
+            }
         }
 
         protected void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
@@ -196,6 +275,11 @@ namespace IvyFEM
                 }
                 else if (ma is MITCLinearPlateMaterial)
                 {
+                    // linear
+                }
+                else if (ma is MITCStVenantPlateMaterial)
+                {
+                    // 非線形問題だが、方程式は線形化できる
                     // linear
                 }
                 else

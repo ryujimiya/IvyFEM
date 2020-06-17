@@ -507,17 +507,38 @@ namespace IvyFEM
         public uint AddFieldValue(FieldValueType fieldType, FieldDerivativeType derivativeType,
             uint quantityId, bool isBubble, FieldShowType showType)
         {
+            FieldValueNodeType nodeType = isBubble ? FieldValueNodeType.Bubble : FieldValueNodeType.Node;
+            uint valueId = AddFieldValue(fieldType, derivativeType, quantityId, nodeType, showType);
+            return valueId;
+        }
+
+        public uint AddFieldValue(FieldValueType fieldType, FieldDerivativeType derivativeType,
+            uint quantityId, FieldValueNodeType nodeType, FieldShowType showType)
+        {
             uint pointCnt = 0;
-            if (isBubble)
-            {
-                pointCnt = (uint)GetTriangleFEIds(quantityId).Count;
-            }
-            else
+            if (nodeType == FieldValueNodeType.Node)
             {
                 pointCnt = GetCoordCount(quantityId);
             }
+            else if (nodeType == FieldValueNodeType.Bubble)
+            {
+                pointCnt = (uint)GetTriangleFEIds(quantityId).Count;
+            }
+            else if (nodeType == FieldValueNodeType.ElementNode)
+            {
+                IList<uint> feIds = GetTriangleFEIds(quantityId);
+                uint elemCnt = (uint)feIds.Count;
+                System.Diagnostics.Debug.Assert(elemCnt > 0);
+                TriangleFE triFE0 = GetTriangleFE(quantityId, feIds[0]);
+                uint elemNodeCnt = triFE0.NodeCount;
+                pointCnt = elemCnt * elemNodeCnt;
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
             FieldValue fv = new FieldValue(quantityId, fieldType, derivativeType,
-                isBubble, showType, pointCnt);
+                nodeType, showType, pointCnt);
 
             uint freeId = FieldValueArray.GetFreeObjectId();
             uint valueId = FieldValueArray.AddObject(freeId, fv);

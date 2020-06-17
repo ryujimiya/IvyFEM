@@ -17,12 +17,30 @@ namespace IvyFEM
 
         protected void SetupCalcABs()
         {
+            //--------------------------------
+            InitNodeValuess.Clear();
+            InitElementValuess.Clear();
+            UpdateNodeValuess.Clear();
+            UpdateElementValuess.Clear();
+
+            // Init
+            // Plate
+            InitNodeValuess.Add(InitMITCStVenantPlateNodeValues);
+            InitElementValuess.Add(InitMITCStVenantPlateElementValues);
+
+            // Update
+            // Plate
+            UpdateNodeValuess.Add(UpdateMITCStVenantPlateNodeValues);
+            UpdateElementValuess.Add(UpdateMITCStVenantPlateElementValues);
+
+            //--------------------------------
             CalcElementABs.Clear();
 
             // Plate
             CalcElementABs.Add(CalcDKTPlateElementAB);
             CalcElementABs.Add(CalcMindlinPlateElementAB);
             CalcElementABs.Add(CalcMITCLinearPlateElementAB);
+            CalcElementABs.Add(CalcMITCStVenantPlateElementAB);
         }
     }
 }

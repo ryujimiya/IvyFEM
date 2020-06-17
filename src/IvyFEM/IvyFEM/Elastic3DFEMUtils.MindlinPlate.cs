@@ -147,13 +147,13 @@ namespace IvyFEM
                     Kl[i + offsetb + dof * 2, j + offsetb + dof * 2] = Kbl[i + bdof * 2, j + bdof * 2];
                 }
             }
-            for (int i = 0; i < 3; i++)
+            for (int iNode = 0; iNode < 3; iNode++)
             {
                 // fictitious stiffness value
                 double f = 0.0;
                 for (int k = 0; k < (mdof + bdof); k++)
                 {
-                    double diagVal = Kl[k + i * dof, k + i * dof];
+                    double diagVal = Kl[iNode * dof + k, iNode * dof + k];
                     System.Diagnostics.Debug.Assert(diagVal >= IvyFEM.Constants.PrecisionLowerLimit);
                     if (diagVal > f)
                     {
@@ -161,7 +161,7 @@ namespace IvyFEM
                     }
                 }
                 f *= 1.0e-3;
-                Kl[i * dof + offsettz, i * dof + offsettz] = f;
+                Kl[iNode * dof + offsettz, iNode * dof + offsettz] = f;
             }
             return Kl;
         }
