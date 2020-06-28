@@ -124,6 +124,7 @@ namespace IvyFEM
     public enum FiniteElementType
     {
         ScalarLagrange,
+        ScalarConstant,
         ScalarBell,
         ScalarHermite,
         Edge

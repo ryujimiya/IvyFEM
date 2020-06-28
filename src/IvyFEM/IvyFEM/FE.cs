@@ -97,6 +97,10 @@ namespace IvyFEM
             {
                 CreateLagrangeInterpolate();
             }
+            else if (FEType == FiniteElementType.ScalarConstant)
+            {
+                CreateConstantInterpolate();
+            }
             else if (FEType == FiniteElementType.ScalarBell)
             {
                 CreateBellInterpolate();
@@ -145,6 +149,40 @@ namespace IvyFEM
                 else if (Order == 2)
                 {
                     Interpolate = new TriangleFE2ndInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
+        }
+
+        protected void CreateConstantInterpolate()
+        {
+            System.Diagnostics.Debug.Assert(FEType == FiniteElementType.ScalarConstant);
+            if (this is LineFE)
+            {
+                LineFE thisLineFE = this as LineFE;
+                if (Order == 0)
+                {
+                    // 暫定：Lagrange線要素で代用.当然ながら形状関数は正しくない
+                    Interpolate = new LineFE1stInterpolate(thisLineFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TriangleFE)
+            {
+                TriangleFE thisTriFE = this as TriangleFE;
+                if (Order == 0)
+                {
+                    Interpolate = new TriangleFEConstantInterpolate(thisTriFE);
                 }
                 else
                 {

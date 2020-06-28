@@ -341,7 +341,7 @@ namespace IvyFEM
         }
 
         // St.Venant-Kirchhoff
-        protected static double[,,,] CalcMITCNonlinearStVenantC4Tensor(
+        protected static double[,,,] CalcMITCStVenantC4Tensor(
             double lambda, double mu, OpenTK.Vector3d[] h0s)
         {
             double[,,,] C4 = new double[3, 3, 3, 3];
@@ -369,7 +369,8 @@ namespace IvyFEM
             return C4;
         }
 
-        protected static IvyFEM.Lapack.DoubleMatrix CalcMITCNonlinearStress(double[,,,] C4, IvyFEM.Lapack.DoubleMatrix E)
+        // St.Venant-Kirchhoff
+        protected static IvyFEM.Lapack.DoubleMatrix CalcMITCStVenantStress(double[,,,] C4, IvyFEM.Lapack.DoubleMatrix E)
         {
             IvyFEM.Lapack.DoubleMatrix S = new IvyFEM.Lapack.DoubleMatrix(3, 3);
             for (int ig = 0; ig < 3; ig++)
@@ -822,9 +823,9 @@ namespace IvyFEM
 
                     //-------------------------------------
                     OpenTK.Vector3d[] h0s = CalcMITCNonlinearContravariantBasisVectors(g0s);
-                    double[,,,] C4 = CalcMITCNonlinearStVenantC4Tensor(
+                    double[,,,] C4 = CalcMITCStVenantC4Tensor(
                         lambda, mu, h0s);
-                    IvyFEM.Lapack.DoubleMatrix curS = CalcMITCNonlinearStress(C4, E);
+                    IvyFEM.Lapack.DoubleMatrix curS = CalcMITCStVenantStress(C4, E);
 
                     //-------------------------------------
                     // Q

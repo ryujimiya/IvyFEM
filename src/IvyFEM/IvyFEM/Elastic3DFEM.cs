@@ -28,11 +28,23 @@ namespace IvyFEM
             InitNodeValuess.Add(InitMITCStVenantPlateNodeValues);
             InitElementValuess.Add(InitMITCStVenantPlateElementValues);
 
+            InitNodeValuess.Add(InitMITCStVenantThicknessStretchPlateNodeValues);
+            InitElementValuess.Add(InitMITCStVenantThicknessStretchPlateElementValues);
+
+            InitNodeValuess.Add(InitMITCMooneyRivlinPlateNodeValues);
+            InitElementValuess.Add(InitMITCMooneyRivlinPlateElementValues);
+
             // Update
             // Plate
             UpdateNodeValuess.Add(UpdateMITCStVenantPlateNodeValues);
             UpdateElementValuess.Add(UpdateMITCStVenantPlateElementValues);
 
+            UpdateNodeValuess.Add(UpdateMITCStVenantThicknessStretchPlateNodeValues);
+            UpdateElementValuess.Add(UpdateMITCStVenantThicknessStretchPlateElementValues);
+
+            UpdateNodeValuess.Add(UpdateMITCMooneyRivlinPlateNodeValues);
+            UpdateElementValuess.Add(UpdateMITCMooneyRivlinPlateElementValues);
+                                     
             //--------------------------------
             CalcElementABs.Clear();
 
@@ -41,6 +53,8 @@ namespace IvyFEM
             CalcElementABs.Add(CalcMindlinPlateElementAB);
             CalcElementABs.Add(CalcMITCLinearPlateElementAB);
             CalcElementABs.Add(CalcMITCStVenantPlateElementAB);
+            CalcElementABs.Add(CalcMITCStVenantThicknessStretchPlateElementAB);
+            CalcElementABs.Add(CalcMITCMooneyRivlinPlateElementAB);
         }
     }
 }

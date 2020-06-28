@@ -41,6 +41,8 @@
 　　　　　　　　　　　　Timoshenko Beam(Frame)  
 　　　　　　　　　　　MITC3シェル要素  
 　　　　　　　　　　　　St.Venant-Kirchhoff  
+　　　　　　　　　　　　St.Venant-Kirchhoff(厚さの伸び縮み考慮)  
+　　　　　　　　　　　　Mooney-Rivlin超弾性体モデル(厚さの伸び縮み考慮)  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -100,9 +102,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-06-17更新）**  
+　**バイナリ（2020-06-28更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.44  
+　　IvyFEM.dll version 0.0.0.45  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

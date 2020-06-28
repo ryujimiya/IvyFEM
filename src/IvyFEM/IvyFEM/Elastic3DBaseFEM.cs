@@ -19,8 +19,11 @@ namespace IvyFEM
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
-        // Init
+        // Init/Update
+        public bool IsUseInit { get; set; } = false;
+        public bool IsUseUpdate { get; set; } = false;
         public int TimeIndexForInit { get; set; } = -1;
+        // Init
         protected IList<SetNodeValues> InitNodeValuess { get; set; } = new List<SetNodeValues>();
         protected IList<SetElementValues> InitElementValuess { get; set; } = new List<SetElementValues>();
 
@@ -52,8 +55,13 @@ namespace IvyFEM
             return cnt;
         }
 
-        public void InitValues()
+        protected void InitValues()
         {
+            if (!IsUseInit)
+            {
+                return;
+            }
+
             // node 
             {
                 int quantityCnt = World.GetQuantityCount();
@@ -83,8 +91,13 @@ namespace IvyFEM
             }
         }
 
-        public void UpdateValues()
+        protected void UpdateValues()
         {
+            if (!IsUseUpdate)
+            {
+                return;
+            }
+
             // node 
             {
                 int quantityCnt = World.GetQuantityCount();
@@ -125,6 +138,14 @@ namespace IvyFEM
                     calcElementAB(feId, A, B);
                 }
             }
+
+            /*
+            // DEBUG
+            for (int i = 0; i < A.RowLength; i++)
+            {
+                System.Diagnostics.Debug.Assert(Math.Abs(A[i, i]) >= Constants.PrecisionLowerLimit);
+            }
+            */
         }
 
         protected void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
@@ -134,6 +155,10 @@ namespace IvyFEM
 
         public override void Solve()
         {
+            // Init
+            InitValues();
+
+            // Solve
             int quantityCnt = World.GetQuantityCount();
             int nodeCnt = 0;
             for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
@@ -241,6 +266,8 @@ namespace IvyFEM
                 System.Diagnostics.Debug.WriteLine("Solve: t = " + (System.Environment.TickCount - t));
             }
 
+            // Update
+            UpdateValues();
         }
 
         protected bool MustUseNonlinearIter()

@@ -745,6 +745,10 @@ namespace IvyFEM
             {
                 Coords = new List<double>(vertexCoords);
             }
+            else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+            {
+                Coords = new List<double>(vertexCoords);
+            }
             else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
             {
                 Coords = new List<double>(vertexCoords);
@@ -801,6 +805,10 @@ namespace IvyFEM
                 {
                     elemNodeCnt = 6;
                 }
+                else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+                {
+                    elemNodeCnt = 1;
+                }
                 else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                 {
                     elemNodeCnt = 3;
@@ -829,27 +837,27 @@ namespace IvyFEM
 
                 for (int iElem = 0; iElem < elemCnt; iElem++)
                 {
-                    int[] vertexCoIds = new int[elemVertexCnt];
+                    int[] elemVertexCoIds = new int[elemVertexCnt];
                     for (int iPt = 0; iPt < elemVertexCnt; iPt++)
                     {
                         int coId = vertexs[iElem * elemVertexCnt + iPt];
-                        vertexCoIds[iPt] = coId;
+                        elemVertexCoIds[iPt] = coId;
                     }
-                    int[] nodeCoIds = new int[elemNodeCnt];
+                    int[] elemNodeCoIds = new int[elemNodeCnt];
                     if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
                     {
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                        System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
+                        elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                     {
                         for (int i = 0; i < elemVertexCnt; i++)
                         {
-                            nodeCoIds[i] = vertexCoIds[i];
+                            elemNodeCoIds[i] = elemVertexCoIds[i];
 
                             {
-                                int v1 = vertexCoIds[i];
-                                int v2 = vertexCoIds[(i + 1) % elemVertexCnt];
+                                int v1 = elemVertexCoIds[i];
+                                int v2 = elemVertexCoIds[(i + 1) % elemVertexCnt];
                                 if (v1 > v2)
                                 {
                                     int tmp = v1;
@@ -884,35 +892,61 @@ namespace IvyFEM
                                     edge2MidPt[edgeKey] = list;
                                 }
 
-                                nodeCoIds[i + elemVertexCnt] = midPtCoId;
+                                elemNodeCoIds[i + elemVertexCnt] = midPtCoId;
                             }
                         }
                     }
+                    else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+                    {
+                        // 重心座標を求める
+                        uint dim = Dimension;
+                        double[] gCoord = new double[dim];
+                        System.Diagnostics.Debug.Assert(elemVertexCoIds.Length == 3); // 三角形
+                        for (int iVertex = 0; iVertex < elemVertexCoIds.Length; iVertex++)
+                        {
+                            int vCoId = elemVertexCoIds[iVertex];
+                            double[] vCoord = GetCoord(vCoId, world.RotAngle, world.RotOrigin);
+                            for (int iDim = 0; iDim < dim; iDim++)
+                            {
+                                gCoord[iDim] += vCoord[iDim];
+                            }
+                        }
+                        for (int iDim = 0; iDim < dim; iDim++)
+                        {
+                            gCoord[iDim] /= 3.0;
+                        }
+                        int gCoId = (int)(Coords.Count / dim);
+                        for (int iDim = 0; iDim < dim; iDim++)
+                        {
+                            Coords.Add(gCoord[iDim]);
+                        }
+                        elemNodeCoIds[0] = gCoId;
+                    }
                     else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                     {
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                        System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
+                        elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarHermite && FEOrder == 3)
                     {
                         // 暫定: Lagrange三角形要素で代用
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                        System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
+                        elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                     {
-                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
-                        vertexCoIds.CopyTo(nodeCoIds, 0);
+                        System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
+                        elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.Edge && FEOrder == 2)
                     {
                         for (int i = 0; i < elemVertexCnt; i++)
                         {
-                            nodeCoIds[i] = vertexCoIds[i];
+                            elemNodeCoIds[i] = elemVertexCoIds[i];
 
                             {
-                                int v1 = vertexCoIds[i];
-                                int v2 = vertexCoIds[(i + 1) % elemVertexCnt];
+                                int v1 = elemVertexCoIds[i];
+                                int v2 = elemVertexCoIds[(i + 1) % elemVertexCnt];
                                 if (v1 > v2)
                                 {
                                     int tmp = v1;
@@ -947,7 +981,7 @@ namespace IvyFEM
                                     edge2MidPt[edgeKey] = list;
                                 }
 
-                                nodeCoIds[i + elemVertexCnt] = midPtCoId;
+                                elemNodeCoIds[i + elemVertexCnt] = midPtCoId;
                             }
                         }
                     }
@@ -960,8 +994,8 @@ namespace IvyFEM
                     fe.World = world;
                     fe.QuantityId = (int)this.Id;
                     fe.QuantityIdBaseOffset = IdBaseOffset;
-                    fe.SetVertexCoordIds(vertexCoIds);
-                    fe.SetNodeCoordIds(nodeCoIds);
+                    fe.SetVertexCoordIds(elemVertexCoIds);
+                    fe.SetNodeCoordIds(elemNodeCoIds);
                     if (FEType == FiniteElementType.Edge)
                     {
                         fe.SetEdgeCoordIdsFromNodeCoordIds();
@@ -1018,6 +1052,11 @@ namespace IvyFEM
                 else if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 2)
                 {
                     elemNodeCnt = 3;
+                }
+                else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+                {
+                    // 暫定：Lagrange線要素で代用
+                    elemNodeCnt = 2;
                 }
                 else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                 {
@@ -1115,6 +1154,12 @@ namespace IvyFEM
                             edge2MidPt[edgeKey] = list;
                         }
                         nodeCoIds[2] = midPtCoId;
+                    }
+                    else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+                    {
+                        // 暫定：Lagrange線要素で代用
+                        System.Diagnostics.Debug.Assert(nodeCoIds.Length == vertexCoIds.Length);
+                        vertexCoIds.CopyTo(nodeCoIds, 0);
                     }
                     else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
                     {
@@ -1646,6 +1691,10 @@ namespace IvyFEM
             {
                 return;
             }
+            if (FEType == FiniteElementType.ScalarConstant)
+            {
+                return;
+            }
             var mesh = world.Mesh;
 
             // ナンバリング
@@ -1745,6 +1794,7 @@ namespace IvyFEM
                 else
                 {
                     // Scalar elements
+                    bool isUseVertex = false;
                     int elemNodeCnt = (int)triFE.NodeCount;
                     int[][] edgeNos = null;
                     if (FEType == FiniteElementType.ScalarLagrange && FEOrder == 1)
@@ -1766,6 +1816,18 @@ namespace IvyFEM
                             new int[] { 4, 2 },
                             new int[] { 2, 5 },
                             new int[] { 5, 0 }
+                        };
+                    }
+                    else if (FEType == FiniteElementType.ScalarConstant && FEOrder == 0)
+                    {
+                        // 暫定: ScalarLagrange 1次
+                        isUseVertex = true;
+                        elemNodeCnt = 3;
+                        edgeNos = new int[3][]
+                        {
+                            new int[] { 0, 1 },
+                            new int[] { 1, 2 },
+                            new int[] { 2, 0 }
                         };
                     }
                     else if (FEType == FiniteElementType.ScalarBell && FEOrder == 5)
@@ -1795,8 +1857,20 @@ namespace IvyFEM
                     {
                         int iNode1 = edgeNos[eIndex][0];
                         int iNode2 = edgeNos[eIndex][1];
-                        int coId1 = triFE.NodeCoordIds[iNode1];
-                        int coId2 = triFE.NodeCoordIds[iNode2];
+                        int coId1;
+                        int coId2;
+                        if (isUseVertex)
+                        {
+                            // 暫定:
+                            coId1 = triFE.VertexCoordIds[iNode1];
+                            coId2 = triFE.VertexCoordIds[iNode2];
+                        }
+                        else
+                        {
+                            // 通常
+                            coId1 = triFE.NodeCoordIds[iNode1];
+                            coId2 = triFE.NodeCoordIds[iNode2];
+                        }
 
                         int v1 = coId1;
                         int v2 = coId2;
