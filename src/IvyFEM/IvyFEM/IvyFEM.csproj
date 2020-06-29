@@ -89,6 +89,8 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="EddyCurrent2DTDFEM.cs" />
+    <Compile Include="EddyCurrentMaterial.cs" />
     <Compile Include="Elastic3DEigenFEM.MindlinPlate.cs" />
     <Compile Include="Elastic3DEigenFEM.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DFEM.MITCStVenantThicknessStretchPlate.cs" />
