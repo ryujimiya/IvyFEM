@@ -197,4 +197,6 @@
 　　〇電磁導波路のベクトル波固有モード(full-wave eigenmode)  
 　　![異方性誘電体導波路(図面)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205184519.jpg)  
 　　![異方性誘電体導波路](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205185121.jpg)  
+　　〇渦電流(eddy current)場  
+　　![swtiched reluctance motor(SRM)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200701/20200701202349.jpg)  
 　  
