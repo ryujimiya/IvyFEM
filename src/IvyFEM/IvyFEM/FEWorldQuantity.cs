@@ -14,6 +14,8 @@ namespace IvyFEM
         public uint FEOrder { get; set; } = 1;
         public int IdBaseOffset { get; set; } = 0;
         public FiniteElementType FEType { get; set; } = FiniteElementType.ScalarLagrange;
+        public bool IsPortOnly { get; set; } = false; // ポート境界のみ節点番号を振る
+
         public IList<FieldFixedCad> ZeroFieldFixedCads { get; set; } = new List<FieldFixedCad>();
         public IList<FieldFixedCad> FieldFixedCads { get; set; } = new List<FieldFixedCad>();
         public IList<FieldFixedCad> ForceFieldFixedCads { get; set; } = new List<FieldFixedCad>();
@@ -710,11 +712,18 @@ namespace IvyFEM
             NumberPortNodes(world, zeroCoordIds);
             SetDistributedPortCoords(world);
 
-            // 三角形要素の節点ナンバリング
-            NumberTriangleNodes(world, zeroCoordIds);
-            NumberTriangleEdgeNodes(world, zeroEdgeIds);
-            // Loopに属さない線要素の節点ナンバリング
-            NumberLineNodesNotBelongToLoop(world, zeroCoordIds);
+            if (IsPortOnly)
+            {
+                NumberNodesPortOnly(world, zeroCoordIds);
+            }
+            else
+            {
+                // 三角形要素の節点ナンバリング
+                NumberTriangleNodes(world, zeroCoordIds);
+                NumberTriangleEdgeNodes(world, zeroEdgeIds);
+                // Loopに属さない線要素の節点ナンバリング
+                NumberLineNodesNotBelongToLoop(world, zeroCoordIds);
+            }
 
             // 接触解析のMaster/Slave線要素を準備する
             SetupContactMasterSlaveLineElements(world);
@@ -1597,6 +1606,10 @@ namespace IvyFEM
         // 三角形要素の節点ナンバリング
         private void NumberTriangleNodes(FEWorld world, IList<int> zeroCoordIds)
         {
+            if (IsPortOnly)
+            {
+                return;
+            }
             if (FEType == FiniteElementType.Edge)
             {
                 return;
@@ -1639,6 +1652,10 @@ namespace IvyFEM
         // 三角形要素の節点ナンバリング(辺節点）
         private void NumberTriangleEdgeNodes(FEWorld world, IList<int> zeroEdgeIds)
         {
+            if (IsPortOnly)
+            {
+                return;
+            }
             if (FEType != FiniteElementType.Edge)
             {
                 return;
@@ -1681,6 +1698,80 @@ namespace IvyFEM
 
                 string key = string.Format(meshId + "_" + iElem);
                 Mesh2TriangleFE.Add(key, feId);
+            }
+        }
+
+        // ポートのみの場合の節点番号割り振り
+        private void NumberNodesPortOnly(FEWorld world, IList<int> zeroCoordIds)
+        {
+            if (!IsPortOnly)
+            {
+                return;
+            }
+            var mesh = world.Mesh;
+
+            // ポート上の線要素の抽出と節点ナンバリング
+            uint portCnt = GetPortCount();
+
+            // ナンバリング
+            int nodeId = 0;
+            for (int portId = 0; portId < portCnt; portId++)
+            {
+                PortCondition portCondition = PortConditions[portId];
+                _NumberNodesPortOnly((uint)portId, world, mesh, portCondition, zeroCoordIds, ref nodeId);
+            }
+        }
+
+        private void _NumberNodesPortOnly(
+            uint portId, FEWorld world, IMesher mesh, PortCondition portCondition, IList<int> zeroCoordIds, ref int nodeId)
+        {
+            if (!IsPortOnly)
+            {
+                return;
+            }
+            System.Diagnostics.Debug.Assert(!portCondition.IsPeriodic);
+            IList<uint> portEIds = portCondition.EIds;
+
+            IList<uint> feIds = LineFEArray.GetObjectIds();
+            IList<int> portCoIds = new List<int>();
+            foreach (var feId in feIds)
+            {
+                LineFE lineFE = LineFEArray.GetObject(feId);
+                uint cadId;
+                {
+                    uint meshId = lineFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+                }
+                if (portEIds.Contains(cadId))
+                {
+                    int[] coIds = lineFE.NodeCoordIds;
+                    foreach (int coId in coIds)
+                    {
+                        if (portCoIds.IndexOf(coId) == -1)
+                        {
+                            portCoIds.Add(coId);
+                        }
+                    }
+                }
+            }
+
+            // 境界の方向順に節点番号を振る
+            uint eId1 = portEIds[0];
+            uint eId2 = portEIds[portEIds.Count - 1];
+            IList<int> sortedCoIds;
+            SortPortCoIds(world, mesh, eId1, eId2, portCoIds, out sortedCoIds);
+            foreach (int coId in sortedCoIds)
+            {
+                if (!Co2Node.ContainsKey(coId) &&
+                    zeroCoordIds.IndexOf(coId) == -1)
+                {
+                    Co2Node[coId] = nodeId;
+                    nodeId++;
+                }
             }
         }
 

@@ -34,8 +34,6 @@ namespace IvyFEM
         // Calc Matrix
         protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
 
-        public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
-
         // Init/Update
         public IList<uint> AdditionalValueIds { get; set; } = new List<uint>();
 

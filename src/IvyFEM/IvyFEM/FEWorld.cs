@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IvyFEM
@@ -45,6 +46,16 @@ namespace IvyFEM
         public int GetQuantityCount()
         {
             return Quantitys.Count;
+        }
+
+        public void IsPortOnly(uint quantityId, bool value)
+        {
+            Quantitys[(int)quantityId].IsPortOnly = value;
+        }
+
+        public bool IsPointOnly(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].IsPortOnly;
         }
 
         public void Clear()

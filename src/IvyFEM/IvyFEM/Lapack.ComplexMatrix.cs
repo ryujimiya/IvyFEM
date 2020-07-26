@@ -266,7 +266,7 @@ namespace IvyFEM.Lapack
             return ret;
         }
 
-        public static ComplexMatrix Scal(ComplexMatrix A, double b)
+        public static ComplexMatrix Scal(ComplexMatrix A, System.Numerics.Complex b)
         {
             System.Numerics.Complex[] buffer = A.Buffer;
             buffer = IvyFEM.Lapack.Functions.zscal(buffer, b);

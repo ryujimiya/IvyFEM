@@ -253,6 +253,18 @@ namespace IvyFEM
         }
 
         /// <summary>
+        /// S{Nx}{N}Tdx
+        /// </summary>
+        /// <returns></returns>
+        public double[,] CalcSNxN()
+        {
+            double[][,] sNuN = Interpolate.CalcSNuN();
+
+            double[,] ret = sNuN[0];
+            return ret;
+        }
+
+        /// <summary>
         /// vecN
         /// </summary>
         /// <param name="L"></param>

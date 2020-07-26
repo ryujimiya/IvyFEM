@@ -121,7 +121,20 @@ namespace IvyFEM
 
         public double[][,] CalcSNuN()
         {
-            throw new NotImplementedException();
+            double[,] sNxN = new double[2, 2]
+            {
+                { -1.0, -1.0 },
+                { 1.0, 1.0 }
+            };
+            for (int i = 0; i < sNxN.GetLength(0); i++)
+            {
+                for (int j = 0; j < sNxN.GetLength(1); j++)
+                {
+                    sNxN[i, j] *= 1.0 / 2.0;
+                }
+            }
+            double[][,] sNuN = { sNxN };
+            return sNuN;
         }
     }
 }

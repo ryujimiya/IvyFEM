@@ -43,6 +43,11 @@
 　　　　　　　　　　　　St.Venant-Kirchhoff  
 　　　　　　　　　　　　St.Venant-Kirchhoff(厚さの伸び縮み考慮)  
 　　　　　　　　　　　　Mooney-Rivlin超弾性体モデル(厚さの伸び縮み考慮)  
+　　　　　　　　　　弾性波プレート導波路(elastic plate waveguides)  
+　　　　　　　　　　　Lamb waveの固有値問題(1D)  
+　　　　　　　　　　　Lamb waveの伝達問題(2D)  
+　　　　　　　　　　　　周波数領域FEM  
+　　　　　　　　　　　　　(固有モード展開)  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -105,9 +110,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-06-29更新）**  
+　**バイナリ（2020-07-27更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.46  
+　　IvyFEM.dll version 0.0.0.47  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

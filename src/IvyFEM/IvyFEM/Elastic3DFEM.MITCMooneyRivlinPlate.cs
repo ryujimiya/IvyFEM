@@ -124,8 +124,6 @@ namespace IvyFEM
             FieldValue v2FV = World.GetFieldValue(v2ValueId);
             FieldValue lambdaFV = World.GetFieldValue(lValueId);
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 1);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
             uint dQuantityId = 0; // displacement
             uint rQuantityId = 1; // rotation
             uint lQuantityId = 2; // stretch
@@ -203,8 +201,6 @@ namespace IvyFEM
             FieldValue v2FV = World.GetFieldValue(v2ValueId);
             FieldValue lambdaFV = World.GetFieldValue(lValueId);
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 1);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
             uint dQuantityId = 0; // displacement
             uint rQuantityId = 1; // rotation
             uint lQuantityId = 2; // stretch
@@ -277,8 +273,6 @@ namespace IvyFEM
             FieldValue v2FV = World.GetFieldValue(v2ValueId);
             FieldValue lambdaFV = World.GetFieldValue(lValueId);
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 1);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
             uint dQuantityId = 0; // displacement
             uint rQuantityId = 1; // rotation
             uint lQuantityId = 2; // stretch
@@ -391,8 +385,6 @@ namespace IvyFEM
                 }
             }
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 1);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
             uint dQuantityId = 0; // displacement
             uint rQuantityId = 1; // rotation
             uint lQuantityId = 2; // stretch

@@ -123,7 +123,7 @@ namespace IvyFEM
             }
         }
 
-        private void PreSolve()
+        private void PostSolve()
         {
             // 磁束密度を求める
             CoordB = CalcMagneticDensityValues(U);
@@ -228,7 +228,7 @@ namespace IvyFEM
             Solver.DoubleSolve(out X, A, B);
             U = X;
 
-            PreSolve();
+            PostSolve();
         }
     }
 }

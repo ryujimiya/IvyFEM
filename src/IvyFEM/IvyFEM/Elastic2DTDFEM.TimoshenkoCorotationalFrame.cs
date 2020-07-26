@@ -45,9 +45,6 @@ namespace IvyFEM
                 }
             }
 
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds.Count == 2);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[0] == 0);
-            System.Diagnostics.Debug.Assert(DisplacementQuantityIds[1] == 1);
             uint d1QuantityId = 0; // displacement
             uint d2QuantityId = 1; // displacement
             uint rQuantityId = 2; // rotation

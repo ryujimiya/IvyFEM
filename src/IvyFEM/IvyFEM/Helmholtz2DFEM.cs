@@ -171,7 +171,7 @@ namespace IvyFEM
 
             SetABC(A, B);
 
-            ComplexSetFixedCadsCondtion(A, B, new int[] { nodeCnt }, new int[] { 1 });
+            ComplexSetFixedCadsCondtion(A, B);
 
             System.Numerics.Complex[] X;
             Solver.ComplexSolve(out X, A, B);

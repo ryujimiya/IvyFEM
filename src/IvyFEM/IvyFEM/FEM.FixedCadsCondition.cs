@@ -145,9 +145,17 @@ namespace IvyFEM
         }
 
         protected void ComplexSetFixedCadsCondtion(
-            IvyFEM.Linear.ComplexSparseMatrix A, System.Numerics.Complex[] B,
-            int[] nodeCnts, int[] dofs)
+            IvyFEM.Linear.ComplexSparseMatrix A, System.Numerics.Complex[] B)
         {
+            int quantityCnt = World.GetQuantityCount();
+            int[] dofs = new int[quantityCnt];
+            int[] nodeCnts = new int[quantityCnt];
+            for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
+            {
+                dofs[quantityId] = (int)World.GetDof(quantityId);
+                nodeCnts[quantityId] = (int)World.GetNodeCount(quantityId);
+            }
+
             // A21の右辺移行
             // Note:速度改善のためcolを先にしている
             for (uint colQuantityId = 0; colQuantityId < dofs.Length; colQuantityId++)

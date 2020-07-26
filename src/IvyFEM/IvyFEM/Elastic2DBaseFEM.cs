@@ -20,7 +20,6 @@ namespace IvyFEM
         protected IList<CalcElementDoubleAB> CalcElementABsForLine { get; set; } = new List<CalcElementDoubleAB>();
 
         protected int ConstraintCount { get => (HasMultipointConstraints() || HasTwoBodyContact()) ? 1 : 0; }
-        public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
 
         //Solve
         // Output

@@ -20,7 +20,6 @@ namespace IvyFEM
         protected IList<CalcElementDoubleKM> CalcElementKMsForLine { get; set; } = new List<CalcElementDoubleKM>();
 
         protected int ConstraintCount => 0;
-        public IList<uint> DisplacementQuantityIds { get; set; } = new List<uint> { 0 };
         // for non-linear
         protected double[] U { get; set; }
         protected double[] BVec { get; set; } // Newton-Raphson
@@ -119,7 +118,10 @@ namespace IvyFEM
             var B = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             CalcKM(A, B);
 
-            DoubleSetFixedCadsCondtionForEigen(A, B);
+            uint maxQuantityId = (uint)(quantityCnt - 1);
+            bool isDoubleSize = false;
+            int portId = -1; // -1:領域
+            DoubleSetFixedCadsCondtionForEigen(A, B, maxQuantityId, isDoubleSize, portId);
 
             System.Numerics.Complex[] eVals = null;
             System.Numerics.Complex[][] eVecs = null;
@@ -152,7 +154,6 @@ namespace IvyFEM
             }
 
             SortEVals(eVals, eVecs);
-            AdjustPhaseEVecs(eVecs);
 
             int modeCnt = eVals.Length;
             var freqZs = new List<System.Numerics.Complex>();
@@ -201,7 +202,7 @@ namespace IvyFEM
             }
         }
 
-        private void AdjustPhaseEVecs(System.Numerics.Complex[][] eVecs)
+        public void AdjustPhaseEVecs(System.Numerics.Complex[][] eVecs, IList<uint> dQuantityIds)
         {
             int modeCnt = eVecs.Length;
 
@@ -220,11 +221,11 @@ namespace IvyFEM
                 // uの最大値を求める
                 System.Numerics.Complex maxValue = new System.Numerics.Complex(0, 0);
                 double maxAbs = 0;
-                foreach (uint uQuantityId in DisplacementQuantityIds)
+                foreach (uint dQuantityId in dQuantityIds)
                 {
-                    int uDof = (int)World.GetDof(uQuantityId);
-                    int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
-                    int offset = GetOffset(uQuantityId);
+                    int uDof = (int)World.GetDof(dQuantityId);
+                    int uNodeCnt = (int)World.GetNodeCount(dQuantityId);
+                    int offset = GetOffset(dQuantityId);
 
                     for (int iNode = 0; iNode < uNodeCnt * uDof; iNode++)
                     {
