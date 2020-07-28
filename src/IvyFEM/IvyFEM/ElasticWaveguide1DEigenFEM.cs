@@ -680,16 +680,37 @@ namespace IvyFEM
                 //
                 power *= System.Numerics.Complex.ImaginaryOne * omega;
 
-                /*
-                System.Numerics.Complex d =
-                    System.Numerics.Complex.Sqrt(System.Numerics.Complex.Conjugate(beta) / (beta.Magnitude * power));
-                */
-                // 速度ベースで規格化にする場合
+                //------------------------------------------
+                // 速度ベースで規格化する場合
+                /*OKの式
                 System.Numerics.Complex d =
                     System.Numerics.Complex.Sqrt(
                         System.Numerics.Complex.Conjugate(beta) / (omega * beta.Magnitude * power));
+                eVec = IvyFEM.Lapack.Functions.zscal(eVec, d);
+                */
+                //------------------------------------------
+
+                //------------------------------------------
+                System.Numerics.Complex d =
+                    System.Numerics.Complex.Sqrt(
+                        System.Numerics.Complex.Conjugate(beta) /
+                        (omega * beta.Magnitude * power));
+                eVec = IvyFEM.Lapack.Functions.zscal(eVec, d * 1.0);
+                //------------------------------------------
+
+
+                //------------------------------------------
+                /*
+                // uとσで同じ規格化をする場合
+                System.Numerics.Complex d =
+                    System.Numerics.Complex.Sqrt(
+                        System.Numerics.Complex.ImaginaryOne * omega * System.Numerics.Complex.Conjugate(beta) /
+                        (beta.Magnitude * power));
 
                 eVec = IvyFEM.Lapack.Functions.zscal(eVec, d);
+                */
+                //------------------------------------------
+
                 eVecs[iMode] = eVec;
             }
         }
@@ -755,22 +776,8 @@ namespace IvyFEM
                             System.Numerics.Complex gyxi = gVec[iNodeId * sDof + syxOffset];
                             System.Numerics.Complex gyxk = gVec[kNodeId * sDof + syxOffset];
 
-                            /*
-                            // hat F
-                            Fxx[iNodeId, jNodeId] +=
-                                System.Numerics.Complex.ImaginaryOne *
-                                fxi * omega * fxk * sNkNj;
-                            Fxy[iNodeId, jNodeId] +=
-                                -1.0 * System.Numerics.Complex.ImaginaryOne *
-                                fxi * omega * gyxk * sNkNj;
-                            Fyx[iNodeId, jNodeId] +=
-                                System.Numerics.Complex.ImaginaryOne *
-                                gyxi * omega * fxk * sNkNj;
-                            Fyy[iNodeId, jNodeId] += 
-                                -1.0 * System.Numerics.Complex.ImaginaryOne *
-                                gyxi * omega * gyxk * sNkNj;
-                            */
                             // 速度ベースで規格化する場合
+                            /*OKの式
                             // hat F
                             Fxx[iNodeId, jNodeId] +=
                                 System.Numerics.Complex.ImaginaryOne *
@@ -786,6 +793,25 @@ namespace IvyFEM
                             Fyy[iNodeId, jNodeId] += 
                                 -1.0 * System.Numerics.Complex.ImaginaryOne *
                                 gyxi * (System.Numerics.Complex.ImaginaryOne * omega) * gyxk * sNkNj;
+                            */
+                            // hat F
+                            System.Numerics.Complex conjugateBeta = System.Numerics.Complex.Conjugate(beta);
+                            Fxx[iNodeId, jNodeId] +=
+                                System.Numerics.Complex.ImaginaryOne *
+                                1.0 *
+                                fxi * fxk * sNkNj;
+                            Fxy[iNodeId, jNodeId] +=
+                                -1.0 * System.Numerics.Complex.ImaginaryOne *
+                                1.0 *
+                                fxi * gyxk * sNkNj;
+                            Fyx[iNodeId, jNodeId] +=
+                                System.Numerics.Complex.ImaginaryOne *
+                                1.0 *
+                                gyxi * fxk * sNkNj;
+                            Fyy[iNodeId, jNodeId] +=
+                                -1.0 * System.Numerics.Complex.ImaginaryOne *
+                                1.0 *
+                                gyxi * gyxk * sNkNj;
                         }
                     }
                 }
@@ -814,13 +840,14 @@ namespace IvyFEM
                 System.Numerics.Complex fx = hUEVec0[iNodeId * uDof];
                 System.Numerics.Complex gyx = hSigmaEVec0[iNodeId * uDof + uyOffset];
 
-                /*
-                Ix[iNodeId] = 2.0 * fx;
-                Iy[iNodeId] = 2.0 * gyx;
-                */
                 // 速度ベースで規格化する場合
+                /*OKの式
                 Ix[iNodeId] = 2.0 * fx *
                               (1.0 / (System.Numerics.Complex.ImaginaryOne * omega));
+                Iy[iNodeId] = 2.0 * gyx;
+                */
+                System.Numerics.Complex conjugateBeta0 = System.Numerics.Complex.Conjugate(beta0);
+                Ix[iNodeId] = 2.0 * fx;
                 Iy[iNodeId] = 2.0 * gyx;
             }
         }
@@ -861,22 +888,22 @@ namespace IvyFEM
             var sNN = new IvyFEM.Lapack.ComplexMatrix(Rxx);
             sNN = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, (1.0 / (lambda + 2.0 * mu)));
 
-            //var hUx = new System.Numerics.Complex[nodeCnt];
-            //var hUy = new System.Numerics.Complex[nodeCnt];
+            var hUx = new System.Numerics.Complex[nodeCnt];
+            var hUy = new System.Numerics.Complex[nodeCnt];
             var conjugatehUx = new System.Numerics.Complex[nodeCnt];
             var conjugatehUy = new System.Numerics.Complex[nodeCnt];
-            //var hSigmaXX = new System.Numerics.Complex[nodeCnt];
-            //var hSigmaYX = new System.Numerics.Complex[nodeCnt];
+            var hSigmaXX = new System.Numerics.Complex[nodeCnt];
+            var hSigmaYX = new System.Numerics.Complex[nodeCnt];
             var conjugatehSigmaXX = new System.Numerics.Complex[nodeCnt];
             var conjugatehSigmaYX = new System.Numerics.Complex[nodeCnt];
             for (int iNodeId = 0; iNodeId < nodeCnt; iNodeId++)
             {
-                //hUx[iNodeId] = hU[iNodeId * uDof];
-                //hUy[iNodeId] = hU[iNodeId * uDof + uyOffset];
+                hUx[iNodeId] = hU[iNodeId * uDof];
+                hUy[iNodeId] = hU[iNodeId * uDof + uyOffset];
                 conjugatehUx[iNodeId] = System.Numerics.Complex.Conjugate(hU[iNodeId * uDof]);
                 conjugatehUy[iNodeId] = System.Numerics.Complex.Conjugate(hU[iNodeId * uDof + uyOffset]);
-                //hSigmaXX[iNodeId] = hSigma[iNodeId * sDof];
-                //hSigmaYX[iNodeId] = hSigma[iNodeId * sDof + syxOffset];
+                hSigmaXX[iNodeId] = hSigma[iNodeId * sDof];
+                hSigmaYX[iNodeId] = hSigma[iNodeId * sDof + syxOffset];
                 conjugatehSigmaXX[iNodeId] = System.Numerics.Complex.Conjugate(hSigma[iNodeId * sDof]);
                 conjugatehSigmaYX[iNodeId] = System.Numerics.Complex.Conjugate(hSigma[iNodeId * sDof + syxOffset]);
             }
@@ -901,31 +928,9 @@ namespace IvyFEM
                 }
 
                 System.Numerics.Complex b = 0;
-                /*
-                //-----------------------------------
-                //var work1 = sNN * hSigmaXX;
-                //System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
-                //b += omega * work2;
-                //
-                var work1 = sNN * conjugatehSigmaXX;
-                System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
-                work2 = System.Numerics.Complex.Conjugate(work2);
-                b += omega * work2;
-                //-----------------------------------
-
-                //-----------------------------------
-                //var work3 = sNN * hUy;
-                //System.Numerics.Complex work4 = IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
-                //b += omega * work4;
-                //
-                var work3 = sNN * conjugatehUy;
-                System.Numerics.Complex work4 = IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
-                b += omega * work4;
-                //-----------------------------------
-                */
                 // 速度ベースで規格化した場合
+                /*OKの式
                 //-----------------------------------
-                //
                 var work1 = sNN * conjugatehSigmaXX;
                 System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
                 work2 = 
@@ -941,14 +946,32 @@ namespace IvyFEM
                     IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
                 b += work4;
                 //-----------------------------------
+                */
+                System.Numerics.Complex conjugateBeta = System.Numerics.Complex.Conjugate(beta);
+                //-----------------------------------
+                var work1 = sNN * hSigmaXX;
+                System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
+                b += work2;
+                //-----------------------------------
+
+                //-----------------------------------
+                var work3 = sNN * hUy;
+                System.Numerics.Complex work4 =IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
+                b += work4;
+                //-----------------------------------
 
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
+                    /*OKの式
                     //---------------------
                     b = (-1.0) + NormalX * b;
                     //!!!!!!
                     // σ：方程式を解いて得られる値を使用してみる
                     //b = (-1.0) + b;
+                    //---------------------
+                    */
+                    //---------------------
+                    b = (-1.0) + NormalX * b;
                     //---------------------
                 }
                 S[iMode] = b;
