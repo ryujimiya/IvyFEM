@@ -104,8 +104,10 @@
     <Compile Include="Elastic3DFEM.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DFEMUtils.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DTDFEM.MindlinPlate.cs" />
-    <Compile Include="ElasticWaveguide1DEigenFEM.cs" />
-    <Compile Include="ElasticWaveguide2DFEM.cs" />
+    <Compile Include="ElasticSHWaveguide2DFEM.cs" />
+    <Compile Include="ElasticSHWaveguide1DEigenFEM.cs" />
+    <Compile Include="ElasticLambWaveguide1DEigenFEM.cs" />
+    <Compile Include="ElasticLambWaveguide2DFEM.cs" />
     <Compile Include="MITCMooneyRivlinPlateMaterial.cs" />
     <Compile Include="MITCStVenantThicknessStretchPlateMaterial.cs" />
     <Compile Include="MITCStVenantPlateMaterial.cs" />

@@ -110,9 +110,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-07-28更新）**  
+　**バイナリ（2020-08-02更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.48  
+　　IvyFEM.dll version 0.0.0.49  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
