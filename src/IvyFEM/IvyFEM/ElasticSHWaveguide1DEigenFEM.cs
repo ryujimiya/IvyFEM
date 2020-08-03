@@ -127,6 +127,20 @@ namespace IvyFEM
                 sigmaZXVec[i] /= lineLenSum;
             }
 
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // 規格化
+            for (int i = 0; i < nodeCnt; i++)
+            {
+                System.Numerics.Complex sigmaZX = sigmaZXVec[i];
+                //!!!!!!!!!!!!!!!!!!
+                //------------------
+                sigmaZX *= beta.Magnitude;
+                //------------------
+
+                sigmaZXVec[i] = sigmaZX;
+            }
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             // hatσzx = jσzxに変換
             for (int i = 0; i < nodeCnt; i++)
             {
@@ -534,9 +548,9 @@ namespace IvyFEM
                 //------------------------------------------
                 System.Numerics.Complex d =
                     System.Numerics.Complex.Sqrt(
-                        System.Numerics.Complex.Conjugate(beta) /
-                        (omega * beta.Magnitude * power));
-                eVec = IvyFEM.Lapack.Functions.zscal(eVec, d * 1.0);
+                        omega * omega * omega * System.Numerics.Complex.Conjugate(beta) /
+                        (beta.Magnitude * beta.Magnitude * power));
+                eVec = IvyFEM.Lapack.Functions.zscal(eVec, (1.0 / omega) * d);
                 //------------------------------------------
 
                 eVecs[iMode] = eVec;
@@ -595,11 +609,13 @@ namespace IvyFEM
                             System.Numerics.Complex gzxk = gVec[kNodeId];
 
                             // 速度ベースで規格化する場合
+                            //------------------------------------------
                             // hat F
                             Fzz[iNodeId, jNodeId] +=
                                 (1.0 / System.Numerics.Complex.ImaginaryOne) *
-                                1.0 *
+                                (1.0 / omega) *
                                 gzxi * gzxk * sNkNj;
+                            //------------------------------------------
                         }
                     }
                 }
@@ -623,7 +639,9 @@ namespace IvyFEM
                 System.Numerics.Complex gzx = hSigmaEVec0[iNodeId];
 
                 // 速度ベースで規格化する場合
+                //------------------------------------------
                 Iz[iNodeId] = (1.0 / System.Numerics.Complex.ImaginaryOne) * 2.0 * gzx;
+                //------------------------------------------
             }
         }
 
@@ -690,19 +708,16 @@ namespace IvyFEM
                 // 速度ベースで規格化した場合
                 //-----------------------------------
                 var work1 = sNN * _uz;
-                System.Numerics.Complex work2 =IvyFEM.Lapack.Functions.zdotu(gzxVec, work1);
+                System.Numerics.Complex work2 =(1.0 / omega) * IvyFEM.Lapack.Functions.zdotu(gzxVec, work1);
                 b += work2;
                 //-----------------------------------
 
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
                     //---------------------
-                    //b = (-1.0) + NormalX * b; // NG
-                    //b = (-1.0) + b; // OK?
-                    //b = (-1.0) - b; // NG
-                    //---------------------
-                    //OK?
+                    //b = (-1.0) + NormalX * b;
                     b = (-1.0) + b;
+                    //---------------------
                 }
                 S[iMode] = b;
             }

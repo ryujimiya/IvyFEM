@@ -48,6 +48,12 @@
 　　　　　　　　　　　Lamb waveの伝達問題(2D)  
 　　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　　(固有モード展開)  
+　　　　　　　　　　　SH waveの固有値問題(1D)  
+　　　　　　　　　　　SH waveの伝達問題(2D)  
+　　　　　　　　　　　　周波数領域FEM  
+　　　　　　　　　　　　　(固有モード展開)  
+　　　　　　　　　　　  
+　　　　　　　　　　　※SH wave：Shear Horizontal wave  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
 　　　　　　　　　　　標準  
@@ -110,9 +116,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-08-02更新）**  
+　**バイナリ（2020-08-03更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.49  
+　　IvyFEM.dll version 0.0.0.50  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -157,6 +163,9 @@
 　　フレーム要素  
 　　![Frame-Fig](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200322/20200322201608.jpg)  
 　　![Frame](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200412/20200412153223.jpg)  
+　　〇弾性波プレート導波路の伝達問題  
+　　Lamb wave  
+　　![Elastic Lamb Waveguide](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200802/20200802160049.jpg)  
 　　〇Poissonの方程式  
 　　![Poisson](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190408/20190408221503.jpg)  
 　　〇Helmholtzの方程式  
