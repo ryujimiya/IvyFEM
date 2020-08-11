@@ -16,6 +16,8 @@ namespace IvyFEM
         public IvyFEM.Lapack.DoubleMatrix Rzz { get; protected set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Tzz { get; protected set; } = null;
         public IvyFEM.Lapack.DoubleMatrix Mzz { get; protected set; } = null;
+        //
+        public IvyFEM.Lapack.DoubleMatrix SNN { get; protected set; } = null;
 
         // Solve
         // Input
@@ -159,6 +161,8 @@ namespace IvyFEM
             Rzz = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             Tzz = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             Mzz = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
+            //
+            SNN = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
 
             foreach (uint feId in feIds)
             {
@@ -199,10 +203,13 @@ namespace IvyFEM
                         double rzzVal = mu * sNN[row, col];
                         double tzzVal = mu * sNyNy[row, col];
                         double mzzVal = rho * sNN[row, col];
+                        double sNNVal = sNN[row, col];
 
                         Rzz[rowNodeId, colNodeId] += rzzVal;
                         Tzz[rowNodeId, colNodeId] += tzzVal;
                         Mzz[rowNodeId, colNodeId] += mzzVal;
+                        //
+                        SNN[rowNodeId, colNodeId] += sNNVal;
                     }
                 }
             }
@@ -529,8 +536,7 @@ namespace IvyFEM
             {
                 var beta = eVals[iMode];
 
-                var sNN = new IvyFEM.Lapack.ComplexMatrix(Rzz);
-                sNN = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, 1.0 / mu);
+                var sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
 
                 var eVec = eVecs[iMode];
                 int nodeCnt = eVec.Length;
@@ -583,8 +589,7 @@ namespace IvyFEM
             B = new Lapack.ComplexMatrix(nodeCnt, nodeCnt);
             Fzz = new Lapack.ComplexMatrix(nodeCnt, nodeCnt);
 
-            var sNN = new IvyFEM.Lapack.ComplexMatrix(Rzz);
-            sNN = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, (1.0 / mu));
+            var sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
 
             //
             B = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, 1.0);
@@ -674,8 +679,7 @@ namespace IvyFEM
 
             System.Numerics.Complex[] S = new System.Numerics.Complex[modeCnt];
 
-            var sNN = new IvyFEM.Lapack.ComplexMatrix(Rzz);
-            sNN = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, (1.0 / mu));
+            var sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
 
             var _uz = new System.Numerics.Complex[nodeCnt];
             var _conjugateUz = new System.Numerics.Complex[nodeCnt];
@@ -712,10 +716,12 @@ namespace IvyFEM
                 b += work2;
                 //-----------------------------------
 
+                //!!!!!!!!!!!!!!
+                b = (-1.0 * NormalX) * b;
+                //!!!!!!!!!!!!!!
                 if (incidentModeId != -1 && incidentModeId == iMode)
                 {
                     //---------------------
-                    //b = (-1.0) + NormalX * b;
                     b = (-1.0) + b;
                     //---------------------
                 }

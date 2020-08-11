@@ -31,7 +31,7 @@ namespace IvyFEM
 
         public ElasticBaseMaterial()
         {
-            int len = 6;
+            int len = 5;
             Values = new double[len];
 
             int intLen = 1;

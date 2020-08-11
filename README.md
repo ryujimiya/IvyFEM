@@ -48,6 +48,7 @@
 　　　　　　　　　　　Lamb waveの伝達問題(2D)  
 　　　　　　　　　　　　周波数領域FEM  
 　　　　　　　　　　　　　(固有モード展開)  
+　　　　　　　　　　　　　(PML: Perfectly Matched Layers,完全整合層)  
 　　　　　　　　　　　SH waveの固有値問題(1D)  
 　　　　　　　　　　　SH waveの伝達問題(2D)  
 　　　　　　　　　　　　周波数領域FEM  
@@ -116,9 +117,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-08-03更新）**  
+　**バイナリ（2020-08-11更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.50  
+　　IvyFEM.dll version 0.0.0.51  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
