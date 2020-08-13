@@ -1069,12 +1069,6 @@ namespace IvyFEM
             double vp = Math.Sqrt((lambda + 2.0 * mu) / rho);
             double vs = Math.Sqrt(mu / rho);
             //-------------------------------------
-            /*
-            //-------------------------------------
-            double vp = (beta0.Real / omega) * ((lambda + 2.0 * mu) / rho);
-            double vs = (beta0.Real / omega) * (mu / rho);
-            //-------------------------------------
-            */
 
             // P-S waveのABC
             //------------------------------------------------------------------
@@ -1083,9 +1077,9 @@ namespace IvyFEM
                 -1.0 * System.Numerics.Complex.ImaginaryOne * omega * rho * vp;
             Bxx = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, cxx);
             //
-            Bxy = new IvyFEM.Lapack.ComplexMatrix(sNNy.RowLength, sNNy.ColumnLength);
+            Bxy = new IvyFEM.Lapack.ComplexMatrix(sNNy.RowLength, sNNy.ColumnLength); // [0]
             //
-            Byx = new IvyFEM.Lapack.ComplexMatrix(sNNy.RowLength, sNNy.ColumnLength);
+            Byx = new IvyFEM.Lapack.ComplexMatrix(sNNy.RowLength, sNNy.ColumnLength); // [0]
             //
             System.Numerics.Complex cyy =
                 -1.0 * System.Numerics.Complex.ImaginaryOne * omega * rho * vs;
@@ -1093,6 +1087,8 @@ namespace IvyFEM
             //------------------------------------------------------------------
         }
 
+        /////////////////////////////////////////////////////////////////////////////////
+        // ABC / PML 共用
         public System.Numerics.Complex CalcModeAmp(
             double omega,
             System.Numerics.Complex beta,

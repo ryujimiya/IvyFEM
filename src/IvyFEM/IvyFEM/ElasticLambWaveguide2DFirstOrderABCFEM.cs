@@ -10,11 +10,15 @@ namespace IvyFEM
     {
         //---------------------------------
         // ※ポートの設定順序
-        // ポート境界(=ABC境界)、励振源の順
+        // ABC境界、参照(観測)面、励振源の順
         //---------------------------------
 
         public uint QuantityId { get; private set; } = 0;
 
+        /// <summary>
+        /// 観測点ポート数
+        /// </summary>
+        public int RefPortCount { get; set; } = 0;
         /// <summary>
         /// [A]
         /// </summary>
@@ -169,7 +173,7 @@ namespace IvyFEM
             }
 
             //////////////////////////////////////////////////////
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1; // 励振源を除く
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             var Bxxs = new List<IvyFEM.Lapack.ComplexMatrix>();
             var Bxys = new List<IvyFEM.Lapack.ComplexMatrix>();
             var Byxs = new List<IvyFEM.Lapack.ComplexMatrix>();
@@ -180,9 +184,9 @@ namespace IvyFEM
             SrcHFs = new List<System.Numerics.Complex[]>();
             SrcHGs = new List<System.Numerics.Complex[]>();
 
-            EigenFEMs = new ElasticLambWaveguide1DEigenFEM[(portCnt + 1)];
+            EigenFEMs = new ElasticLambWaveguide1DEigenFEM[(portCnt + RefPortCount + 1)];
             var portConditions = World.GetPortConditions(QuantityId);
-            for (uint portId = 0; portId < (portCnt + 1); portId++)
+            for (uint portId = 0; portId < (portCnt + RefPortCount + 1); portId++)
             {
                 uint portNodeCnt = World.GetPortNodeCount(QuantityId, portId);
                 double normalX = 1.0;
@@ -247,7 +251,7 @@ namespace IvyFEM
 
             ////////////////////////////////////////////////////////////////
             // 吸収境界条件
-            // 参照面を除くポート
+            // ABC境界(参照面、励振面を除くポート)
             for (uint portId = 0; portId < portCnt; portId++)
             {
                 uint portNodeCnt = World.GetPortNodeCount(QuantityId, portId);
@@ -286,13 +290,13 @@ namespace IvyFEM
             int nodeCnt = A.RowLength / uDof;
             B = new System.Numerics.Complex[nodeCnt * uDof];
 
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1;  // 参照面、励振源分引く
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
 
             //--------------------------------------------------------------
             // 励振源
             //--------------------------------------------------------------
             {
-                int portId = portCnt; // ポートリストの最後の要素が励振境界
+                int portId = portCnt + RefPortCount; // ポートリストの最後の要素が励振境界
                 var sNN = SNNs[portId];
                 int nodeCntB = sNN.RowLength;
                 System.Numerics.Complex srcBetaX = SrcBetaXs[portId];
@@ -334,7 +338,7 @@ namespace IvyFEM
 
         private System.Numerics.Complex[][] CalcS(double omega)
         {
-            int portCnt = (int)World.GetPortCount(QuantityId) - 1; // 励振源を除く
+            int portCnt = (int)World.GetPortCount(QuantityId) - RefPortCount - 1; // 参照面と励振源を除く
             int incidentPortId = World.GetIncidentPortId(QuantityId);
             int excitationPortId = portCnt;
 
@@ -374,9 +378,9 @@ namespace IvyFEM
             // Sマトリクスの計算
             var S = new System.Numerics.Complex[portCnt][];
             
-            for (int refIndex = 0; refIndex < portCnt; refIndex++)
+            for (int refIndex = 0; refIndex < RefPortCount; refIndex++)
             {
-                int portId = refIndex; //!!!!!!!!!この実装では参照面はポート境界と一致
+                int portId = refIndex + portCnt;
                 int nodeCntB = (int)World.GetPortNodeCount(QuantityId, (uint)portId);
                 System.Numerics.Complex[] portHU;
                 System.Numerics.Complex[] portHSigma;
