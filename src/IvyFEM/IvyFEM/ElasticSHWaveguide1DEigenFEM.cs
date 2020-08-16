@@ -136,7 +136,7 @@ namespace IvyFEM
                 System.Numerics.Complex sigmaZX = sigmaZXVec[i];
                 //!!!!!!!!!!!!!!!!!!
                 //------------------
-                sigmaZX *= beta.Magnitude;
+                sigmaZX *= omega;
                 //------------------
 
                 sigmaZXVec[i] = sigmaZX;
@@ -521,9 +521,13 @@ namespace IvyFEM
             double omega, System.Numerics.Complex[] eVals, System.Numerics.Complex[][] eVecs)
         {
             // 一様媒質とする
-            var maIds = World.GetMaterialIds();
-            System.Diagnostics.Debug.Assert(maIds.Count == 1);
-            uint maId0 = maIds[0];
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
             var ma0 = World.GetMaterial(maId0);
             System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
             var ma = ma0 as LinearElasticMaterial;
@@ -554,8 +558,8 @@ namespace IvyFEM
                 //------------------------------------------
                 System.Numerics.Complex d =
                     System.Numerics.Complex.Sqrt(
-                        omega * omega * omega * System.Numerics.Complex.Conjugate(beta) /
-                        (beta.Magnitude * beta.Magnitude * power));
+                        omega * omega * System.Numerics.Complex.Conjugate(beta) /
+                        (beta.Magnitude * power));
                 eVec = IvyFEM.Lapack.Functions.zscal(eVec, (1.0 / omega) * d);
                 //------------------------------------------
 
@@ -572,9 +576,13 @@ namespace IvyFEM
             out IvyFEM.Lapack.ComplexMatrix Fzz)
         {
             // 一様媒質とする
-            var maIds = World.GetMaterialIds();
-            System.Diagnostics.Debug.Assert(maIds.Count == 1);
-            uint maId0 = maIds[0];
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
             var ma0 = World.GetMaterial(maId0);
             System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
             var ma = ma0 as LinearElasticMaterial;
@@ -661,9 +669,13 @@ namespace IvyFEM
         {
 
             // 一様媒質とする
-            var maIds = World.GetMaterialIds();
-            System.Diagnostics.Debug.Assert(maIds.Count == 1);
-            uint maId0 = maIds[0];
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
             var ma0 = World.GetMaterial(maId0);
             System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
             var ma = ma0 as LinearElasticMaterial;
@@ -729,6 +741,153 @@ namespace IvyFEM
             }
 
             return S;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // for FirstOrderABC
+        public void CalcBoundaryMatrixForFirstOrderABC(
+            double omega,
+            System.Numerics.Complex beta0,
+            out IvyFEM.Lapack.ComplexMatrix Bzz,
+            out IvyFEM.Lapack.ComplexMatrix sNN)
+        {
+            System.Diagnostics.Debug.Assert(Math.Abs(beta0.Imaginary) < 1.0e-10); // 伝搬モード
+
+            // 一様媒質とする
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
+            var ma0 = World.GetMaterial(maId0);
+            System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
+            var ma = ma0 as LinearElasticMaterial;
+            double rho = ma.MassDensity;
+            double lambda = ma.LameLambda;
+            double mu = ma.LameMu;
+
+            sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
+
+
+            // 波の速度
+            //-------------------------------------
+            //double vp = Math.Sqrt((lambda + 2.0 * mu) / rho);
+            double vs = Math.Sqrt(mu / rho);
+            //-------------------------------------
+
+            // S waveのABC
+            //------------------------------------------------------------------
+            //
+            System.Numerics.Complex czz =
+                -1.0 * System.Numerics.Complex.ImaginaryOne * omega * rho * vs;
+            Bzz = IvyFEM.Lapack.ComplexMatrix.Scal(sNN, czz);
+            //------------------------------------------------------------------
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // ABC / PML 共用
+        public System.Numerics.Complex CalcModeAmp(
+            double omega,
+            System.Numerics.Complex beta,
+            System.Numerics.Complex[] uEVec,
+            System.Numerics.Complex[] hSigmaZXEVec,
+            System.Numerics.Complex[] u,
+            System.Numerics.Complex[] hSigmaZX)
+        {
+
+            // 一様媒質とする
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
+            var ma0 = World.GetMaterial(maId0);
+            System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
+            var ma = ma0 as LinearElasticMaterial;
+            double rho = ma.MassDensity;
+            double lambda = ma.LameLambda;
+            double mu = ma.LameMu;
+
+            int nodeCnt = uEVec.Length;
+            System.Diagnostics.Debug.Assert(u.Length == uEVec.Length);
+            System.Diagnostics.Debug.Assert(hSigmaZX.Length == hSigmaZXEVec.Length);
+
+            System.Numerics.Complex amp = 0.0;
+
+            var sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
+
+            var _uz = new System.Numerics.Complex[nodeCnt];
+            var _conjugateUz = new System.Numerics.Complex[nodeCnt];
+            var _hSigmaZX = new System.Numerics.Complex[nodeCnt];
+            var _conjugatehSigmaZX = new System.Numerics.Complex[nodeCnt];
+            for (int iNodeId = 0; iNodeId < nodeCnt; iNodeId++)
+            {
+                _uz[iNodeId] = u[iNodeId];
+                _conjugateUz[iNodeId] = System.Numerics.Complex.Conjugate(u[iNodeId]);
+                _hSigmaZX[iNodeId] = hSigmaZX[iNodeId];
+                _conjugatehSigmaZX[iNodeId] = System.Numerics.Complex.Conjugate(hSigmaZX[iNodeId]);
+            }
+
+            {
+                var fVec = uEVec;
+                var gVec = hSigmaZXEVec;
+
+                var fzVec = new System.Numerics.Complex[nodeCnt];
+                var gzxVec = new System.Numerics.Complex[nodeCnt];
+
+                for (int iNodeId = 0; iNodeId < nodeCnt; iNodeId++)
+                {
+                    fzVec[iNodeId] = fVec[iNodeId];
+                    gzxVec[iNodeId] = gVec[iNodeId];
+                }
+
+                System.Numerics.Complex b = 0;
+                // 速度ベースで規格化した場合
+                //-----------------------------------
+                var work1 = sNN * _uz;
+                System.Numerics.Complex work2 = (1.0 / omega) * IvyFEM.Lapack.Functions.zdotu(gzxVec, work1);
+                b += work2;
+                //-----------------------------------
+
+                /*問題による?ので呼び出し側でやる
+                //------------------------
+                amp = NormalX * b;
+                //------------------------
+                */
+                //OK
+                //------------------------
+                amp = b;
+                //------------------------
+            }
+
+            return amp;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////
+        // PML
+        public void CalcBoundaryMatrixForPML(
+            out IvyFEM.Lapack.ComplexMatrix sNN)
+        {
+            // 一様媒質とする
+            uint maId0;
+            {
+                IList<uint> feIds = World.GetPortLineFEIds(QuantityId, PortId);
+                uint feId0 = feIds[0];
+                LineFE lineFE = World.GetLineFE(QuantityId, feId0);
+                maId0 = lineFE.MaterialId;
+            }
+            var ma0 = World.GetMaterial(maId0);
+            System.Diagnostics.Debug.Assert(ma0 is LinearElasticMaterial);
+            var ma = ma0 as LinearElasticMaterial;
+            double rho = ma.MassDensity;
+            double lambda = ma.LameLambda;
+            double mu = ma.LameMu;
+
+            sNN = new IvyFEM.Lapack.ComplexMatrix(SNN);
         }
     }
 }

@@ -155,16 +155,9 @@ namespace IvyFEM
                 System.Numerics.Complex sigmaXX = sigmaVec[i * sDof];
                 System.Numerics.Complex sigmaYX = sigmaVec[i * sDof + syxOffset];
                 //!!!!!!!!!!!!!!!!!!
-                /*
                 //------------------
-                // OKの式
-                sigmaXX *= 1.0;
-                sigmaYX *= 1.0;
-                //------------------
-                */
-                //------------------
-                sigmaXX *= beta.Magnitude;
-                sigmaYX *= beta.Magnitude;
+                sigmaXX *= omega;
+                sigmaYX *= omega;
                 //------------------
 
                 sigmaVec[i * sDof] = sigmaXX;
@@ -715,34 +708,12 @@ namespace IvyFEM
 
                 //------------------------------------------
                 // 速度ベースで規格化する場合
-                /*
-                //------------------------------------------
-                // OKの式
-                System.Numerics.Complex d =
-                    System.Numerics.Complex.Sqrt(
-                        Math.Sqrt(beta.Magnitude) * System.Numerics.Complex.Conjugate(beta) /
-                        (omega * beta.Magnitude * power));
-                eVec = IvyFEM.Lapack.Functions.zscal(eVec, 1.0 * d);
-                //------------------------------------------
-                */
                 //------------------------------------------
                 System.Numerics.Complex d =
                     System.Numerics.Complex.Sqrt(
-                        omega * omega * omega * System.Numerics.Complex.Conjugate(beta) /
-                        (beta.Magnitude * beta.Magnitude * power));
-                eVec = IvyFEM.Lapack.Functions.zscal(eVec, (1.0 / omega) * d);
-                //------------------------------------------
-
-                //------------------------------------------
-                /*
-                // uとσで同じ規格化をする場合
-                System.Numerics.Complex d =
-                    System.Numerics.Complex.Sqrt(
-                        System.Numerics.Complex.ImaginaryOne * omega * System.Numerics.Complex.Conjugate(beta) /
+                        omega * omega * System.Numerics.Complex.Conjugate(beta) /
                         (beta.Magnitude * power));
-
-                eVec = IvyFEM.Lapack.Functions.zscal(eVec, d);
-                */
+                eVec = IvyFEM.Lapack.Functions.zscal(eVec, (1.0 / omega) * d);
                 //------------------------------------------
 
                 eVecs[iMode] = eVec;
@@ -814,27 +785,6 @@ namespace IvyFEM
                             System.Numerics.Complex gyxk = gVec[kNodeId * sDof + syxOffset];
 
                             // 速度ベースで規格化する場合
-                            /* OKの式
-                            //--------------------------------------------
-                            // hat F
-                            Fxx[iNodeId, jNodeId] +=
-                                System.Numerics.Complex.ImaginaryOne *
-                                1.0 *
-                                fxi * fxk * sNkNj;
-                            Fxy[iNodeId, jNodeId] +=
-                                -1.0 * System.Numerics.Complex.ImaginaryOne *
-                                1.0 *
-                                fxi * gyxk * sNkNj;
-                            Fyx[iNodeId, jNodeId] +=
-                                System.Numerics.Complex.ImaginaryOne *
-                                1.0 *
-                                gyxi * fxk * sNkNj;
-                            Fyy[iNodeId, jNodeId] +=
-                                -1.0 * System.Numerics.Complex.ImaginaryOne *
-                                1.0 *
-                                gyxi * gyxk * sNkNj;
-                            //--------------------------------------------
-                            */
                             //--------------------------------------------
                             // hat F
                             Fxx[iNodeId, jNodeId] +=
@@ -883,13 +833,6 @@ namespace IvyFEM
                 System.Numerics.Complex gyx = hSigmaEVec0[iNodeId * sDof + syxOffset];
 
                 // 速度ベースで規格化する場合
-                /*
-                // OKの式
-                //------------------------------
-                Ix[iNodeId] = 2.0 * fx;
-                Iy[iNodeId] = 2.0 * gyx;
-                //------------------------------
-                */
                 //------------------------------
                 Ix[iNodeId] = 2.0 * fx;
                 Iy[iNodeId] = 2.0 * gyx;
@@ -977,22 +920,6 @@ namespace IvyFEM
 
                 System.Numerics.Complex b = 0;
                 // 速度ベースで規格化した場合
-                /*OKの式
-                /////////////////////
-                //-----------------------------------
-                var work1 = sNN * hSigmaXX;
-                System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
-                b += work2;
-                //-----------------------------------
-
-                //-----------------------------------
-                var work3 = sNN * hUy;
-                System.Numerics.Complex work4 =IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
-                b += work4;
-                //-----------------------------------
-                /////////////////////
-                */
-
                 /////////////////////
                 //-----------------------------------
                 var work1 = sNN * hSigmaXX;
@@ -1164,38 +1091,6 @@ namespace IvyFEM
 
                 System.Numerics.Complex b = 0;
                 // 速度ベースで規格化した場合
-                /*
-                // 元の式
-                /////////////////////
-                //-----------------------------------
-                var work1 = sNN * hSigmaXX;
-                System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
-                b += work2;
-                //-----------------------------------
-
-                //-----------------------------------
-                var work3 = sNN * hUy;
-                System.Numerics.Complex work4 = (1.0 / omega) * IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
-                b += work4;
-                //-----------------------------------
-                /////////////////////
-                */
-                /*
-                //hUyにconjugateを用いる
-                /////////////////////
-                //-----------------------------------
-                var work1 = sNN * hSigmaXX;
-                System.Numerics.Complex work2 = IvyFEM.Lapack.Functions.zdotu(fxVec, work1);
-                b += work2;
-                //-----------------------------------
-
-                //-----------------------------------
-                var work3 = sNN * conjugatehUy;
-                System.Numerics.Complex work4 = (1.0 / omega) * IvyFEM.Lapack.Functions.zdotu(gyxVec, work3);
-                b += work4;
-                //-----------------------------------
-                /////////////////////
-                */
                 /////////////////////
                 //-----------------------------------
                 var work1 = sNN * hSigmaXX;
