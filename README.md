@@ -50,6 +50,8 @@
 　　　　　　　　　　　　　(固有モード展開)  
 　　　　　　　　　　　　　(PML: Perfectly Matched Layers,完全整合層)  
 　　　　　　　　　　　　　(ABC: Absorbing Boundary Conditions,吸収境界条件)  
+　　　　　　　　　　　　時間領域FEM  
+　　　　　　　　　　　　　(PML: Perfectly Matched Layers,完全整合層)  
 　　　　　　　　　　　SH waveの固有値問題(1D)  
 　　　　　　　　　　　SH waveの伝達問題(2D)  
 　　　　　　　　　　　　周波数領域FEM  
@@ -120,9 +122,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-08-16更新）**  
+　**バイナリ（2020-09-07更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.53  
+　　IvyFEM.dll version 0.0.0.54  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

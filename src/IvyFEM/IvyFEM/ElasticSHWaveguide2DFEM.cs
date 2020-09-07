@@ -59,7 +59,9 @@ namespace IvyFEM
             System.Diagnostics.Debug.WriteLine("SetBoundaryCondition t = " + (System.Environment.TickCount - t));
             EigenFEMs = eigenFEMs;
 
-            //!!!!!!!!!!!
+            //--------------------------------------------------------------
+            // 固定境界条件
+            //--------------------------------------------------------------
             ComplexSetFixedCadsCondtion(A, B);
 
             t = System.Environment.TickCount;

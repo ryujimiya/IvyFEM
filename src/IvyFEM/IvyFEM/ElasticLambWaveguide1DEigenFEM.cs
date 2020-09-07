@@ -327,6 +327,9 @@ namespace IvyFEM
                 }
             }
 
+            //---------------------------------------------------
+            // 固定境界条件
+            //---------------------------------------------------
             uint maxQuantityId = QuantityId;
             bool isDoubleSize = true; // 2倍のサイズ
             int portId = (int)PortId; // ポート番号指定
@@ -914,8 +917,8 @@ namespace IvyFEM
                 {
                     fxVec[iNodeId] = fVec[iNodeId * uDof];
                     fyVec[iNodeId] = fVec[iNodeId * uDof + uyOffset];
-                    gxxVec[iNodeId] = gVec[iNodeId * uDof];
-                    gyxVec[iNodeId] = gVec[iNodeId * uDof + syxOffset];
+                    gxxVec[iNodeId] = gVec[iNodeId * sDof];
+                    gyxVec[iNodeId] = gVec[iNodeId * sDof + syxOffset];
                 }
 
                 System.Numerics.Complex b = 0;
@@ -1085,8 +1088,8 @@ namespace IvyFEM
                 {
                     fxVec[iNodeId] = fVec[iNodeId * uDof];
                     fyVec[iNodeId] = fVec[iNodeId * uDof + uyOffset];
-                    gxxVec[iNodeId] = gVec[iNodeId * uDof];
-                    gyxVec[iNodeId] = gVec[iNodeId * uDof + syxOffset];
+                    gxxVec[iNodeId] = gVec[iNodeId * sDof];
+                    gyxVec[iNodeId] = gVec[iNodeId * sDof + syxOffset];
                 }
 
                 System.Numerics.Complex b = 0;

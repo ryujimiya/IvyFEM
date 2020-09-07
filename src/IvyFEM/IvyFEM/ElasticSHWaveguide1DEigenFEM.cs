@@ -247,6 +247,9 @@ namespace IvyFEM
                 }
             }
 
+            //---------------------------------------------------
+            // 固定境界条件
+            //---------------------------------------------------
             uint maxQuantityId = QuantityId;
             bool isDoubleSize = false;
             int portId = (int)PortId; // ポート番号指定

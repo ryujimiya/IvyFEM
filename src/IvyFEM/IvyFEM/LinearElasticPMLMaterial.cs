@@ -176,5 +176,103 @@ namespace IvyFEM
                 pos, origin,
                 out AY, out DY);
         }
+
+        // Time Domain
+        private void CalcScalingDampingFactorForTD(
+            double thickness,
+            double rho, double lambda, double mu,
+            double pos, double origin,
+            double dt,
+            out double A, out double D,
+            out double c1PXi, out double c2PXi,
+            out double c1WXi)
+        {
+            CalcScalingDampingFactor(
+                thickness,
+                rho, lambda, mu,
+                pos, origin,
+                out A, out D);
+
+            // c1ψξ,c2ψξ
+            c1PXi = 1.0 - Math.Exp(-1.0 * D * dt);
+            c2PXi = Math.Exp(-1.0 * D * dt);
+
+            // c1wξ
+            c1WXi = D * dt;
+        }
+
+        // Time Domain
+        public void CalcScalingDampingFactorXForTD(
+            OpenTK.Vector2d pt,
+            double dt,
+            out double AX, out double DX,
+            out double c1PX, out double c2PX,
+            out double c1WX)
+        {
+            AX = 1.0;
+            DX = 0.0;
+            c1PX = 0.0;
+            c2PX = 0.0;
+            c1WX = 0.0;
+            if (!IsXDirection())
+            {
+                return;
+            }
+
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
+            double thickness = XThickness;
+            double rho = MassDensity;
+            double lambda = LameLambda;
+            double mu = LameMu;
+            double pos = pt.X;
+            double origin = pmlOriginCoord[0]; // X
+            CalcScalingDampingFactorForTD(
+                thickness,
+                rho, lambda, mu,
+                pos, origin,
+                dt,
+                out AX, out DX,
+                out c1PX, out c2PX,
+                out c1WX);
+        }
+
+        // Time Domain
+        public void CalcScalingDampingFactorYForTD(
+            OpenTK.Vector2d pt,
+            double dt,
+            out double AY, out double DY,
+            out double c1PY, out double c2PY,
+            out double c1WY)
+        {
+            AY = 1.0;
+            DY = 0.0;
+            c1PY = 0.0;
+            c2PY = 0.0;
+            c1WY = 0.0;
+            if (!IsYDirection())
+            {
+                return;
+            }
+
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY };
+            double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
+            double thickness = YThickness;
+            double rho = MassDensity;
+            double lambda = LameLambda;
+            double mu = LameMu;
+            double pos = pt.Y;
+            double origin = pmlOriginCoord[1]; // Y
+            CalcScalingDampingFactorForTD(
+                thickness,
+                rho, lambda, mu,
+                pos, origin,
+                dt,
+                out AY, out DY,
+                out c1PY, out c2PY,
+                out c1WY);
+        }
     }
 }

@@ -99,6 +99,9 @@ namespace IvyFEM
             var B = new IvyFEM.Lapack.DoubleMatrix(nodeCnt, nodeCnt);
             CalcKM(A, B);
 
+            //---------------------------------------------------
+            // 固定境界条件
+            //---------------------------------------------------
             uint maxQuantityId = (uint)(quantityCnt - 1);
             bool isDoubleSize = false;
             int portId = -1; // -1:領域

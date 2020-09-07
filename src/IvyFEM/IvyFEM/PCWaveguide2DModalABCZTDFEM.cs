@@ -30,7 +30,7 @@ namespace IvyFEM
         /// <summary>
         /// 時間ステップ幅
         /// </summary>
-        public double TimeDelta { get; set; } = 0.0;
+        public double TimeStep { get; set; } = 0.0;
         /// <summary>
         /// ガウシアンパルス？
         /// true: ガウシアンパルス
@@ -203,8 +203,8 @@ namespace IvyFEM
             // 電界
             //--------------------------------------------------------------
             // 以下TimeIndexに対する計算
-            double time = TimeIndex * TimeDelta;
-            double dt = TimeDelta;
+            double time = TimeIndex * TimeStep;
+            double dt = TimeStep;
             EzZPrev.CopyTo(EzZPrev2, 0);
             EzZ.CopyTo(EzZPrev, 0);
             EzZ = null;
@@ -386,7 +386,7 @@ namespace IvyFEM
             // 全体係数行列の作成
             //------------------------------------------------------
             _A = new IvyFEM.Linear.ComplexSparseMatrix(nodeCnt, nodeCnt);
-            double dt = TimeDelta;
+            double dt = TimeStep;
             for (int rowNodeId = 0; rowNodeId < nodeCnt; rowNodeId++)
             {
                 for (int colNodeId = 0; colNodeId < nodeCnt; colNodeId++)
@@ -526,7 +526,7 @@ namespace IvyFEM
 
         private void CalcB()
         {
-            double dt = TimeDelta;
+            double dt = TimeStep;
             // 周波数
             double srcFreq = SrcFrequency;
             // 角周波数
@@ -750,7 +750,7 @@ namespace IvyFEM
             }
 
             int dataCnt = datasRefs[0].Length;
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             double[] times = new double[dataCnt];
             for (int i = 0; i < dataCnt; i++)
@@ -832,7 +832,7 @@ namespace IvyFEM
             }
 
             int dataCnt = datasRefs[0][0].Length;
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             double[] times = new double[dataCnt];
             for (int i = 0; i < dataCnt; i++)

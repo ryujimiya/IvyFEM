@@ -30,7 +30,7 @@ namespace IvyFEM
         /// <summary>
         /// 時間ステップ幅
         /// </summary>
-        public double TimeDelta { get; set; } = 0.0;
+        public double TimeStep { get; set; } = 0.0;
         /// <summary>
         /// ガウシアンパルス？
         /// true: ガウシアンパルス
@@ -206,8 +206,8 @@ namespace IvyFEM
             // 電界
             //--------------------------------------------------------------
             // 以下TimeIndexに対する計算
-            double time = TimeIndex * TimeDelta;
-            double dt = TimeDelta;
+            double time = TimeIndex * TimeStep;
+            double dt = TimeStep;
             EzPrev.CopyTo(EzPrev2, 0);
             Ez.CopyTo(EzPrev, 0);
             Ez = null;
@@ -396,7 +396,7 @@ namespace IvyFEM
 
         private void CalcA(IvyFEM.Linear.DoubleSparseMatrix _A)
         {
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             IList<uint> feIds = World.GetTriangleFEIds(QuantityId);
             foreach (uint feId in feIds)
@@ -640,7 +640,7 @@ namespace IvyFEM
 
         private void CalcB()
         {
-            double dt = TimeDelta;
+            double dt = TimeStep;
             // 周波数
             double srcFreq = SrcFrequency;
             // 角周波数
@@ -734,7 +734,7 @@ namespace IvyFEM
 
         private void CalcB(double[] _B)
         {
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             IList<uint> feIds = World.GetTriangleFEIds(QuantityId);
             foreach (uint feId in feIds)
@@ -1064,7 +1064,7 @@ namespace IvyFEM
             }
 
             int dataCnt = datasRefs[0].Length;
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             double[] times = new double[dataCnt];
             for (int i = 0; i < dataCnt; i++)
@@ -1147,7 +1147,7 @@ namespace IvyFEM
             }
 
             int dataCnt = datasRefs[0][0].Length;
-            double dt = TimeDelta;
+            double dt = TimeStep;
 
             double[] times = new double[dataCnt];
             for (int i = 0; i < dataCnt; i++)

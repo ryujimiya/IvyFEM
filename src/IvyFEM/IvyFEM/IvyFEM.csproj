@@ -112,6 +112,7 @@
     <Compile Include="ElasticLambWaveguide1DEigenFEM.cs" />
     <Compile Include="ElasticLambWaveguide2DFEM.cs" />
     <Compile Include="ElasticLambWaveguide2DFirstOrderABCFEM.cs" />
+    <Compile Include="ElasticLambWaveguide2DPMLTDFEM.cs" />
     <Compile Include="LinearElasticPMLMaterial.cs" />
     <Compile Include="MITCMooneyRivlinPlateMaterial.cs" />
     <Compile Include="MITCStVenantThicknessStretchPlateMaterial.cs" />
