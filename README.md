@@ -138,6 +138,7 @@
 　　インストール、実装概略を次のページにまとめました。  
 　　[.NET向けCAEライブラリIvyFEMを用いて弾性体の曲げの有限要素法シミュレーションをする](https://qiita.com/ryujimiya2361/items/a573ee7d7060a576f304)  
 　　[.NET向け有限要素法CAEライブラリIvyFEMでカスタマイズ方程式を実装する](https://qiita.com/ryujimiya2361/items/f003c10cfc222378ad5a)  
+　　[IvyFEM(.NET向け有限要素法ライブラリ)をPythonから使用する](https://qiita.com/ryujimiya2361/items/24355d864ed96113ac1d)  
 　  
 　**技術資料**  
 　  定式化をpdfにまとめています。  
