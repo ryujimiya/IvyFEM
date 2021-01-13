@@ -16,10 +16,10 @@ namespace IvyFEM
         public IList<System.Numerics.Complex[]> ComplexAdditionalParameterss { get; protected set; } =
             new List<System.Numerics.Complex[]>();
 
-        public DistributedPortCondition(IList<uint> eIds,
+        public DistributedPortCondition(IList<uint> cadIds, CadElementType cadElemType,
             FieldValueType valueType, IList<uint> fixedDofIndexs,
             uint additionalParametersDof = 0) :
-            base(eIds, valueType, fixedDofIndexs, additionalParametersDof)
+            base(cadIds, cadElemType, valueType, fixedDofIndexs, additionalParametersDof)
         {
 
         }

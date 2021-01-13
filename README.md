@@ -6,16 +6,16 @@
 　  
 　**いまできること**  
 　  
-　　☑ 単純な2D(ポリゴン)の図面作成  
-　　☑ 有限要素（三角形要素）分割  
+　　☑ 2D（多角形）、3D（限定的）の図面作成  
+　　☑ 有限要素（三角形要素、四面体要素※）分割  
 　　☑ 有限要素行列の作成 （*1）  
 　　☑ リニアシステムを解く（LAPACKE, Lis、独自実装）  
 　　☑ サーモグラフィーのような分布図  
 　  
 　　*1 いま用意しているのは  
-　　　　弾性体力学：線形弾性体  
+　　　　弾性体力学：線形弾性体(2D/3D)  
 　　　　　　　　　　超弾性体  
-　　　　　　　　　　St.Venant Kirchhoff  
+　　　　　　　　　　St.Venant Kirchhoff(2D/3D)  
 　　　　　　　　　　Mooney-Rivlin (非圧縮、微圧縮)  
 　　　　　　　　　　Ogden (非圧縮、微圧縮)  
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
@@ -111,20 +111,22 @@
 　　　　　　　　　　渦電流(eddy current)場問題  
 　　　　　　　　　　　　A-φ法(2D)  
 　　　　　　　　　　　　　  
-　　　　各種方程式：Poisson方程式  
-　　　　　　　　　　熱拡散方程式  
-　　　　　　　　　　移流拡散方程式  
-　　　　　　　　　　Helmholtz方程式  
+　　　　各種方程式：Poisson方程式(2D/3D)  
+　　　　　　　　　　熱拡散方程式(2D/3D)  
+　　　　　　　　　　移流拡散方程式(2D/3D)  
+　　　　　　　　　　Helmholtz方程式(2D/3D)  
 　　　　　　　　　　  
 　　　　三角形要素：Lagrange (1次、2次)  
 　　　　　　　　　　Bell Triangle(5次)  
 　　　　　　　　　　edge element(1次、2次)  
+　　　　　　　　　　  
+　　　　四面体要素：Lagrange (1次、2次)  
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2020-09-07更新）**  
+　**バイナリ（2021-01-13更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.54  
+　　IvyFEM.dll version 0.0.0.55  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

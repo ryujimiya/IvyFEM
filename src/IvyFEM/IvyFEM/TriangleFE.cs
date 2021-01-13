@@ -136,7 +136,7 @@ namespace IvyFEM
         public double[] L2Coord(double[] L)
         {
             uint dim = World.Dimension;
-            double[] pt = new double[2];
+            double[] pt = new double[dim];
             double[][] ptValue = new double[NodeCount][];
             int[] coIds = NodeCoordIds;
             for (int iNode = 0; iNode < NodeCount; iNode++)

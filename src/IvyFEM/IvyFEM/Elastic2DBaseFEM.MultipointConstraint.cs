@@ -33,7 +33,7 @@ namespace IvyFEM
             int cDof = 1;
             int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
             int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
-            int offset = GetOffset(cQuantityId);
+            int offset = World.GetOffset(cQuantityId);
 
             for (int coId = 0; coId < coCnt; coId++)
             {

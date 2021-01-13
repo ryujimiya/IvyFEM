@@ -10,8 +10,9 @@ namespace IvyFEM
     {
         public uint Dimension => 3;
         public Cad3D Cad { get; private set; } = null;
-        private IList<CadIdELen> MeshingLoopCadIdELens = new List<CadIdELen>();
         private IList<CadIdELen> MeshingEdgeCadIdELens = new List<CadIdELen>();
+        private IList<CadIdELen> MeshingLoopCadIdELens = new List<CadIdELen>();
+        private IList<CadIdELen> MeshingSolidCadIdELens = new List<CadIdELen>();
         private uint MeshingMode = 0; // 0: for cad 1: for mesh
 
         private IList<MeshTypeLoc> TypeLocs = new List<MeshTypeLoc>();
@@ -19,6 +20,7 @@ namespace IvyFEM
         private IList<MeshVertex3D> Vertexs = new List<MeshVertex3D>();
         private IList<MeshBarArray3D> BarArrays = new List<MeshBarArray3D>();
         private IList<MeshTriArray3D> TriArrays = new List<MeshTriArray3D>();
+        private IList<MeshTetArray> TetArrays = new List<MeshTetArray>();
 
         private IList<OpenTK.Vector3d> Vecs = new List<OpenTK.Vector3d>();
 
@@ -38,6 +40,12 @@ namespace IvyFEM
                 var cadIdELen = new CadIdELen { CadId = lIds[(int)i], ELen = eLen };
                 MeshingLoopCadIdELens.Add(cadIdELen);
             }
+            IList<uint> sIds = cad.GetElementIds(CadElementType.Solid);
+            for (uint i = 0; i < sIds.Count; i++)
+            {
+                var cadIdELen = new CadIdELen { CadId = sIds[(int)i], ELen = eLen };
+                MeshingSolidCadIdELens.Add(cadIdELen);
+            }
 
             MakeMesh(Cad);
         }
@@ -46,12 +54,17 @@ namespace IvyFEM
         {
             Cad = cad;
             MeshingMode = 1;
-
             IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
             for (int i = 0; i < lIds.Count; i++)
             {
                 var cadIdELen = new CadIdELen { CadId = lIds[(int)i], ELen = eLen };
                 MeshingLoopCadIdELens.Add(cadIdELen);
+            }
+            IList<uint> sIds = cad.GetElementIds(CadElementType.Solid);
+            for (uint i = 0; i < sIds.Count; i++)
+            {
+                var cadIdELen = new CadIdELen { CadId = sIds[(int)i], ELen = eLen };
+                MeshingSolidCadIdELens.Add(cadIdELen);
             }
 
             MakeMesh(Cad);
@@ -61,15 +74,20 @@ namespace IvyFEM
         {
             Clear();
             Cad = src.Cad;
+            MeshingEdgeCadIdELens = new List<CadIdELen>();
+            foreach (var srcCadIdELen in src.MeshingEdgeCadIdELens)
+            {
+                MeshingEdgeCadIdELens.Add(new CadIdELen(srcCadIdELen));
+            }
             MeshingLoopCadIdELens = new List<CadIdELen>();
             foreach (var srcCadIdELen in src.MeshingLoopCadIdELens)
             {
                 MeshingLoopCadIdELens.Add(new CadIdELen(srcCadIdELen));
             }
-            MeshingEdgeCadIdELens = new List<CadIdELen>();
-            foreach (var srcCadIdELen in src.MeshingEdgeCadIdELens)
+            MeshingSolidCadIdELens = new List<CadIdELen>();
+            foreach (var srcCadIdELen in src.MeshingSolidCadIdELens)
             {
-                MeshingEdgeCadIdELens.Add(new CadIdELen(srcCadIdELen));
+                MeshingSolidCadIdELens.Add(new CadIdELen(srcCadIdELen));
             }
             MeshingMode = src.MeshingMode;
 
@@ -82,14 +100,16 @@ namespace IvyFEM
             Vertexs = new List<MeshVertex3D>(src.Vertexs);
             BarArrays = new List<MeshBarArray3D>(src.BarArrays);
             TriArrays = new List<MeshTriArray3D>(src.TriArrays);
+            TetArrays = new List<MeshTetArray>(src.TetArrays);
 
             Vecs = new List<OpenTK.Vector3d>(src.Vecs);
         }
 
         public void Clear()
         {
-            MeshingLoopCadIdELens.Clear();
             MeshingEdgeCadIdELens.Clear();
+            MeshingLoopCadIdELens.Clear();
+            MeshingSolidCadIdELens.Clear();
             MeshingMode = 1;
             ClearMeshData();
         }
@@ -101,8 +121,145 @@ namespace IvyFEM
             Vertexs.Clear();
             BarArrays.Clear();
             TriArrays.Clear();
+            TetArrays.Clear();
 
             Vecs.Clear();
+        }
+
+        public void AddMeshingSolidCadId(uint sCadId, double eLen)
+        {
+            int index = IndexOfMeshingSolidCadId(sCadId);
+            if (index != -1)
+            {
+                return;
+            }
+            MeshingSolidCadIdELens.Add(new CadIdELen { CadId = sCadId, ELen = eLen });
+        }
+
+        public bool IsMeshingSolidCadId(uint sCadId)
+        {
+            int index = IndexOfMeshingSolidCadId(sCadId);
+            return index != -1;
+        }
+
+        private int IndexOfMeshingSolidCadId(uint sCadId)
+        {
+            int index = -1;
+            for (int i = 0; i < MeshingSolidCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingSolidCadIdELens[i];
+                if (cadIdELen.CadId == sCadId)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        public void RemoveMeshingSolidCadId(uint sCadId)
+        {
+            int index = IndexOfMeshingSolidCadId(sCadId);
+            if (index == -1)
+            {
+                return;
+            }
+            MeshingSolidCadIdELens.RemoveAt(index);
+        }
+
+        public void ClearMeshingSolidCadIds()
+        {
+            MeshingSolidCadIdELens.Clear();
+        }
+
+        public IList<uint> GetMeshingSolidCadIds()
+        {
+            IList<uint> sIds = new List<uint>();
+            for (int i = 0; i < MeshingSolidCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingSolidCadIdELens[i];
+                sIds.Add(cadIdELen.CadId);
+            }
+            return sIds;
+        }
+
+        public IList<double> GetMeshingSolidCadELens()
+        {
+            IList<double> eLens = new List<double>();
+            for (int i = 0; i < MeshingSolidCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingSolidCadIdELens[i];
+                eLens.Add(cadIdELen.ELen);
+            }
+            return eLens;
+        }
+
+        public void AddMeshingEdgeCadId(uint eCadId, double eLen)
+        {
+            int index = IndexOfMeshingEdgeCadId(eCadId);
+            if (index != -1)
+            {
+                return;
+            }
+            MeshingEdgeCadIdELens.Add(new CadIdELen { CadId = eCadId, ELen = eLen });
+        }
+
+        public bool IsMeshingEdgeCadId(uint eCadId)
+        {
+            int index = IndexOfMeshingEdgeCadId(eCadId);
+            return index != -1;
+        }
+
+        private int IndexOfMeshingEdgeCadId(uint eCadId)
+        {
+            int index = -1;
+            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingEdgeCadIdELens[i];
+                if (cadIdELen.CadId == eCadId)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        public void RemoveMeshingEdgeCadId(uint eCadId)
+        {
+            int index = IndexOfMeshingEdgeCadId(eCadId);
+            if (index == -1)
+            {
+                return;
+            }
+            MeshingEdgeCadIdELens.RemoveAt(index);
+        }
+
+        public void ClearMeshingEdgeCadIds()
+        {
+            MeshingEdgeCadIdELens.Clear();
+        }
+
+        public IList<uint> GetMeshingEdgeCadIds()
+        {
+            IList<uint> eIds = new List<uint>();
+            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingEdgeCadIdELens[i];
+                eIds.Add(cadIdELen.CadId);
+            }
+            return eIds;
+        }
+
+        public IList<double> GetMeshingEdgeCadELens()
+        {
+            IList<double> eLens = new List<double>();
+            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
+            {
+                var cadIdELen = MeshingEdgeCadIdELens[i];
+                eLens.Add(cadIdELen.ELen);
+            }
+            return eLens;
         }
 
         public void AddMeshingLoopCadId(uint lCadId, double eLen)
@@ -173,74 +330,6 @@ namespace IvyFEM
             return eLens;
         }
 
-        public void AddMeshingEdgeCadId(uint eCadId, double eLen)
-        {
-            int index = IndexOfMeshingEdgeCadId(eCadId);
-            if (index != -1)
-            {
-                return;
-            }
-            MeshingEdgeCadIdELens.Add(new CadIdELen { CadId = eCadId, ELen = eLen });
-        }
-
-        public bool IsMeshingEdgeCadId(uint eCadId)
-        {
-            int index = IndexOfMeshingEdgeCadId(eCadId);
-            return index != -1;
-        }
-
-        private int IndexOfMeshingEdgeCadId(uint eCadId)
-        {
-            int index = -1;
-            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
-            {
-                var cadIdELen = MeshingEdgeCadIdELens[i];
-                if (cadIdELen.CadId == eCadId)
-                {
-                    index = i;
-                    break;
-                }
-            }
-            return index;
-        }
-
-        public void RemoveMeshingEdgeCadId(uint eCadId)
-        {
-            int index = IndexOfMeshingLoopCadId(eCadId);
-            if (index == -1)
-            {
-                return;
-            }
-            MeshingEdgeCadIdELens.RemoveAt(index);
-        }
-
-        public void ClearMeshingEdgeCadIds()
-        {
-            MeshingEdgeCadIdELens.Clear();
-        }
-
-        public IList<uint> GetMeshingEdgeCadIds()
-        {
-            IList<uint> eIds = new List<uint>();
-            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
-            {
-                var cadIdELen = MeshingEdgeCadIdELens[i];
-                eIds.Add(cadIdELen.CadId);
-            }
-            return eIds;
-        }
-
-        public IList<double> GetMeshingEdgeCadELens()
-        {
-            IList<double> eLens = new List<double>();
-            for (int i = 0; i < MeshingEdgeCadIdELens.Count; i++)
-            {
-                var cadIdELen = MeshingEdgeCadIdELens[i];
-                eLens.Add(cadIdELen.ELen);
-            }
-            return eLens;
-        }
-
         public IList<MeshTriArray3D> GetTriArrays()
         {
             return TriArrays;
@@ -254,6 +343,11 @@ namespace IvyFEM
         public IList<MeshVertex3D> GetVertexs()
         {
             return Vertexs;
+        }
+
+        public IList<MeshTetArray> GetTetArrays()
+        {
+            return TetArrays;
         }
 
         public IList<OpenTK.Vector3d> GetVectors()
@@ -320,6 +414,11 @@ namespace IvyFEM
             {
                 System.Diagnostics.Debug.Assert(TriArrays.Count > loc);
                 System.Diagnostics.Debug.Assert(TriArrays[loc].Id == id);
+            } 
+            else if (type == 3)
+            {
+                System.Diagnostics.Debug.Assert(TetArrays.Count > loc);
+                System.Diagnostics.Debug.Assert(TetArrays[loc].Id == id);
             }
             else
             {
@@ -345,7 +444,7 @@ namespace IvyFEM
         public void GetInfo(uint id, out uint cadId, out int layer)
         {
             cadId = 0;
-            layer = 0;
+            layer = 0; // ３次元メッシュは層構造を持たない
 
             int type = TypeLocs[(int)id].Type;
             int loc = TypeLocs[(int)id].Loc;
@@ -360,6 +459,10 @@ namespace IvyFEM
             else if (type == 2)
             {
                 cadId = TriArrays[loc].LCadId;
+            }
+            else if (type == 3)
+            {
+                cadId = TetArrays[loc].SCadId;
             }
             else
             {
@@ -413,6 +516,21 @@ namespace IvyFEM
                     vertexs[iElem * 3 + 2] = (int)tris[iElem].V[2];
                 }
             }
+            else if (type == 3)
+            {
+                meshType = MeshType.Tet;
+                elemNodeCnt = 4;
+                IList<MeshTet> tets = TetArrays[loc].Tets;
+                elemCnt = (uint)tets.Count;
+                vertexs = new int[elemNodeCnt * elemCnt];
+                for (int iElem = 0; iElem < elemCnt; iElem++)
+                {
+                    vertexs[iElem * 4] = (int)tets[iElem].V[0];
+                    vertexs[iElem * 4 + 1] = (int)tets[iElem].V[1];
+                    vertexs[iElem * 4 + 2] = (int)tets[iElem].V[2];
+                    vertexs[iElem * 4 + 3] = (int)tets[iElem].V[3];
+                }
+            }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
@@ -459,6 +577,14 @@ namespace IvyFEM
                 elemCount = (uint)triArray.Tris.Count;
                 meshType = MeshType.Tri;
             }
+            else if (type == 3)
+            {
+                System.Diagnostics.Debug.Assert(loc < TetArrays.Count);
+                MeshTetArray tetArray = TetArrays[loc];
+                cadId = tetArray.SCadId;
+                elemCount = (uint)tetArray.Tets.Count;
+                meshType = MeshType.Tet;
+            }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
@@ -492,6 +618,13 @@ namespace IvyFEM
                         maxId = TriArrays[(int)iTriArray].Id;
                     }
                 }
+                for (uint iTetArray = 0; iTetArray < TetArrays.Count; iTetArray++)
+                {
+                    if (maxId < TetArrays[(int)iTetArray].Id)
+                    {
+                        maxId = TetArrays[(int)iTetArray].Id;
+                    }
+                }
             }
             return maxId;
         }
@@ -514,14 +647,23 @@ namespace IvyFEM
                 for (uint iBarArray = 0; iBarArray < BarArrays.Count; iBarArray++)
                 {
                     System.Diagnostics.Debug.Assert(isUsedFlgs[(int)BarArrays[(int)iBarArray].Id] == 0);
-                    System.Diagnostics.Debug.Assert(BarArrays[(int)iBarArray].Id >= 1 && BarArrays[(int)iBarArray].Id <= maxId);
+                    System.Diagnostics.Debug.Assert(
+                        BarArrays[(int)iBarArray].Id >= 1 && BarArrays[(int)iBarArray].Id <= maxId);
                     isUsedFlgs[(int)BarArrays[(int)iBarArray].Id] = 1;
                 }
                 for (uint iTriArray = 0; iTriArray < TriArrays.Count; iTriArray++)
                 {
                     System.Diagnostics.Debug.Assert(isUsedFlgs[(int)TriArrays[(int)iTriArray].Id] == 0);
-                    System.Diagnostics.Debug.Assert(TriArrays[(int)iTriArray].Id >= 1 && TriArrays[(int)iTriArray].Id <= maxId);
+                    System.Diagnostics.Debug.Assert(
+                        TriArrays[(int)iTriArray].Id >= 1 && TriArrays[(int)iTriArray].Id <= maxId);
                     isUsedFlgs[(int)TriArrays[(int)iTriArray].Id] = 1;
+                }
+                for (uint iTetArray = 0; iTetArray < TetArrays.Count; iTetArray++)
+                {
+                    System.Diagnostics.Debug.Assert(isUsedFlgs[(int)TetArrays[(int)iTetArray].Id] == 0);
+                    System.Diagnostics.Debug.Assert(
+                        TetArrays[(int)iTetArray].Id >= 1 && TetArrays[(int)iTetArray].Id <= maxId);
+                    isUsedFlgs[(int)TetArrays[(int)iTetArray].Id] = 1;
                 }
             }
             System.Diagnostics.Debug.Assert(isUsedFlgs[0] == 0);
@@ -577,6 +719,20 @@ namespace IvyFEM
                         }
                     }
                     break;
+
+                case CadElementType.Solid:
+                    for (uint iTet = 0; iTet < TetArrays.Count; iTet++)
+                    {
+                        if (TetArrays[(int)iTet].SCadId == cadId)
+                        {
+                            uint meshId = TetArrays[(int)iTet].Id;
+                            System.Diagnostics.Debug.Assert(TypeLocs[(int)meshId].Loc == iTet);
+                            System.Diagnostics.Debug.Assert(TypeLocs[(int)meshId].Type == 3); // TET
+                            return meshId;
+                        }
+                    }
+                    break;
+
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     return 0;
@@ -636,6 +792,21 @@ namespace IvyFEM
                     }
                     break;
 
+                case CadElementType.Solid:
+                    for (uint iTet = 0; iTet < TetArrays.Count; iTet++)
+                    {
+                        if (TetArrays[(int)iTet].SCadId == cadId)
+                        {
+                            loc = iTet;
+                            type = 3; // TET
+                            uint meshId = TetArrays[(int)iTet].Id;
+                            System.Diagnostics.Debug.Assert(TypeLocs[(int)meshId].Loc == loc);
+                            System.Diagnostics.Debug.Assert(TypeLocs[(int)meshId].Type == type);
+                            return true;
+                        }
+                    }
+                    break;
+
                 default:
                     System.Diagnostics.Debug.Assert(false);
                     break;
@@ -657,19 +828,6 @@ namespace IvyFEM
         {
             Cad = cad;
 
-            IList<uint> meshingLoopIds = new List<uint>();
-            IList<double> meshingLoopELens = new List<double>();
-            foreach (var cadIdELen in MeshingLoopCadIdELens)
-            {
-                uint lId = cadIdELen.CadId;
-                double eLen = cadIdELen.ELen;
-                if (!cad.IsElementId(CadElementType.Loop, lId))
-                {
-                    continue;
-                }
-                meshingLoopIds.Add(lId);
-                meshingLoopELens.Add(eLen);
-            }
             IList<uint> meshingEdgeIds = new List<uint>();
             IList<double> meshingEdgeELens = new List<double>();
             foreach (var cadIdELen in MeshingEdgeCadIdELens)
@@ -684,13 +842,45 @@ namespace IvyFEM
                 meshingEdgeELens.Add(eLen);
             }
 
+            IList<uint> meshingLoopIds = new List<uint>();
+            IList<double> meshingLoopELens = new List<double>();
+            foreach (var cadIdELen in MeshingLoopCadIdELens)
+            {
+                uint lId = cadIdELen.CadId;
+                double eLen = cadIdELen.ELen;
+                if (!cad.IsElementId(CadElementType.Loop, lId))
+                {
+                    continue;
+                }
+                meshingLoopIds.Add(lId);
+                meshingLoopELens.Add(eLen);
+            }
+
+            IList<uint> meshingSolidIds = new List<uint>();
+            IList<double> meshingSolidELens = new List<double>();
+            foreach (var cadIdELen in MeshingSolidCadIdELens)
+            {
+                uint sId = cadIdELen.CadId;
+                double eLen = cadIdELen.ELen;
+                if (!cad.IsElementId(CadElementType.Solid, sId))
+                {
+                    continue;
+                }
+                meshingSolidIds.Add(sId);
+                meshingSolidELens.Add(eLen);
+            }
+
             if (MeshingMode == 0)
             {
                 return Tessellation(cad, meshingLoopIds);
             }
             else if (MeshingMode == 1)
             {
-                return MakeMeshElemLength(cad, meshingLoopIds, meshingLoopELens, meshingEdgeIds, meshingEdgeELens);
+                return MakeMeshElemLength(
+                    cad,
+                    meshingEdgeIds, meshingEdgeELens,
+                    meshingLoopIds, meshingLoopELens,
+                    meshingSolidIds, meshingSolidELens);
             }
             else
             {
@@ -878,21 +1068,21 @@ namespace IvyFEM
                     MeshBar bar2D = barArray2D.Bars[iBar];
                     for (int i = 0; i < 2; i++)
                     {
-                        uint ivec2D = bar2D.V[i];
-                        uint ivec;
-                        if (vecId2D3D.ContainsKey(ivec2D))
+                        uint iVec2D = bar2D.V[i];
+                        uint iVec;
+                        if (vecId2D3D.ContainsKey(iVec2D))
                         {
-                            ivec = vecId2D3D[ivec2D];
+                            iVec = vecId2D3D[iVec2D];
                         }
                         else
                         {
-                            OpenTK.Vector2d vec2D = vec2Ds[(int)ivec2D];
+                            OpenTK.Vector2d vec2D = vec2Ds[(int)iVec2D];
                             OpenTK.Vector3d vec = cad2D.UnProject(vec2D);
                             Vecs.Add(vec);
-                            ivec = (uint)(Vecs.Count - 1);
-                            vecId2D3D[ivec2D] = ivec;
+                            iVec = (uint)(Vecs.Count - 1);
+                            vecId2D3D[iVec2D] = iVec;
                         }
-                        tmpBar.V[i] = ivec;
+                        tmpBar.V[i] = iVec;
                     }
                     tmpBars.Add(tmpBar);
                 }
@@ -929,21 +1119,21 @@ namespace IvyFEM
                     MeshTri2D tri2D = triArray2D.Tris[iTri];
                     for (int iTriNo = 0; iTriNo < 3; iTriNo++)
                     {
-                        uint ivec2D = tri2D.V[iTriNo];
-                        uint ivec;
-                        if (vecId2D3D.ContainsKey(ivec2D))
+                        uint iVec2D = tri2D.V[iTriNo];
+                        uint iVec;
+                        if (vecId2D3D.ContainsKey(iVec2D))
                         {
-                            ivec = vecId2D3D[ivec2D];
+                            iVec = vecId2D3D[iVec2D];
                         }
                         else
                         {
-                            OpenTK.Vector2d vec2D = vec2Ds[(int)ivec2D];
+                            OpenTK.Vector2d vec2D = vec2Ds[(int)iVec2D];
                             OpenTK.Vector3d vec = cad2D.UnProject(vec2D);
                             Vecs.Add(vec);
-                            ivec = (uint)(Vecs.Count - 1);
-                            vecId2D3D[ivec2D] = ivec;
+                            iVec = (uint)(Vecs.Count - 1);
+                            vecId2D3D[iVec2D] = iVec;
                         }
-                        tmpTri.V[iTriNo] = ivec;
+                        tmpTri.V[iTriNo] = iVec;
                     }
                     tmpTris.Add(tmpTri);
                 }
@@ -1024,28 +1214,35 @@ namespace IvyFEM
                 vertex2D.Id = 0; // 未定
                 vertex2D.VCadId = cad2D.GetVertexId2DFrom3D(vId);
                 {
-                    uint ivec = vertex.V;
-                    OpenTK.Vector3d vec = Vecs[(int)ivec];
-                    uint ivec2D;
-                    if (initialVecId3D2D.ContainsKey(ivec))
+                    uint iVec = vertex.V;
+                    OpenTK.Vector3d vec = Vecs[(int)iVec];
+                    uint iVec2D;
+                    if (initialVecId3D2D.ContainsKey(iVec))
                     {
-                        ivec2D = initialVecId3D2D[ivec];
+                        iVec2D = initialVecId3D2D[iVec];
                     }
                     else
                     {
                         OpenTK.Vector2d vec2D = cad2D.Project(vec);
                         initialVec2Ds.Add(vec2D);
-                        ivec2D = (uint)(initialVec2Ds.Count - 1);
-                        initialVecId3D2D[ivec] = ivec2D;
-                        initialVecId2D3D[ivec2D] = ivec;
+                        iVec2D = (uint)(initialVec2Ds.Count - 1);
+                        initialVecId3D2D[iVec] = iVec2D;
+                        initialVecId2D3D[iVec2D] = iVec;
                     }
-                    vertex2D.V = ivec2D;
+                    vertex2D.V = iVec2D;
                 }
                 initialVertex2Ds.Add(vertex2D);
             }
             initialBarArray2Ds = new List<MeshBarArray2D>();
             foreach (uint eId in eIds)
             {
+                uint eIdCad2D = cad2D.GetEdgeId2DFrom3D(eId);
+                if (eIdCad2D == 0)
+                {
+                    // 2Dの辺の作成に失敗している
+                    System.Diagnostics.Debug.Assert(false); // 失敗しているとメッシュは生成されなくなる
+                    continue;
+                }
                 MeshBarArray3D barArray;
                 {
                     uint elemId = GetIdFromCadId(eId, CadElementType.Edge);
@@ -1055,7 +1252,7 @@ namespace IvyFEM
                 }
                 MeshBarArray2D barArray2D = new MeshBarArray2D();
                 barArray2D.Id = 0; // 未定
-                barArray2D.ECadId = cad2D.GetEdgeId2DFrom3D(eId);
+                barArray2D.ECadId = eIdCad2D;
                 barArray2D.SEId[0] = 0; // 未定
                 barArray2D.SEId[1] = 0; // 未定
                 for (int iBar = 0; iBar < barArray.Bars.Count; iBar++)
@@ -1064,22 +1261,22 @@ namespace IvyFEM
                     MeshBar bar2D = new MeshBar();
                     for (int iBarNo = 0; iBarNo < 2; iBarNo++)
                     {
-                        uint ivec = bar.V[iBarNo];
-                        OpenTK.Vector3d vec = Vecs[(int)ivec];
-                        uint ivec2D;
-                        if (initialVecId3D2D.ContainsKey(ivec))
+                        uint iVec = bar.V[iBarNo];
+                        OpenTK.Vector3d vec = Vecs[(int)iVec];
+                        uint iVec2D;
+                        if (initialVecId3D2D.ContainsKey(iVec))
                         {
-                            ivec2D = initialVecId3D2D[ivec];
+                            iVec2D = initialVecId3D2D[iVec];
                         }
                         else
                         {
                             OpenTK.Vector2d vec2D = cad2D.Project(vec);
                             initialVec2Ds.Add(vec2D);
-                            ivec2D = (uint)(initialVec2Ds.Count - 1);
-                            initialVecId3D2D[ivec] = ivec2D;
-                            initialVecId2D3D[ivec2D] = ivec;
+                            iVec2D = (uint)(initialVec2Ds.Count - 1);
+                            initialVecId3D2D[iVec] = iVec2D;
+                            initialVecId2D3D[iVec2D] = iVec;
                         }
-                        bar2D.V[iBarNo] = ivec2D;
+                        bar2D.V[iBarNo] = iVec2D;
                     }
                     barArray2D.Bars.Add(bar2D);
                 }
@@ -1178,7 +1375,7 @@ namespace IvyFEM
                     int loc0 = TypeLocs[(int)id0].Loc;
                     System.Diagnostics.Debug.Assert(loc0 == (int)iVer);
                     System.Diagnostics.Debug.Assert(Vertexs.Count > loc0);
-                    MeshVertex3D ver0 = Vertexs[(int)loc0];
+                    MeshVertex3D ver0 = Vertexs[loc0];
                     System.Diagnostics.Debug.Assert(ver0.Id == id0);
                 }
                 for (uint iBarArray = 0; iBarArray < BarArrays.Count; iBarArray++)
@@ -1193,7 +1390,7 @@ namespace IvyFEM
                     int loc0 = TypeLocs[(int)id0].Loc;
                     System.Diagnostics.Debug.Assert(loc0 == (int)iBarArray);
                     System.Diagnostics.Debug.Assert(BarArrays.Count > loc0);
-                    MeshBarArray3D bar0 = BarArrays[(int)loc0];
+                    MeshBarArray3D bar0 = BarArrays[loc0];
                     System.Diagnostics.Debug.Assert(bar0.Id == id0);
                 }
                 for (uint iTriArray = 0; iTriArray < TriArrays.Count; iTriArray++)
@@ -1208,8 +1405,23 @@ namespace IvyFEM
                     int loc0 = TypeLocs[(int)id0].Loc;
                     System.Diagnostics.Debug.Assert(loc0 == (int)iTriArray);
                     System.Diagnostics.Debug.Assert(TriArrays.Count > loc0);
-                    MeshTriArray3D tri0 = TriArrays[(int)loc0];
+                    MeshTriArray3D tri0 = TriArrays[loc0];
                     System.Diagnostics.Debug.Assert(tri0.Id == id0);
+                }
+                for (uint iTetArray = 0; iTetArray < TetArrays.Count; iTetArray++)
+                {
+                    uint id0 = TetArrays[(int)iTetArray].Id;
+                    if (maxId < id0)
+                    {
+                        maxId = id0;
+                    }
+                    System.Diagnostics.Debug.Assert(TypeLocs.Count > id0);
+                    System.Diagnostics.Debug.Assert(TypeLocs[(int)id0].Type == 3); // TET
+                    int loc0 = TypeLocs[(int)id0].Loc;
+                    System.Diagnostics.Debug.Assert(loc0 == (int)iTetArray);
+                    System.Diagnostics.Debug.Assert(TetArrays.Count > loc0);
+                    MeshTetArray tet0 = TetArrays[loc0];
+                    System.Diagnostics.Debug.Assert(tet0.Id == id0);
                 }
                 System.Diagnostics.Debug.Assert(maxId == FindMaxId());
                 uint[] isUsedFlgs = new uint[maxId + 1];
@@ -1228,6 +1440,11 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(isUsedFlgs[(int)TriArrays[(int)iTriArray].Id] == 0);
                     isUsedFlgs[(int)TriArrays[(int)iTriArray].Id] = 1;
                 }
+                for (uint iTetArray = 0; iTetArray < TetArrays.Count; iTetArray++)
+                {
+                    System.Diagnostics.Debug.Assert(isUsedFlgs[(int)TetArrays[(int)iTetArray].Id] == 0);
+                    isUsedFlgs[(int)TetArrays[(int)iTetArray].Id] = 1;
+                }
                 System.Diagnostics.Debug.Assert(isUsedFlgs[0] == 0);
             }
             for (uint iVer = 0; iVer < Vertexs.Count; iVer++)
@@ -1242,6 +1459,10 @@ namespace IvyFEM
             {
                 System.Diagnostics.Debug.Assert(IsId(TriArrays[(int)iTriArray].Id));
             }
+            for (uint iTetArray = 0; iTetArray < TetArrays.Count; iTetArray++)
+            {
+                System.Diagnostics.Debug.Assert(IsId(TetArrays[(int)iTetArray].Id));
+            }
             for (uint index = 0; index < TypeLocs.Count; index++)
             {
                 if (TypeLocs[(int)index].Loc == -1)
@@ -1255,70 +1476,25 @@ namespace IvyFEM
         }
 
         private bool MakeMeshElemLength(
-            Cad3D cad, IList<uint> loopIds, IList<double> loopELens,
-            IList<uint> edgeIds, IList<double> edgeELens)
+            Cad3D cad,
+            IList<uint> edgeIds, IList<double> edgeELens,
+            IList<uint> loopIds, IList<double> loopELens,
+            IList<uint> solidIds, IList<double> solidELens)
         {
-            System.Diagnostics.Debug.Assert(loopIds.Count == loopELens.Count);
             System.Diagnostics.Debug.Assert(edgeIds.Count == edgeELens.Count);
+            System.Diagnostics.Debug.Assert(loopIds.Count == loopELens.Count);
+            System.Diagnostics.Debug.Assert(solidIds.Count == solidELens.Count);
 
             ClearMeshData();
 
             {
-                // ループに使われている頂点
-                IList<uint> vtxFlgs = new List<uint>();
-                for (int iLId = 0; iLId < loopIds.Count; iLId++)
+                // 本来は指定されたsolid, loop, edgeに使われている頂点を抽出すべきだが
+                // solidの（内部）頂点の取得の方法がないので
+                // すべての頂点を対象にする
+                // 頂点のメッシュオブジェクトを生成する
+                IList<uint> vIds = cad.GetElementIds(CadElementType.Vertex);
+                foreach (uint vId in vIds)
                 {
-                    uint lId = loopIds[iLId];
-                    LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId);
-                    while (true)
-                    {
-                        for (; !lItr.IsEnd(); lItr.Next())
-                        {
-                            uint vId = lItr.GetVertexId();
-                            if (vtxFlgs.Count <= vId)
-                            {
-                                int cnt = vtxFlgs.Count;
-                                for (int iTmp = cnt; iTmp < vId + 1; iTmp++)
-                                {
-                                    vtxFlgs.Add(0);
-                                }
-                            }
-                            vtxFlgs[(int)vId] = 1;
-                        }
-                        if (!lItr.ShiftChildLoop())
-                        {
-                            break;
-                        }
-                    }
-                }
-                // 辺に使われている頂点
-                for (int iEId = 0; iEId < edgeIds.Count; iEId++)
-                {
-                    uint eId = edgeIds[iEId];
-                    uint sVId;
-                    uint eVId;
-                    cad.GetEdgeVertexId(eId, out sVId, out eVId);
-                    uint[] vIds = { sVId, eVId };
-                    foreach (uint vId in vIds)
-                    {
-                        if (vtxFlgs.Count <= vId)
-                        {
-                            int cnt = vtxFlgs.Count;
-                            for (int iTmp = cnt; iTmp < vId + 1; iTmp++)
-                            {
-                                vtxFlgs.Add(0);
-                            }
-                        }
-                        vtxFlgs[(int)vId] = 1;
-                    }
-                }
-                // フラグを立てた頂点のメッシュオブジェクトを生成する
-                for (uint vId = 0; vId < vtxFlgs.Count; vId++)
-                {
-                    if (vtxFlgs[(int)vId] == 0)
-                    {
-                        continue;
-                    }
                     uint addId = GetFreeObjectId();
                     OpenTK.Vector3d vec = cad.GetVertexCoord(vId);
                     Vecs.Add(vec);
@@ -1329,7 +1505,6 @@ namespace IvyFEM
                         tmpVer.V = (uint)(Vecs.Count - 1);
 
                         Vertexs.Add(tmpVer);
-
                     }
                     {
                         int typeLocCnt = TypeLocs.Count;
@@ -1395,6 +1570,16 @@ namespace IvyFEM
 
                 System.Diagnostics.Debug.Assert(CheckMesh() == 0);
             }
+
+            for (int iSId = 0; iSId < solidIds.Count; iSId++)
+            {
+                // ソリッドを作る
+                uint sId = solidIds[iSId];
+                double eLen = solidELens[iSId];
+                System.Diagnostics.Debug.Assert(eLen > 0.0);
+                MakeMeshSolid(cad, sId, eLen);
+            }
+            CheckOverlapTet();
 
             MakeIncludeRelation(cad);
             return true;
@@ -1570,21 +1755,21 @@ namespace IvyFEM
                     MeshBar bar2D = barArray2D.Bars[iBar];
                     for (int i = 0; i < 2; i++)
                     {
-                        uint ivec2D = bar2D.V[i];
-                        uint ivec;
-                        if (vecId2D3D.ContainsKey(ivec2D))
+                        uint iVec2D = bar2D.V[i];
+                        uint iVec;
+                        if (vecId2D3D.ContainsKey(iVec2D))
                         {
-                            ivec = vecId2D3D[ivec2D];
+                            iVec = vecId2D3D[iVec2D];
                         }
                         else
                         {
-                            OpenTK.Vector2d vec2D = vec2Ds[(int)ivec2D];
+                            OpenTK.Vector2d vec2D = vec2Ds[(int)iVec2D];
                             OpenTK.Vector3d vec = cad2D.UnProject(vec2D);
                             Vecs.Add(vec);
-                            ivec = (uint)(Vecs.Count - 1);
-                            vecId2D3D[ivec2D] = ivec;
+                            iVec = (uint)(Vecs.Count - 1);
+                            vecId2D3D[iVec2D] = iVec;
                         }
-                        tmpBar.V[i] = ivec;
+                        tmpBar.V[i] = iVec;
                     }
                     tmpBars.Add(tmpBar);
                 }
@@ -1621,21 +1806,21 @@ namespace IvyFEM
                     MeshTri2D tri2D = triArray2D.Tris[iTri];
                     for (int iTriNo = 0; iTriNo < 3; iTriNo++)
                     {
-                        uint ivec2D = tri2D.V[iTriNo];
-                        uint ivec;
-                        if (vecId2D3D.ContainsKey(ivec2D))
+                        uint iVec2D = tri2D.V[iTriNo];
+                        uint iVec;
+                        if (vecId2D3D.ContainsKey(iVec2D))
                         {
-                            ivec = vecId2D3D[ivec2D];
+                            iVec = vecId2D3D[iVec2D];
                         }
                         else
                         {
-                            OpenTK.Vector2d vec2D = vec2Ds[(int)ivec2D];
+                            OpenTK.Vector2d vec2D = vec2Ds[(int)iVec2D];
                             OpenTK.Vector3d vec = cad2D.UnProject(vec2D);
                             Vecs.Add(vec);
-                            ivec = (uint)(Vecs.Count - 1);
-                            vecId2D3D[ivec2D] = ivec;
+                            iVec = (uint)(Vecs.Count - 1);
+                            vecId2D3D[iVec2D] = iVec;
                         }
-                        tmpTri.V[iTriNo] = ivec;
+                        tmpTri.V[iTriNo] = iVec;
                     }
                     tmpTris.Add(tmpTri);
                 }
@@ -1659,6 +1844,213 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(CheckMesh() == 0);
             }
             return true;
+        }
+
+        private bool MakeMeshSolid(Cad3D cad, uint sId, double eLen)
+        {
+            // solid
+            Solid solid = cad.GetSolid(sId);
+            // solidを囲むTriArraysを抽出する
+            IList<OpenTK.Vector3d> localVecs = new List<OpenTK.Vector3d>();
+            IList<MeshTri3D> localTris = new List<MeshTri3D>();
+            Dictionary<uint, uint> global2LocalVecId = new Dictionary<uint, uint>();
+            foreach (uint lId in solid.LoopIds)
+            {
+                MeshTriArray3D triArray = null;
+                foreach (MeshTriArray3D workTriArray in TriArrays)
+                {
+                    if (workTriArray.LCadId == lId)
+                    {
+                        triArray = workTriArray;
+                        break;
+                    }
+                }
+                System.Diagnostics.Debug.Assert(triArray != null);
+                for (int iTri = 0; iTri < triArray.Tris.Count; iTri++)
+                {
+                    MeshTri3D tri = triArray.Tris[iTri];
+                    MeshTri3D localTri = new MeshTri3D();
+                    localTris.Add(localTri);
+                    for (int iNode = 0; iNode < 3; iNode++)
+                    {
+                        uint vecId = tri.V[iNode];
+                        OpenTK.Vector3d vec = Vecs[(int)vecId];
+
+                        uint localVecId;
+                        if (global2LocalVecId.ContainsKey(vecId))
+                        {
+                            localVecId = global2LocalVecId[vecId];
+                        }
+                        else
+                        {
+                            localVecId = (uint)localVecs.Count;
+                            localVecs.Add(vec);
+                            global2LocalVecId.Add(vecId, localVecId);
+                        }
+                        localTri.V[iNode] = localVecId;
+                    }
+                }
+            }
+            IList<uint> insideVIds = solid.InsideVIds;
+            IList<int> insideVecIds = new List<int>();
+            IList<OpenTK.Vector3d> insideVecs = new List<OpenTK.Vector3d>();
+            foreach (uint inVId in insideVIds)
+            {
+                uint meshId = GetIdFromCadId(inVId, CadElementType.Vertex);
+                MeshType meshType;
+                int[] vertexs;
+                GetConnectivity(meshId, out meshType, out vertexs);
+                System.Diagnostics.Debug.Assert(meshType == MeshType.Vertex);
+                int vecId = vertexs[0];
+                OpenTK.Vector3d vec = Vecs[vecId];
+                insideVecIds.Add(vecId);
+                insideVecs.Add(vec);
+            }
+
+            // 四面体メッシュ生成
+            string dllFileName = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string dir = System.IO.Path.GetDirectoryName(dllFileName);
+            TetGen tetGen = new TetGen();
+            tetGen.FileNameBase = dir + "\\tetgen_data";
+            tetGen.Vecs0 = new List<OpenTK.Vector3d>(localVecs);
+            tetGen.Tris0 = localTris;
+            tetGen.Holes0 = solid.Holes;
+            tetGen.InsideVecs0 = insideVecs;
+            tetGen.ELen = eLen;
+            tetGen.Execute();
+            if (!tetGen.Success)
+            {
+                return false;
+            }
+
+            System.Diagnostics.Debug.Assert(tetGen.Vecs0.Count <= tetGen.Vecs.Count);
+            for (int iVec = 0; iVec < tetGen.Vecs0.Count; iVec++)
+            {
+                OpenTK.Vector3d vec0 = tetGen.Vecs0[iVec];
+                OpenTK.Vector3d vec = tetGen.Vecs[iVec];
+                System.Diagnostics.Debug.Assert((vec - vec0).Length < 1.0e-12);
+            }
+            for (int iVec = tetGen.Vecs0.Count; iVec < tetGen.Vecs.Count; iVec++)
+            {
+                OpenTK.Vector3d vec = tetGen.Vecs[iVec];
+                uint vecId = (uint)Vecs.Count;
+
+                int hitInsideVecId = -1;
+                {
+                    for (int iInVec = 0; iInVec < insideVecs.Count; iInVec++)
+                    {
+                        int inVecId = insideVecIds[iInVec];
+                        OpenTK.Vector3d inVec = insideVecs[iInVec];
+                        if ((vec - inVec).Length < 1.0e-12)
+                        {
+                            hitInsideVecId = inVecId;
+                            break;
+                        }
+                    }
+                }
+
+                if (hitInsideVecId != -1)
+                {
+                    // Vertexとして作成済みの点
+                    uint localVecId = (uint)localVecs.Count;
+                    localVecs.Add(vec);
+                    global2LocalVecId.Add((uint)hitInsideVecId, localVecId);
+                }
+                else
+                {
+                    Vecs.Add(vec);
+
+                    uint localVecId = (uint)localVecs.Count;
+                    localVecs.Add(vec);
+                    global2LocalVecId.Add(vecId, localVecId);
+                }
+            }
+
+            Dictionary<uint, uint> local2GlobalVecId = new Dictionary<uint, uint>();
+            foreach (var pair in global2LocalVecId)
+            {
+                System.Diagnostics.Debug.Assert(!local2GlobalVecId.ContainsKey(pair.Value));
+                local2GlobalVecId.Add(pair.Value, pair.Key);
+            }
+
+            IList<MeshTet> tets = new List<MeshTet>();
+            for (int iTet = 0; iTet < tetGen.Tets.Count; iTet++)
+            {
+                MeshTet localTet = tetGen.Tets[iTet];
+                MeshTet tet = new MeshTet();
+                tets.Add(tet);
+                for (int iNode = 0; iNode < 4; iNode++)
+                {
+                    uint localVecId = localTet.V[iNode];
+                    tet.V[iNode] = local2GlobalVecId[localVecId];
+                }
+            }
+
+            uint newElemId = GetFreeObjectId();
+            uint iTetArray = (uint)TetArrays.Count;
+            TetArrays.Add(new MeshTetArray());
+            for (int i = 0; i < tets.Count; i++)
+            {
+                TetArrays[(int)iTetArray].Tets.Add(new MeshTet());
+            }
+            for (uint iTet = 0; iTet < tets.Count; iTet++)
+            {
+                for (uint iTetNo = 0; iTetNo < 4; iTetNo++)
+                {
+                    uint iVec = tets[(int)iTet].V[iTetNo];
+                    System.Diagnostics.Debug.Assert(iVec < Vecs.Count);
+                    TetArrays[(int)iTetArray].Tets[(int)iTet].V[iTetNo] = iVec;
+                    TetArrays[(int)iTetArray].Id = newElemId;
+                    TetArrays[(int)iTetArray].SCadId = sId;
+                }
+            }
+            int typeLocCnt = TypeLocs.Count;
+            for (int i = typeLocCnt; i < newElemId + 1; i++)
+            {
+                var typeLoc = new MeshTypeLoc { Type = 0, Loc = -1 };
+                TypeLocs.Add(typeLoc);
+            }
+            TypeLocs[(int)newElemId].Type = 3;   // TET
+            TypeLocs[(int)newElemId].Loc = (int)iTetArray;
+
+            return true;
+        }
+
+        // 重なった四面体要素が生成されていないかチェック
+        private void CheckOverlapTet()
+        {
+            IList<MeshTet> tets = new List<MeshTet>();
+            IList<IList<OpenTK.Vector3d>> ptss = new List<IList<OpenTK.Vector3d>>();
+            foreach (var tetArray in TetArrays)
+            {
+                foreach (var tet in tetArray.Tets)
+                {
+                    tets.Add(tet);
+
+                    IList<OpenTK.Vector3d> pts = new List<OpenTK.Vector3d>();
+                    ptss.Add(pts);
+                    for (int iNode = 0; iNode < 4; iNode++)
+                    {
+                        uint vecId = tet.V[iNode];
+                        pts.Add(Vecs[(int)vecId]);
+                    }
+                }
+            }
+            for (int i = 0; i < tets.Count; i++)
+            {
+                MeshTet tet1 = tets[i];
+                IList<OpenTK.Vector3d> pts1 = ptss[i];
+                OpenTK.Vector3d g = (pts1[0] + pts1[1] + pts1[2] + pts1[3]) / 4.0;
+
+                for (int j = i + 1; j < tets.Count; j++)
+                {
+                    MeshTet tet2 = tets[j];
+                    IList<OpenTK.Vector3d> pts2 = ptss[j];
+                    bool isInside = CadUtils3D.IsPointInsideTetrahedron(
+                        g, pts2[0], pts2[1], pts2[2], pts2[3]);
+                    System.Diagnostics.Debug.Assert(!isInside);
+                }
+            }
         }
     }
 }

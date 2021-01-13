@@ -13,6 +13,7 @@ namespace IvyFEM
         public OpenTK.Vector3d XDir { get; set; }
         public IList<KeyValuePair<Edge2D, bool>> Edges { get; set; } = new List<KeyValuePair<Edge2D, bool>>();
         public IList<uint> EdgeIndexs { get; set; } = new List<uint>();
+        public double[] Color { get; set; } = new double[3] { 0.8, 0.8, 0.8 };
         private BoundingBox3D BB = new BoundingBox3D();
 
         public Loop3D()
@@ -53,6 +54,8 @@ namespace IvyFEM
             {
                 EdgeIndexs.Add(index);
             }
+            Color = new double[srcLoop.Color.Length];
+            srcLoop.Color.CopyTo(Color, 0);
             BB = new BoundingBox3D(srcLoop.BB);
         }
 

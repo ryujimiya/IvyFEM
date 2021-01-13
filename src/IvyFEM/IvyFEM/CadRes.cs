@@ -12,30 +12,27 @@ namespace IvyFEM
         public uint AddEId { get; set; } = 0;
     }
 
+    public class ConnectVertexRes
+    {
+        public uint VId1 { get; set; } = 0;
+        public uint VId2 { get; set; } = 0;
+        public uint LId { get; set; } = 0;
+        public uint AddEId { get; set; } = 0;
+        public uint AddLId { get; set; } = 0;
+        public bool IsLeftAddL { get; set; } = true;
+    }
+
     public class AddPolygonRes
     {
         public uint AddLId { get; set; } = 0;
         public IList<uint> VIds { get; } = new List<uint>();
         public IList<uint> EIds { get; } = new List<uint>();
+    }
 
-        public AddPolygonRes()
-        {
-
-        }
-
-        public AddPolygonRes(AddPolygonRes src)
-        {
-            this.AddLId = src.AddLId;
-            this.VIds.Clear();
-            foreach (var id in src.VIds)
-            {
-                this.VIds.Add(id);
-            }
-            this.EIds.Clear();
-            foreach (var id in src.EIds)
-            {
-                this.EIds.Add(id);
-            }
-        }
+    public class AddSurfaceRes
+    {
+        public IList<uint> AddVIds { get; set; } = new List<uint>();
+        public IList<uint> AddEIds { get; set; } = new List<uint>();
+        public IList<uint> AddLIds { get; set; } = new List<uint>();
     }
 }

@@ -13,6 +13,7 @@ namespace IvyFEM
         public bool IsAntiAliasing { get; set; } = false;
 
         private double[] SelectedColor = { 1.0, 0.5, 1.0 }; //{ 1.0, 1.0, 0.0 };
+        public bool IsMask { get; set; } = false;
         private byte[] Mask = new byte[128];
         private IList<Cad3DDrawPart> DrawParts = new List<Cad3DDrawPart>();
         private VertexArray VertexArray = new VertexArray();
@@ -183,15 +184,28 @@ namespace IvyFEM
                 if (meshType == MeshType.Tri)
                 {
                     dp.SetTriArray(mesh.GetTriArrays()[loc]);
+
+                    double[] color = cad.GetLoopColor(cadId0);
+                    dp.Color = new double[color.Length];
+                    color.CopyTo(dp.Color, 0);
                 }
                 else if (meshType == MeshType.Bar)
                 {
                     dp.SetBarArray(mesh.GetBarArrays()[loc]);
+
                     System.Diagnostics.Debug.Assert(cadType == CadElementType.Edge);
+                    Edge3D edge = cad.GetEdge(cadId);
+                    double[] color = edge.Color;
+                    color.CopyTo(dp.Color, 0);
                 }
                 else if (meshType == MeshType.Vertex)
                 {
                     dp.SetVertex(mesh.GetVertexs()[loc]);
+
+                    System.Diagnostics.Debug.Assert(cadType == CadElementType.Vertex);
+                    Vertex3D v = cad.GetVertex(cadId);
+                    double[] color = v.Color;
+                    color.CopyTo(dp.Color, 0);
                 }
             }
 
@@ -228,6 +242,10 @@ namespace IvyFEM
             bool isBlend = GL.IsEnabled(EnableCap.Blend);
             GL.Disable(EnableCap.Lighting);
 
+            //// alpha blend
+            //GL.Enable(EnableCap.Blend);
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
             uint ndim = VertexArray.Dimension;
 
             ////////////////////////////////////////////////////////////////
@@ -259,7 +277,8 @@ namespace IvyFEM
                     }
                     else
                     {
-                        GL.Color3(0.0, 0.0, 0.0);
+                        //GL.Color3(0.0, 0.0, 0.0);
+                        GL.Color3(dp.Color);
                     }
 
                     dp.DrawElements();
@@ -323,8 +342,17 @@ namespace IvyFEM
                     {
                         continue;
                     }
-                    GL.Color3(dp.Color);
+                    if (IsMask)
+                    {
+                        GL.Enable(EnableCap.PolygonStipple);
+                        GL.PolygonStipple(Mask);
+                    }
+                    _GLColor(dp.Color);
                     dp.DrawElements();
+                    if (IsMask)
+                    {
+                        GL.Disable(EnableCap.PolygonStipple);
+                    }
                 }
             }
             GL.DisableClientState(ArrayCap.VertexArray);
@@ -353,6 +381,22 @@ namespace IvyFEM
             else
             {
                 GL.Disable(EnableCap.Texture2D);
+            }
+        }
+
+        private void _GLColor(double[] color)
+        {
+            if (color.Length == 3)
+            {
+                GL.Color3(color);
+            }
+            else if (color.Length == 4)
+            {
+                GL.Color4(color);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
             }
         }
 

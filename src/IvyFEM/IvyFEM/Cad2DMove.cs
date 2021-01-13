@@ -372,7 +372,7 @@ namespace IvyFEM
             {
                 OpenTK.Vector2d sPt = edge.GetVertexCoord(true);
                 OpenTK.Vector2d ePt = edge.GetVertexCoord(false);
-                double edgeLen = Math.Sqrt(CadUtils2D.SquareLength(sPt, ePt));
+                double edgeLen = Math.Sqrt(CadUtils2D.SquareDistance(sPt, ePt));
                 if (Math.Abs(CadUtils2D.TriHeight(vec, sPt, ePt)) > edgeLen * 0.02)
                 {
                     OpenTK.Vector2d cPt;

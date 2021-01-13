@@ -122,19 +122,6 @@ namespace IvyFEM
             }
         }
 
-        private int GetOffset(uint quantityId)
-        {
-            int offset = 0;
-            int quantityCnt = World.GetQuantityCount();
-            for (uint tmpQuantityId = 0; tmpQuantityId < quantityId; tmpQuantityId++)
-            {
-                int nodeCnt = (int)World.GetNodeCount(tmpQuantityId);
-                int dof = (int)World.GetDof(tmpQuantityId);
-                offset += nodeCnt * dof;
-            }
-            return offset;
-        }
-
         private void Solve1stEquation()
         {
             double dt = TimeStep;
@@ -144,7 +131,7 @@ namespace IvyFEM
             int quantityDof1 = (int)World.GetDof(quantityId1);
             int quantityNodeCnt1 = (int)World.GetNodeCount(quantityId1);
             int nodeCnt = quantityNodeCnt1 * quantityDof1;
-            int offset = GetOffset(quantityId1);
+            int offset = World.GetOffset(quantityId1);
 
             // 前の時刻の値をセット
             double[] prevU1 = new double[nodeCnt];
@@ -257,7 +244,7 @@ namespace IvyFEM
                 int quantityNodeCnt2 = (int)World.GetNodeCount(quantityId2);
                 nodeCnt += quantityNodeCnt2 * quantityDof2;
             }
-            int pOffset = GetOffset(pQuantityId);
+            int pOffset = World.GetOffset(pQuantityId);
 
             double[] U2 = new double[nodeCnt];
 
@@ -265,7 +252,7 @@ namespace IvyFEM
             {
                 int quantityDof2 = (int)World.GetDof(quantityId2);
                 int quantityNodeCnt2 = (int)World.GetNodeCount(quantityId2);
-                int offset = GetOffset(quantityId2);
+                int offset = World.GetOffset(quantityId2);
                 int offsetp = offset - pOffset;
 
                 // 前の反復のときの値をセット(方程式を解くときに必要はないが、解く前の収束判定で使用する）

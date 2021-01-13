@@ -103,5 +103,31 @@ namespace IvyFEM
             }
             return ret;
         }
+
+        public static double TetHeight(double[] v1, double[] v2, double[] v3, double[] v4)
+        {
+            System.Diagnostics.Debug.Assert(v1.Length == 3);
+            System.Diagnostics.Debug.Assert(v2.Length == 3);
+            System.Diagnostics.Debug.Assert(v3.Length == 3);
+            System.Diagnostics.Debug.Assert(v4.Length == 3);
+            return CadUtils3D.TetHeight(
+                new OpenTK.Vector3d(v1[0], v1[1], v1[2]),
+                new OpenTK.Vector3d(v2[0], v2[1], v2[2]),
+                new OpenTK.Vector3d(v3[0], v3[1], v3[2]),
+                new OpenTK.Vector3d(v4[0], v4[1], v4[2]));
+        }
+
+        public static double TetVolume(double[] v1, double[] v2, double[] v3, double[] v4)
+        {
+            System.Diagnostics.Debug.Assert(v1.Length == 3);
+            System.Diagnostics.Debug.Assert(v2.Length == 3);
+            System.Diagnostics.Debug.Assert(v3.Length == 3);
+            System.Diagnostics.Debug.Assert(v4.Length == 3);
+            return CadUtils3D.TetVolume(
+                new OpenTK.Vector3d(v1[0], v1[1], v1[2]),
+                new OpenTK.Vector3d(v2[0], v2[1], v2[2]),
+                new OpenTK.Vector3d(v3[0], v3[1], v3[2]),
+                new OpenTK.Vector3d(v4[0], v4[1], v4[2]));
+        }
     }
 }

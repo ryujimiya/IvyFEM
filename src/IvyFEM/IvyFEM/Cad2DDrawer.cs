@@ -232,19 +232,22 @@ namespace IvyFEM
                 if (meshType == MeshType.Tri)
                 {
                     dp.SetTriArray(mesh.GetTriArrays()[loc]);
+
                     double[] color = cad.GetLoopColor(cadId0);
                     color.CopyTo(dp.Color, 0);
                 }
                 else if (meshType == MeshType.Bar)
                 {
                     dp.SetBarArray(mesh.GetBarArrays()[loc]);
+
                     System.Diagnostics.Debug.Assert(cadType == CadElementType.Edge);
                     Edge2D edge = cad.GetEdge(cadId);
                     dp.CurveType = edge.CurveType;
                     dp.CtrlPoints.Clear();
-                    // 2019-03-11 エッジの色 FIX
+                    
                     double[] color = edge.Color;
                     color.CopyTo(dp.Color, 0);
+                    
                     if (edge.CurveType == CurveType.CurveArc)
                     {
                         OpenTK.Vector2d cPt;
@@ -262,6 +265,11 @@ namespace IvyFEM
                 else if (meshType == MeshType.Vertex)
                 {
                     dp.SetVertex(mesh.GetVertexs()[loc]);
+
+                    System.Diagnostics.Debug.Assert(cadType == CadElementType.Vertex);
+                    Vertex2D v = cad.GetVertex(cadId);
+                    double[] color = v.Color;
+                    color.CopyTo(dp.Color, 0);
                 }
             }
 
@@ -343,7 +351,8 @@ namespace IvyFEM
                     }
                     else
                     {
-                        GL.Color3(0.0, 0.0, 0.0);
+                        //GL.Color3(0.0, 0.0, 0.0);
+                        GL.Color3(dp.Color);
                     }
 
                     GL.Translate(0.0, 0.0, height);

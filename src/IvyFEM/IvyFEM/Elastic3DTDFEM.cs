@@ -52,29 +52,34 @@ namespace IvyFEM
         protected void SetupCalcABs()
         {
             //--------------------------------
-            InitNodeValuess.Clear();
-            InitElementValuess.Clear();
-            UpdateNodeValuess.Clear();
-            UpdateElementValuess.Clear();
+            InitNodeValuessForPlate.Clear();
+            InitElementValuessForPlate.Clear();
+            UpdateNodeValuessForPlate.Clear();
+            UpdateElementValuessForPlate.Clear();
 
             // Init
             // Plate
-            InitNodeValuess.Add(InitMITCStVenantPlateNodeValues);
-            InitElementValuess.Add(InitMITCStVenantPlateElementValues);
+            InitNodeValuessForPlate.Add(InitMITCStVenantPlateNodeValues);
+            InitElementValuessForPlate.Add(InitMITCStVenantPlateElementValues);
 
             // Update
             // Plate
-            UpdateNodeValuess.Add(UpdateMITCStVenantPlateNodeValues);
-            UpdateElementValuess.Add(UpdateMITCStVenantPlateElementValues);
+            UpdateNodeValuessForPlate.Add(UpdateMITCStVenantPlateNodeValues);
+            UpdateElementValuessForPlate.Add(UpdateMITCStVenantPlateElementValues);
 
             //--------------------------------
             CalcElementABs.Clear();
+            CalcElementABsForPlate.Clear();
+
+            // Linear/Saint Venant
+            CalcElementABs.Add(CalcLinearElasticElementAB);
+            CalcElementABs.Add(CalcStVenantHyperelasticElementAB);
 
             // Plate
-            CalcElementABs.Add(CalcDKTPlateElementAB);
-            CalcElementABs.Add(CalcMindlinPlateElementAB);
-            CalcElementABs.Add(CalcMITCLinearPlateElementAB);
-            CalcElementABs.Add(CalcMITCStVenantPlateElementAB);
+            CalcElementABsForPlate.Add(CalcDKTPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMindlinPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCLinearPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCStVenantPlateElementAB);
         }
 
         public void UpdateFieldValuesTimeDomain()

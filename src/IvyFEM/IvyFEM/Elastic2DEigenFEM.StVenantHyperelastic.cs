@@ -212,8 +212,8 @@ namespace IvyFEM
                     //----------------------------
 
                     m[0, 0] = rho * sNN[row, col];
-                    m[1, 0] = 0.0;
                     m[0, 1] = 0.0;
+                    m[1, 0] = 0.0;
                     m[1, 1] = rho * sNN[row, col];
                     
                     for (int rowDof = 0; rowDof < dof; rowDof++)

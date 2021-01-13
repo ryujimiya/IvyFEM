@@ -348,6 +348,10 @@ namespace IvyFEM
                 res.AddEId = addEId;
                 return res;
             }
+            else
+            {
+                System.Diagnostics.Debug.Assert(false);
+            }
             return res;
         }
 
@@ -577,107 +581,6 @@ namespace IvyFEM
             return vItr;
         }
 
-        /*
-        public ResAddPolygon AddLoop(IList<KeyValuePair<CurveType, IList<double>>> points,  uint lId, double scale)
-        {
-            ResAddPolygon res = new ResAddPolygon();
-
-            try
-            {
-                int ptCnt = points.Count;
-                IList<OpenTK.Vector2d> vecs = new List<OpenTK.Vector2d>();
-                //for (int iPt = 0; iPt < ptCnt - 1; iPt++)
-                for (int iPt = 0; iPt < ptCnt; iPt++)
-                {
-                    IList<double> point = points[iPt].Value;
-                    OpenTK.Vector2d vec = new OpenTK.Vector2d(
-                        point[point.Count - 2] * scale, point[point.Count - 1] * scale);
-                    vecs.Add(vec);
-                    uint vId0 = AddVertex(CadElementType.Loop, lId, vec).AddVId;
-                    if (vId0 == 0)
-                    {
-                        throw new InvalidOperationException("FAIL_ADD_POLYGON_INSIDE_LOOP");
-                    }
-                    res.VIds.Add(vId0);
-                }
-                System.Diagnostics.Debug.Assert(res.VIds.Count == ptCnt);
-                //for (int iEdge = 0; iEdge < ptCnt - 1; iEdge++)
-                for (int iEdge = 0; iEdge < ptCnt; iEdge++)
-                {
-                    int isPt = iEdge;
-                    //int iePt = (iEdge != ptCnt - 2) ? iEdge + 1 : 0;
-                    int iePt = (iEdge != ptCnt - 1) ? iEdge + 1 : 0;
-                    Edge2D e = new Edge2D(res.VIds[isPt], res.VIds[iePt]);
-                    //System.Diagnostics.Debug.WriteLine(
-                    //    iEdge + " " + ptCnt + "    " + res.VIds[isPt] + " " + res.VIds[iePt] + "  ");
-                    if (iEdge != ptCnt - 1)
-                    {
-                        CurveType type = points[iEdge + 1].Key;
-                        if (type == CurveType.CurveBezier)
-                        {
-                            IList<double> point = points[iEdge + 1].Value;
-                            OpenTK.Vector2d vs = vecs[isPt];
-                            OpenTK.Vector2d ve = vecs[iePt];
-                            OpenTK.Vector2d vsc = new OpenTK.Vector2d(point[0] * scale, point[1] * scale);
-                            OpenTK.Vector2d vec = new OpenTK.Vector2d(point[2] * scale, point[3] * scale);
-                            OpenTK.Vector2d vh = ve - vs;
-                            {
-                                double len = vh.Length;
-                                vh *= 1.0 / (len * len);
-                            }
-                            OpenTK.Vector2d vv = new OpenTK.Vector2d(-vh.Y, vh.X);
-                            double t0 = OpenTK.Vector2d.Dot(vsc - vs, vh);
-                            double t1 = OpenTK.Vector2d.Dot(vsc - vs, vv);
-                            double t2 = OpenTK.Vector2d.Dot(vec - vs, vh);
-                            double t3 = OpenTK.Vector2d.Dot(vec - vs, vv);
-                            //System.Diagnostics.Debug.WriteLine(t0 + " " + t1 + " " + t2 + " " + t3);
-                            e.SetCurveBezier(t0, t1, t2, t3);
-                        }
-                    }
-                    uint eId0 = ConnectVertex(e).AddEId;
-                    //System.Diagnostics.Debug.WriteLine("edge add " + eId0);
-                    if (eId0 == 0)
-                    {
-                        throw new InvalidOperationException("FAIL_ADD_POLYGON_INSIDE_LOOP");
-                    }
-                    res.EIds.Add(eId0);
-                }
-                System.Diagnostics.Debug.Assert(res.EIds.Count == ptCnt);
-                System.Diagnostics.Debug.Assert(AssertValid() == 0);
-                // 新しく出来たループのIDを取得  
-                {
-                    // 辺の両側のループを調べる
-                    uint eId0 = res.EIds[ptCnt - 1];
-                    uint lId0;
-                    uint lId1;
-                    BRep.GetEdgeLoopId(eId0, out lId0, out lId1);
-                    res.AddLId = (lId0 == lId) ? lId1 : lId0;
-                }
-
-            }
-            catch (InvalidOperationException exception)
-            {
-                for (int iie = 0; iie < res.EIds.Count; iie++)
-                {
-                    uint id_e0 = res.EIds[iie];
-
-                    RemoveElement(CadElementType.Edge, id_e0);
-
-                }
-                for (int iiv = 0; iiv < res.VIds.Count; iiv++)
-                {
-                    uint id_v0 = res.VIds[iiv];
-
-                    RemoveElement(CadElementType.Vertex, id_v0);
-
-                }
-                System.Diagnostics.Debug.Assert(AssertValid() == 0);
-                return new ResAddPolygon();
-            }
-            return res;
-        }
-        */
-
         public AddPolygonRes AddPolygon(IList<OpenTK.Vector2d> points, uint lId = 0)
         {
             System.Diagnostics.Debug.WriteLine("AddPolygon");
@@ -882,37 +785,6 @@ namespace IvyFEM
             return v.Point;
         }
 
-        public double[] GetVertexColor(uint vId)
-        {
-            double[] color = new double[3];
-            if (!BRep.IsElementId(CadElementType.Vertex, vId))
-            {
-                return color;
-            }
-            if (!VertexArray.IsObjectId(vId))
-            {
-                return color;
-            }
-            Vertex2D v = VertexArray.GetObject(vId);
-            v.Color.CopyTo(color, 0);
-            return color;
-        }
-
-        public bool SetVertexColor(uint vId, double[] color)
-        {
-            if (!BRep.IsElementId(CadElementType.Vertex, vId))
-            {
-                return false;
-            }
-            if (!VertexArray.IsObjectId(vId))
-            {
-                return false;
-            }
-            Vertex2D v = VertexArray.GetObject(vId);
-            color.CopyTo(v.Color, 0);
-            return true;
-        }
-
         public Edge2D GetEdge(uint eId)
         {
             System.Diagnostics.Debug.Assert(BRep.IsElementId(CadElementType.Edge, eId));
@@ -928,37 +800,6 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(VertexArray.IsObjectId(eVId));
             e.SetVertexCoords(GetVertexCoord(sVId), GetVertexCoord(eVId));
             return e;
-        }
-
-        public double[] GetEdgeColor(uint eId)
-        {
-            double[] color = new double[3];
-            if (!BRep.IsElementId(CadElementType.Edge, eId))
-            {
-                return color;
-            }
-            if (!EdgeArray.IsObjectId(eId))
-            {
-                return color;
-            }
-            Edge2D e = EdgeArray.GetObject(eId);
-            e.Color.CopyTo(color, 0);
-            return color;
-        }
-
-        public bool SetEdgeColor(uint eId, double[] color)
-        {
-            if (!BRep.IsElementId(CadElementType.Edge, eId))
-            {
-                return false;
-            }
-            if (!EdgeArray.IsObjectId(eId))
-            {
-                return false;
-            }
-            Edge2D e = EdgeArray.GetObject(eId);
-            color.CopyTo(e.Color, 0);
-            return true;
         }
 
         public bool GetEdgeVertexId(uint eId, out uint sVId, out uint eVId)
@@ -1086,11 +927,82 @@ namespace IvyFEM
             }
         }
 
+        public double[] GetVertexColor(uint vId)
+        {
+            double[] color = new double[3];
+            if (!BRep.IsElementId(CadElementType.Vertex, vId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return color;
+            }
+            if (!VertexArray.IsObjectId(vId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return color;
+            }
+            Vertex2D v = VertexArray.GetObject(vId);
+            v.Color.CopyTo(color, 0);
+            return color;
+        }
+
+        public bool SetVertexColor(uint vId, double[] color)
+        {
+            if (!BRep.IsElementId(CadElementType.Vertex, vId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return false;
+            }
+            if (!VertexArray.IsObjectId(vId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return false;
+            }
+            Vertex2D v = VertexArray.GetObject(vId);
+            color.CopyTo(v.Color, 0);
+            return true;
+        }
+
+        public double[] GetEdgeColor(uint eId)
+        {
+            double[] color = new double[3];
+            if (!BRep.IsElementId(CadElementType.Edge, eId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return color;
+            }
+            if (!EdgeArray.IsObjectId(eId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return color;
+            }
+            Edge2D e = EdgeArray.GetObject(eId);
+            e.Color.CopyTo(color, 0);
+            return color;
+        }
+
+        public bool SetEdgeColor(uint eId, double[] color)
+        {
+            if (!BRep.IsElementId(CadElementType.Edge, eId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return false;
+            }
+            if (!EdgeArray.IsObjectId(eId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return false;
+            }
+            Edge2D e = EdgeArray.GetObject(eId);
+            color.CopyTo(e.Color, 0);
+            return true;
+        }
+
         public double[] GetLoopColor(uint lId)
         {
             double[] color = new double[3];
             if (!LoopArray.IsObjectId(lId))
             {
+                System.Diagnostics.Debug.Assert(false);
                 return color;
             }
             Loop2D l = LoopArray.GetObject(lId);
@@ -1102,6 +1014,7 @@ namespace IvyFEM
         {
             if (!LoopArray.IsObjectId(lId))
             {
+                System.Diagnostics.Debug.Assert(false);
                 return false;
             }
             Loop2D l = LoopArray.GetObject(lId);

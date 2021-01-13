@@ -25,35 +25,29 @@ namespace IvyFEM
         // Output
         public double[] U { get; protected set; }
 
-        protected int GetOffset(uint quantityId)
-        {
-            int cnt = 0;
-            for (uint tmpId = 0; tmpId < quantityId; tmpId++)
-            {
-                int quantityDof = (int)World.GetDof(tmpId);
-                int quantityNodeCnt = (int)World.GetNodeCount(tmpId);
-                cnt += quantityDof * quantityNodeCnt;
-            }
-            return cnt;
-        }
-
         protected void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
-            IList<uint> feIds = World.GetTriangleFEIds(quantityId);
-            foreach (uint feId in feIds)
+            if (CalcElementABs.Count > 0)
             {
-                foreach (var calcElementAB in CalcElementABs)
+                IList<uint> feIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in feIds)
                 {
-                    calcElementAB(feId, A, B);
+                    foreach (var calcElementAB in CalcElementABs)
+                    {
+                        calcElementAB(feId, A, B);
+                    }
                 }
             }
-            IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
-            foreach (uint feId in lineFEIds)
+            if (CalcElementABsForLine.Count > 0)
             {
-                foreach (var calcElementABForLine in CalcElementABsForLine)
+                IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
+                foreach (uint feId in lineFEIds)
                 {
-                    calcElementABForLine(feId, A, B);
+                    foreach (var calcElementABForLine in CalcElementABsForLine)
+                    {
+                        calcElementABForLine(feId, A, B);
+                    }
                 }
             }
         }

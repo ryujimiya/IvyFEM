@@ -11,8 +11,9 @@ namespace IvyFEM
         public uint Id { get; set; } = 0;
         public uint UVId { get; set; } = 0;
         public uint FHEId { get; set; } = 0; // Previous
-        public uint BHEId { get; set; } = 0; // Lator
+        public uint BHEId { get; set; } = 0; // Next
         public uint OHEId { get; set; } = 0; // Opposite Side
+        public uint RadialHEId { get; set; } = 0; // Radial Edge対応(Non-manifold model)
         public uint ULId { get; set; } = 0;
         public uint EId { get; set; } = 0;
         public bool IsSameDir { get; set; } = true;
@@ -29,6 +30,7 @@ namespace IvyFEM
             FHEId = fHEId;
             BHEId = bHEId;
             OHEId = oHEId;
+            RadialHEId = 0;
             ULId = uLId;
             EId = 0;
             IsSameDir = true;
@@ -47,6 +49,7 @@ namespace IvyFEM
             FHEId = srcHE.FHEId;
             BHEId = srcHE.BHEId;
             OHEId = srcHE.OHEId;
+            RadialHEId = srcHE.RadialHEId;
             ULId = srcHE.ULId;
             EId = srcHE.EId;
             IsSameDir = srcHE.IsSameDir;

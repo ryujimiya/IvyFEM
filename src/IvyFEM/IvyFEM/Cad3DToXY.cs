@@ -86,6 +86,10 @@ namespace IvyFEM
 
         public uint GetEdgeId2DFrom3D(uint eId)
         {
+            if (!EId3D2D.ContainsKey(eId))
+            {
+                return 0;
+            }
             return EId3D2D[eId];
         }
 
@@ -212,7 +216,9 @@ namespace IvyFEM
             Normal = new OpenTK.Vector3d(loop.Normal.X, loop.Normal.Y, loop.Normal.Z);
             XDir = new OpenTK.Vector3d(loop.XDir.X, loop.XDir.Y, loop.XDir.Z);
 
-            for (LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop())
+            int loopCounter = 0;
+            uint parentLId = 0;
+            for (LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop(), loopCounter++)
             {
                 for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
                 {
@@ -230,6 +236,7 @@ namespace IvyFEM
                     cad.GetEdgeVertexId(eId, out sVId, out eVId);
                     uint[] vIds = { sVId, eVId };
                     uint[] vId2Ds = new uint[2];
+                    OpenTK.Vector2d[] vec2Ds = new OpenTK.Vector2d[2];
 
                     for (int i = 0; i < 2; i++)
                     {
@@ -243,13 +250,15 @@ namespace IvyFEM
                         }
                         else
                         {
-                            vId2D = AddVertex(CadElementType.Loop, 0, vec2D).AddVId;
+                            vId2D = AddVertex(CadElementType.Loop, parentLId, vec2D).AddVId;
                             System.Diagnostics.Debug.Assert(vId2D != 0);
                             VId3D2D[vId] = vId2D;
                             VId2D3D[vId2D] = vId;
                         }
                         vId2Ds[i] = vId2D;
+                        vec2Ds[i] = vec2D;
                     }
+
                     uint eId2D;
                     if (EId3D2D.ContainsKey(eId))
                     {
@@ -257,10 +266,23 @@ namespace IvyFEM
                     }
                     else
                     {
-                        eId2D = ConnectVertexLine(vId2Ds[0], vId2Ds[1]).AddEId;
-                        System.Diagnostics.Debug.Assert(eId2D != 0);
-                        EId3D2D[eId] = eId2D;
-                        EId2D3D[eId2D] = eId;
+                        var res = ConnectVertexLine(vId2Ds[0], vId2Ds[1]);
+                        eId2D = res.AddEId;
+                        if (loopCounter == 0 && res.AddLId != 0)
+                        {
+                            parentLId = res.AddLId;
+                        }
+                        //System.Diagnostics.Debug.Assert(eId2D != 0);
+                        if (eId2D != 0)
+                        {
+                            EId3D2D[eId] = eId2D;
+                            EId2D3D[eId2D] = eId;
+                        }
+                        else
+                        {
+                            // 失敗
+                            System.Diagnostics.Debug.Assert(false);
+                        }
                     }
                 }
             }

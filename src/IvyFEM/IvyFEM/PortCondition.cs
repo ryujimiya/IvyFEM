@@ -9,12 +9,17 @@ namespace IvyFEM
     public class PortCondition
     {
         public bool IsPeriodic { get; protected set; } = false;
-        public IList<uint> EIds { get; protected set; } = null;
+        public IList<uint> CadIds { get; protected set; } = null;
+        public CadElementType CadElemType { get; protected set; } = CadElementType.Edge;
+        public IList<uint> EIds => CadElemType == CadElementType.Edge ? CadIds : null;
+        public IList<uint> LIds => CadElemType == CadElementType.Loop ? CadIds : null;
+        // 2D
         public IList<uint> LoopIdsForPeriodic { get; protected set; } = null;
         public IList<uint> BcEIdsForPeriodic1 { get; protected set; } = null;
         public IList<uint> BcEIdsForPeriodic2 { get; protected set; } = null;
         public IList<uint> BcEIdsForPeriodic3 { get; protected set; } = null; // for photonic band
         public IList<uint> BcEIdsForPeriodic4 { get; protected set; } = null; // for photonic band
+
         public FieldValueType ValueType { get; protected set; } = FieldValueType.NoValue;
         public uint Dof { get; protected set; } = 0;
         public IList<uint> FixedDofIndexs { get; protected set; } = new List<uint>();
@@ -26,10 +31,15 @@ namespace IvyFEM
 
         }
 
-        public PortCondition(IList<uint> eIds, FieldValueType valueType)
+        public PortCondition(
+            IList<uint> cadIds, CadElementType cadElemType, FieldValueType valueType)
         {
+            System.Diagnostics.Debug.Assert(
+                cadElemType == CadElementType.Edge || cadElemType == CadElementType.Loop);
+
             IsPeriodic = false;
-            EIds = eIds;
+            CadIds = cadIds;
+            CadElemType = cadElemType;
             LoopIdsForPeriodic = null;
             BcEIdsForPeriodic1 = null;
             BcEIdsForPeriodic2 = null;
@@ -46,11 +56,15 @@ namespace IvyFEM
             AdditionalParametersDof = 0;
         }
 
-        public PortCondition(IList<uint> eIds,
+        public PortCondition(IList<uint> cadIds, CadElementType cadElemType,
             FieldValueType valueType, IList<uint> fixedDofIndexs, uint additionalParametersDof)
         {
+            System.Diagnostics.Debug.Assert(
+                cadElemType == CadElementType.Edge || cadElemType == CadElementType.Loop);
+
             IsPeriodic = false;
-            EIds = eIds;
+            CadIds = cadIds;
+            CadElemType = cadElemType;
             LoopIdsForPeriodic = null;
             BcEIdsForPeriodic1 = null;
             BcEIdsForPeriodic2 = null;
@@ -65,11 +79,15 @@ namespace IvyFEM
 
         // 周期構造導波路のポート条件
         public PortCondition(
+            CadElementType cadElemType,
             IList<uint> lIdsForPeriodic, IList<uint> eIdsForPeriodic1, IList<uint> eIdsForPeriodic2,
             FieldValueType valueType, IList<uint> fixedDofIndexs, uint additionalParametersDof)
         {
+            System.Diagnostics.Debug.Assert(cadElemType == CadElementType.Edge);
+
             IsPeriodic = true; // 周期構造
-            EIds = null;
+            CadIds = null;
+            CadElemType = cadElemType;
             LoopIdsForPeriodic = lIdsForPeriodic;
             BcEIdsForPeriodic1 = eIdsForPeriodic1;
             BcEIdsForPeriodic2 = eIdsForPeriodic2;
@@ -84,12 +102,16 @@ namespace IvyFEM
 
         // 周期構造導波路のポート条件(photonic band)
         public PortCondition(
+            CadElementType cadElemType,
             IList<uint> lIdsForPeriodic, IList<uint> eIdsForPeriodic1, IList<uint> eIdsForPeriodic2,
             IList<uint> eIdsForPeriodic3, IList<uint> eIdsForPeriodic4,
             FieldValueType valueType, IList<uint> fixedDofIndexs, uint additionalParametersDof)
         {
+            System.Diagnostics.Debug.Assert(cadElemType == CadElementType.Edge);
+
             IsPeriodic = true; // 周期構造
-            EIds = null;
+            CadIds = null;
+            CadElemType = cadElemType;
             LoopIdsForPeriodic = lIdsForPeriodic;
             BcEIdsForPeriodic1 = eIdsForPeriodic1;
             BcEIdsForPeriodic2 = eIdsForPeriodic2;
@@ -110,11 +132,12 @@ namespace IvyFEM
         public virtual void Copy(PortCondition src)
         {
             IsPeriodic = src.IsPeriodic;
-            EIds = null;
-            if (src.EIds != null)
+            CadIds = null;
+            if (src.CadIds != null)
             {
-                EIds = new List<uint>(src.EIds);
+                CadIds = new List<uint>(src.CadIds);
             }
+            CadElemType = src.CadElemType;
             LoopIdsForPeriodic = null;
             if (src.LoopIdsForPeriodic != null)
             {

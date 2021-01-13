@@ -17,13 +17,6 @@ namespace IvyFEM
 
         }
 
-        public MeshPoint2D(double x, double y, int element, uint node)
-        {
-            Point = new OpenTK.Vector2d(x, y);
-            Element = element;
-            Node = node;
-        }
-
         public MeshPoint2D(MeshPoint2D src)
         {
             Point = src.Point;

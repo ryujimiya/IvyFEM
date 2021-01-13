@@ -54,18 +54,6 @@ namespace IvyFEM
             CalcElementKMsForLine.Add(CalcTimoshenkoFrameElementKMForLine);
         }
 
-        protected int GetOffset(uint quantityId)
-        {
-            int cnt = 0;
-            for (uint tmpId = 0; tmpId < quantityId; tmpId++)
-            {
-                int quantityDof = (int)World.GetDof(tmpId);
-                int quantityNodeCnt = (int)World.GetNodeCount(tmpId);
-                cnt += quantityDof * quantityNodeCnt;
-            }
-            return cnt;
-        }
-
         protected void CalcKM(IvyFEM.Lapack.DoubleMatrix K, IvyFEM.Lapack.DoubleMatrix M)
         {
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
@@ -228,7 +216,7 @@ namespace IvyFEM
                 {
                     int uDof = (int)World.GetDof(dQuantityId);
                     int uNodeCnt = (int)World.GetNodeCount(dQuantityId);
-                    int offset = GetOffset(dQuantityId);
+                    int offset = World.GetOffset(dQuantityId);
 
                     for (int iNode = 0; iNode < uNodeCnt * uDof; iNode++)
                     {

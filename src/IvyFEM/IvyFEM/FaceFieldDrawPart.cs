@@ -9,6 +9,7 @@ namespace IvyFEM
 {
     public class FaceFieldDrawPart
     {
+        public byte[] Mask { get; set; } = null;
         public bool IsSelected { get; set; } = false;
         public uint MeshId { get; set; } = 0; 
         public ElementType Type { get; private set; } = ElementType.NotSet;
@@ -110,6 +111,11 @@ namespace IvyFEM
                 Type = ElementType.Tri;
                 SetTri(world, valueId);
             }
+            else if (meshType == MeshType.Tet)
+            {
+                Type = ElementType.Tet;
+                SetTet(world, valueId);
+            }
             else
             {
                 throw new NotImplementedException();
@@ -180,6 +186,38 @@ namespace IvyFEM
             }
         }
 
+        private void SetTet(FEWorld world, uint valueId)
+        {
+            System.Diagnostics.Debug.Assert(Type == ElementType.Tet);
+            if (Type != ElementType.Tet)
+            {
+                return;
+            }
+
+            FieldValue fv = world.GetFieldValue(valueId);
+            uint quantityId = fv.QuantityId;
+            int feOrder;
+            {
+                uint feId = world.GetTetrahedronFEIdFromMesh(quantityId, MeshId, 0); // 先頭の要素
+                System.Diagnostics.Debug.Assert(feId != 0);
+                TetrahedronFE tetFE = world.GetTetrahedronFE(quantityId, feId);
+                feOrder = tetFE.Order;
+                ElemPtCount = tetFE.NodeCount;
+            }
+
+            Indexs = new uint[ElemPtCount * ElemCount];
+            for (int iTet = 0; iTet < ElemCount; iTet++)
+            {
+                uint feId = world.GetTetrahedronFEIdFromMesh(quantityId, MeshId, (uint)iTet);
+                System.Diagnostics.Debug.Assert(feId != 0);
+                TetrahedronFE tetFE = world.GetTetrahedronFE(quantityId, feId);
+                for (int iPt = 0; iPt < ElemPtCount; iPt++)
+                {
+                    Indexs[iTet * ElemPtCount + iPt] = (uint)tetFE.NodeCoordIds[iPt];
+                }
+            }
+        }
+
         public void SetColors(uint bubbleValueId, FieldDerivativeType dt, FEWorld world, IColorMap colorMap)
         {
             FieldValue fv = world.GetFieldValue(bubbleValueId);
@@ -203,6 +241,22 @@ namespace IvyFEM
                     for (int iColor = 0; iColor < 3; iColor++)
                     {
                         Colors[iTri * 3 + iColor] = color[iColor];
+                    }
+                }
+            }
+            else if (Type == ElementType.Tet)
+            {
+                Colors = new double[ElemCount * 3];
+                for (int iTet = 0; iTet < ElemCount; iTet++)
+                {
+                    // Bubble
+                    uint feId = world.GetTetrahedronFEIdFromMesh(quantityId, MeshId, (uint)iTet);
+                    System.Diagnostics.Debug.Assert(feId != 0);
+                    double value = fv.GetShowValue((int)(feId - 1), 0, dt);
+                    var color = colorMap.GetColor(value);
+                    for (int iColor = 0; iColor < 3; iColor++)
+                    {
+                        Colors[iTet * 3 + iColor] = color[iColor];
                     }
                 }
             }
@@ -253,8 +307,15 @@ namespace IvyFEM
                         GL.End();
                     }
                 }
-                else if (Type == ElementType.Tri || Type == ElementType.Tet) 
+                else if (Type == ElementType.Tri) 
                 {
+                    if (Mask != null)
+                    {
+                        //----------------------
+                        GL.Enable(EnableCap.PolygonStipple);
+                        GL.PolygonStipple(Mask);
+                        //----------------------
+                    }
                     if (ElemPtCount == 3) // 1次要素
                     {
                         GL.DrawElements(PrimitiveType.Triangles, (int)(ElemCount * ElemPtCount), DrawElementsType.UnsignedInt, Indexs);
@@ -280,11 +341,54 @@ namespace IvyFEM
                         }
                         GL.End();
                     }
+                    if (Mask != null)
+                    {
+                        //----------------------
+                        GL.Disable(EnableCap.PolygonStipple);
+                        //----------------------
+                    }
+                }
+                else if (Type == ElementType.Tet)
+                {
+                    if (Mask != null)
+                    {
+                        //----------------------
+                        GL.Enable(EnableCap.PolygonStipple);
+                        GL.PolygonStipple(Mask);
+                        //----------------------
+                    }
+                    //if (ElemPtCount == 4) // 1次要素
+                    {
+                        GL.Begin(PrimitiveType.Triangles);
+                        for (int iTet = 0; iTet < ElemCount; iTet++)
+                        {
+                            // 4つの面(三角形)
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                            GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                        }
+                        GL.End();
+                    }
+                    if (Mask != null)
+                    {
+                        //----------------------
+                        GL.Disable(EnableCap.PolygonStipple);
+                        //----------------------
+                    }
                 }
                 return;
             }
 
-            if (Type == ElementType.Tri || Type == ElementType.Tet)
+            if (Type == ElementType.Tri)
             {
                 // 要素全体を塗り潰すので要素の次数に関係なく1つの三角形を描画
                 GL.Begin(PrimitiveType.Triangles);
@@ -300,7 +404,32 @@ namespace IvyFEM
                 }
                 GL.End();
             }
+            else if (Type == ElementType.Tet)
+            {
+                // 要素全体を塗り潰すので要素の次数に関係なく4つの三角形を描画
+                GL.Begin(PrimitiveType.Triangles);
+                for (int iTet = 0; iTet < ElemCount; iTet++)
+                {
+                    GL.Color3(
+                        Colors[iTet * 3], Colors[iTet * 3 + 1], Colors[iTet * 3 + 2]);
+                    {
+                        // 4つの面(三角形)
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 3]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 2]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 1]);
+                        GL.ArrayElement((int)Indexs[iTet * ElemPtCount + 0]);
+                    }
+                }
+                GL.End();
+            }
         }
-
     }
 }

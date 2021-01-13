@@ -18,43 +18,48 @@ namespace IvyFEM
         protected void SetupCalcABs()
         {
             //--------------------------------
-            InitNodeValuess.Clear();
-            InitElementValuess.Clear();
-            UpdateNodeValuess.Clear();
-            UpdateElementValuess.Clear();
+            InitNodeValuessForPlate.Clear();
+            InitElementValuessForPlate.Clear();
+            UpdateNodeValuessForPlate.Clear();
+            UpdateElementValuessForPlate.Clear();
 
             // Init
             // Plate
-            InitNodeValuess.Add(InitMITCStVenantPlateNodeValues);
-            InitElementValuess.Add(InitMITCStVenantPlateElementValues);
+            InitNodeValuessForPlate.Add(InitMITCStVenantPlateNodeValues);
+            InitElementValuessForPlate.Add(InitMITCStVenantPlateElementValues);
 
-            InitNodeValuess.Add(InitMITCStVenantThicknessStretchPlateNodeValues);
-            InitElementValuess.Add(InitMITCStVenantThicknessStretchPlateElementValues);
+            InitNodeValuessForPlate.Add(InitMITCStVenantThicknessStretchPlateNodeValues);
+            InitElementValuessForPlate.Add(InitMITCStVenantThicknessStretchPlateElementValues);
 
-            InitNodeValuess.Add(InitMITCMooneyRivlinPlateNodeValues);
-            InitElementValuess.Add(InitMITCMooneyRivlinPlateElementValues);
+            InitNodeValuessForPlate.Add(InitMITCMooneyRivlinPlateNodeValues);
+            InitElementValuessForPlate.Add(InitMITCMooneyRivlinPlateElementValues);
 
             // Update
             // Plate
-            UpdateNodeValuess.Add(UpdateMITCStVenantPlateNodeValues);
-            UpdateElementValuess.Add(UpdateMITCStVenantPlateElementValues);
+            UpdateNodeValuessForPlate.Add(UpdateMITCStVenantPlateNodeValues);
+            UpdateElementValuessForPlate.Add(UpdateMITCStVenantPlateElementValues);
 
-            UpdateNodeValuess.Add(UpdateMITCStVenantThicknessStretchPlateNodeValues);
-            UpdateElementValuess.Add(UpdateMITCStVenantThicknessStretchPlateElementValues);
+            UpdateNodeValuessForPlate.Add(UpdateMITCStVenantThicknessStretchPlateNodeValues);
+            UpdateElementValuessForPlate.Add(UpdateMITCStVenantThicknessStretchPlateElementValues);
 
-            UpdateNodeValuess.Add(UpdateMITCMooneyRivlinPlateNodeValues);
-            UpdateElementValuess.Add(UpdateMITCMooneyRivlinPlateElementValues);
-                                     
+            UpdateNodeValuessForPlate.Add(UpdateMITCMooneyRivlinPlateNodeValues);
+            UpdateElementValuessForPlate.Add(UpdateMITCMooneyRivlinPlateElementValues);
+
             //--------------------------------
             CalcElementABs.Clear();
+            CalcElementABsForPlate.Clear();
+
+            // Linear/Staint Venant
+            CalcElementABs.Add(CalcLinearElasticElementAB);
+            CalcElementABs.Add(CalcStVenantHyperelasticElementAB);
 
             // Plate
-            CalcElementABs.Add(CalcDKTPlateElementAB);
-            CalcElementABs.Add(CalcMindlinPlateElementAB);
-            CalcElementABs.Add(CalcMITCLinearPlateElementAB);
-            CalcElementABs.Add(CalcMITCStVenantPlateElementAB);
-            CalcElementABs.Add(CalcMITCStVenantThicknessStretchPlateElementAB);
-            CalcElementABs.Add(CalcMITCMooneyRivlinPlateElementAB);
+            CalcElementABsForPlate.Add(CalcDKTPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMindlinPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCLinearPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCStVenantPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCStVenantThicknessStretchPlateElementAB);
+            CalcElementABsForPlate.Add(CalcMITCMooneyRivlinPlateElementAB);
         }
     }
 }

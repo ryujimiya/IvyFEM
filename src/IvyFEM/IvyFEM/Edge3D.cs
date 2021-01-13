@@ -12,10 +12,11 @@ namespace IvyFEM
         public uint EVId { get; set; } = 0;
         public OpenTK.Vector3d SPt { get; set; } = new OpenTK.Vector3d();
         public OpenTK.Vector3d EPt { get; set; } = new OpenTK.Vector3d();
+        public double[] Color { get; set; } = new double[3];
 
         public Edge3D()
         {
-
+            Color = new double[3] { 0.0, 0.0, 0.0 };
         }
 
         public Edge3D(Edge3D src)
@@ -31,6 +32,8 @@ namespace IvyFEM
             EVId = srcEdge.EVId;
             SPt = new OpenTK.Vector3d(srcEdge.SPt.X, srcEdge.SPt.Y, srcEdge.SPt.Z);
             EPt = new OpenTK.Vector3d(srcEdge.EPt.X, srcEdge.EPt.Y, srcEdge.EPt.Z);
+            Color = new double[srcEdge.Color.Length];
+            srcEdge.Color.CopyTo(Color, 0);
         }
 
         public void SetVertexCoords(OpenTK.Vector3d sPt, OpenTK.Vector3d ePt)

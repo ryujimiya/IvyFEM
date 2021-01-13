@@ -41,8 +41,6 @@ namespace IvyFEM
                 double[,] sNN = triFE.CalcSNN();
                 double[,][,] sNuNv = triFE.CalcSNuNv();
                 double[,] sNxNx = sNuNv[0, 0];
-                double[,] sNyNx = sNuNv[1, 0];
-                double[,] sNxNy = sNuNv[0, 1];
                 double[,] sNyNy = sNuNv[1, 1];
                 double[] sN = triFE.CalcSN();
                 for (int row = 0; row < elemNodeCnt; row++)

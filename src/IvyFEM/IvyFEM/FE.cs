@@ -117,7 +117,6 @@ namespace IvyFEM
             {
                 System.Diagnostics.Debug.Assert(false);
             }
-
         }
 
         protected void CreateLagrangeInterpolate()
@@ -149,6 +148,22 @@ namespace IvyFEM
                 else if (Order == 2)
                 {
                     Interpolate = new TriangleFE2ndInterpolate(thisTriFE);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
+            else if (this is TetrahedronFE)
+            {
+                TetrahedronFE thisTetFE = this as TetrahedronFE;
+                if (Order == 1)
+                {
+                    Interpolate = new TetrahedronFE1stInterpolate(thisTetFE);
+                }
+                else if (Order == 2)
+                {
+                    Interpolate = new TetrahedronFE2ndInterpolate(thisTetFE);
                 }
                 else
                 {

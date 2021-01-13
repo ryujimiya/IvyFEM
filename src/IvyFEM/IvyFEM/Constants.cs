@@ -121,6 +121,13 @@ namespace IvyFEM
         Point25 = 25
     }
 
+    public enum TetrahedronIntegrationPointCount
+    {
+        Point1 = 1,
+        Point4 = 4,
+        Point5 = 5
+    }
+
     public enum FiniteElementType
     {
         ScalarLagrange,

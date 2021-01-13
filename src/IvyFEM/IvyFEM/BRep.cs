@@ -155,122 +155,6 @@ namespace IvyFEM
             return true;
         }
 
-        public int AssertValidUse()
-        {
-            IList<uint>uVIds = UseVertexArray.GetObjectIds();
-            for (int i = 0; i < uVIds.Count; i++)
-            {
-                uint uVId = uVIds[i];
-                System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId));
-                UseVertex uV = UseVertexArray.GetObject(uVId);
-                System.Diagnostics.Debug.Assert(uV.Id == uVId);
-                uint hEId = uV.HEId;
-                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
-                HalfEdge hEdge = HalfEdgeArray.GetObject(hEId);
-                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
-                System.Diagnostics.Debug.Assert(hEdge.UVId == uVId);
-            }
-
-            IList<uint> hEdgeIds = HalfEdgeArray.GetObjectIds();
-            for (int i = 0; i < hEdgeIds.Count; i++)
-            {
-                uint hEId = hEdgeIds[i];
-                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
-                HalfEdge hEdge = HalfEdgeArray.GetObject(hEId);
-                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
-
-                {
-                    uint uVId1 = hEdge.UVId;
-                    System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId1));
-                    UseVertex uV = UseVertexArray.GetObject(uVId1);
-                    System.Diagnostics.Debug.Assert(uV.Id == uVId1);
-                }
-
-                uint uVId2;
-                {
-                    uint fHEId = hEdge.FHEId;
-                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(fHEId));
-                    HalfEdge cwEdge = HalfEdgeArray.GetObject(fHEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.Id == fHEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.BHEId == hEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.ULId == hEdge.ULId);
-                    uVId2 = cwEdge.UVId;
-                    System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId2));
-                    UseVertex uV = UseVertexArray.GetObject(uVId2);
-                    System.Diagnostics.Debug.Assert(uV.Id == uVId2);
-                }
-
-                {
-                    uint ccwHEId = hEdge.BHEId;
-                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(ccwHEId));
-                    HalfEdge ccwEdge = HalfEdgeArray.GetObject(ccwHEId);
-                    System.Diagnostics.Debug.Assert(ccwEdge.Id == ccwHEId);
-                    System.Diagnostics.Debug.Assert(ccwEdge.FHEId == hEId);
-                    System.Diagnostics.Debug.Assert(ccwEdge.ULId == hEdge.ULId);
-                }
-
-                {
-                    uint oHEId = hEdge.OHEId;
-                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(oHEId));
-                    HalfEdge oEdge = HalfEdgeArray.GetObject(oHEId);
-                    System.Diagnostics.Debug.Assert(oEdge.Id == oHEId);
-                    System.Diagnostics.Debug.Assert(oEdge.OHEId == hEId);
-                    System.Diagnostics.Debug.Assert(oEdge.UVId == uVId2);
-                }
-            }
-
-            IList<uint> uLIds = UseLoopArray.GetObjectIds();
-            for (int i = 0; i < uLIds.Count; i++)
-            {
-                uint uLId = uLIds[i];
-                System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
-                UseLoop uL = UseLoopArray.GetObject(uLId);
-                System.Diagnostics.Debug.Assert(uL.Id == uLId);
-                {
-                    IList<uint> passedHEdge = new List<uint>();
-                    uint hEId = uL.HEId;
-                    while (true)
-                    {
-                        System.Diagnostics.Debug.Assert(passedHEdge.IndexOf(hEId) == -1);
-                        passedHEdge.Add(hEId);
-                        System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
-                        HalfEdge hE = HalfEdgeArray.GetObject(hEId);
-                        System.Diagnostics.Debug.Assert(hE.Id == hEId);
-                        System.Diagnostics.Debug.Assert(hE.ULId == uLId);
-                        uint nextHEId = hE.FHEId;
-                        if (nextHEId == uL.HEId)
-                        {
-                            break;
-                        }
-                        hEId = nextHEId;
-                    }
-                }
-                if (uL.ParentULId != uLId && uL.ParentULId != 0)
-                {
-                    uint parentULId = uL.ParentULId;
-                    uint uLId2 = parentULId;
-                    bool flag = false;
-                    while (true)
-                    {
-                        System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId2));
-                        UseLoop uL2 = UseLoopArray.GetObject(uLId2);
-                        System.Diagnostics.Debug.Assert(uL2.ParentULId == parentULId);
-                        if (uLId2 == uLId)
-                        {
-                            flag = true;
-                        }
-                        uLId2 = uL2.ChildULId;
-                        if (uLId2 == 0)
-                        {
-                            break;
-                        }
-                    }
-                    System.Diagnostics.Debug.Assert(flag == true);
-                }
-            }
-            return 0;
-        }
-
         public IList<uint> FindHalfEdgeByEdge(uint eId)
         {
             IList<uint> res = new List<uint>();
@@ -321,8 +205,7 @@ namespace IvyFEM
         }
 
         /// <summary>
-        ///
-        /// id_heの起点を消去して２つの辺を１つにする
+        /// heidの起点を消去して２つの辺を１つにする
         /// </summary>
         /// <param name="hEId1"></param>
         /// <returns></returns>
@@ -483,7 +366,7 @@ namespace IvyFEM
         /// 頂点とエッジを追加する
         ///   辺を２つに分ける
         ///   入力ではhe2はhe1に向かいあう半辺
-        ///   出力ではhe1の前にhe_add1,he1の向かいにhe_add2,he_add2の後ろにhe2
+        ///   出力ではhe1の前にaddhe1,he1の向かいにaddhe2,addhe2の後ろにhe2
         /// </summary>
         /// <param name="addHEId1"></param>
         /// <param name="addHEId2"></param>
@@ -810,7 +693,7 @@ namespace IvyFEM
 
         /// <summary>
         /// エッジを追加してループを削除する
-        //　  he1の起点uv1とhe2の起点uv2を結んで、２つのループをつなげる
+        ///　 he1の起点uv1とhe2の起点uv2を結んで、２つのループをつなげる
         ///   he1は[uv1 - uv2]、he2は[uv2 - uv1]
         /// </summary>
         /// <param name="addHEId1"></param>
@@ -1045,7 +928,6 @@ namespace IvyFEM
         }
 
         /// <summary>
-        /// 
         /// 片方が端点である、HalfEdgeを削除する。
         /// he1の起点uv1は他の辺につながっていない端点である
         /// </summary>
@@ -1158,7 +1040,6 @@ namespace IvyFEM
         }
 
         /// <summary>
-        /// 
         /// ループと浮遊点をつなげる,he1がLoop上のEdgeでhe2が浮遊点Edge
         /// he2は[uv2-uv1], he_add1は[uv1-uv2]のHalfEdgeとなる
         /// </summary>
@@ -1291,7 +1172,6 @@ namespace IvyFEM
 
 
         /// <summary>
-        /// 
         /// ループと浮遊点をつなげる,he1,he2が浮遊点Edge
         /// he1は[uv1-uv2],he2は[uv2-uv1]のHalfEdgeとなる
         /// </summary>
@@ -1380,7 +1260,6 @@ namespace IvyFEM
         }
 
         /// <summary>
-        /// 
         /// 両方が端点であるEdgeを削除する
         /// </summary>
         /// <param name="addULId"></param>
@@ -1462,7 +1341,6 @@ namespace IvyFEM
         }
 
         /// <summary>
-        /// 
         /// ul2側のループが消去される
         /// </summary>
         /// <param name="hEId1"></param>
@@ -1706,7 +1584,6 @@ namespace IvyFEM
         }
 
         /// <summary>
-        /// 
         /// ループを２つに分ける
         /// </summary>
         /// <param name="addHEId1"></param>
@@ -1717,7 +1594,8 @@ namespace IvyFEM
         /// <returns></returns>
         public bool MEL(out uint addHEId1, out uint addHEId2, out uint addULId, uint hEId1, uint hEId2)
         {
-            addHEId1 = 0; addHEId2 = 0;
+            addHEId1 = 0;
+            addHEId2 = 0;
             addULId = 0;
 
             uint uLId;
@@ -2074,5 +1952,339 @@ namespace IvyFEM
             return true;
         }
 
+        /////////////////////////////////////////////////////////////////////////////
+        // Radial Edge
+        private void SplitEdgeToRadialEdges(uint eId)
+        {
+            IList<uint> hEIds = FindHalfEdgeByEdge(eId);
+            if (hEIds.Count != 2)
+            {
+                // すでにRadial Edgeになっている?
+                System.Diagnostics.Debug.Assert(false);
+                return;
+            }
+
+            uint hEId1 = hEIds[0];
+            uint hEId2 = hEIds[1];
+            HalfEdge hE1 = HalfEdgeArray.GetObject(hEId1);
+            HalfEdge hE2 = HalfEdgeArray.GetObject(hEId2);
+            System.Diagnostics.Debug.Assert(hEId1 == hE2.OHEId);
+            System.Diagnostics.Debug.Assert(hEId2 == hE1.OHEId);
+            System.Diagnostics.Debug.Assert(hE1.RadialHEId == 0);
+            System.Diagnostics.Debug.Assert(hE2.RadialHEId == 0);
+            System.Diagnostics.Debug.Assert(hE1.EId == eId);
+            System.Diagnostics.Debug.Assert(hE2.EId == eId);
+
+            IList<uint> hEFreeIds = HalfEdgeArray.GetFreeObjectIds(2);
+            System.Diagnostics.Debug.Assert(hEFreeIds.Count == 2);
+            uint addHEId1 = hEFreeIds[0];
+            uint addHEId2 = hEFreeIds[1];
+            // hE2の隣接関係をaddHE2に移動する
+            {
+                HalfEdge addHE1 = new HalfEdge(addHEId1, hE1.UVId, addHEId1, addHEId1, addHEId2, 0);
+                addHE1.RadialHEId = hEId2;
+                addHE1.EId = eId;
+                addHE1.IsSameDir = hE1.IsSameDir;
+                uint tmpId = HalfEdgeArray.AddObject(addHE1);
+                System.Diagnostics.Debug.Assert(tmpId == addHEId1);
+            }
+            {
+                HalfEdge addHE2 = new HalfEdge(addHEId2, hE2.UVId, hE2.FHEId, hE2.BHEId, addHEId1, hE2.ULId);
+                addHE2.RadialHEId = hEId1;
+                addHE2.EId = eId;
+                addHE2.IsSameDir = hE2.IsSameDir;
+                uint tmpId = HalfEdgeArray.AddObject(addHE2);
+                System.Diagnostics.Debug.Assert(tmpId == addHEId2);
+            }
+            {
+                hE1.RadialHEId = addHEId2;
+                hE2.RadialHEId = addHEId1;
+            }
+            // hE2の隣接関係をaddHE2に置換する
+            {
+                UseLoop uL = UseLoopArray.GetObject(hE2.ULId);
+                if (uL.HEId == hEId2)
+                {
+                    uL.HEId = addHEId2;
+                }
+                else
+                {
+                    // そのまま
+                }
+            }
+            {
+                HalfEdge fHE = HalfEdgeArray.GetObject(hE2.FHEId);
+                fHE.BHEId = addHEId2;
+            }
+            {
+                HalfEdge bHE = HalfEdgeArray.GetObject(hE2.BHEId);
+                bHE.FHEId = addHEId2;
+            }
+            // hE2の前後隣接関係をクリアする
+            {
+                hE2.ULId = 0;
+                hE2.FHEId = hE2.Id;
+                hE2.BHEId = hE2.Id;
+            }
+        }
+
+        /*
+        private void UnSplitRadialEdgesToEdge(uint eId)
+        {
+            // TODO:
+        }
+        */
+
+        private IList<uint> AddRadialEdgeToEdge(uint eId)
+        {
+            IList<uint> hEIds0 = FindHalfEdgeByEdge(eId);
+            if (hEIds0.Count == 2)
+            {
+                SplitEdgeToRadialEdges(eId);
+            }
+
+            IList<uint> hEIds = FindHalfEdgeByEdge(eId);
+            System.Diagnostics.Debug.Assert(hEIds.Count >= 4);
+
+            uint hEId1 = hEIds[0];
+            uint hEId2 = hEIds[1];
+            uint hEId3 = hEIds[hEIds.Count - 2];
+            uint hEId4 = hEIds[hEIds.Count - 1];
+            HalfEdge hE1 = HalfEdgeArray.GetObject(hEId1);
+            HalfEdge hE2 = HalfEdgeArray.GetObject(hEId2);
+            HalfEdge hE3 = HalfEdgeArray.GetObject(hEId3);
+            HalfEdge hE4 = HalfEdgeArray.GetObject(hEId4);
+            System.Diagnostics.Debug.Assert(hEId3 == hE4.OHEId);
+            System.Diagnostics.Debug.Assert(hEId4 == hE3.OHEId);
+            System.Diagnostics.Debug.Assert(hE1.RadialHEId == hEId4);
+            System.Diagnostics.Debug.Assert(hE4.RadialHEId == hEId1);
+            System.Diagnostics.Debug.Assert(hE1.EId == eId);
+            System.Diagnostics.Debug.Assert(hE2.EId == eId);
+            System.Diagnostics.Debug.Assert(hE3.EId == eId);
+            System.Diagnostics.Debug.Assert(hE4.EId == eId);
+
+            IList<uint> hEFreeIds = HalfEdgeArray.GetFreeObjectIds(2);
+            System.Diagnostics.Debug.Assert(hEFreeIds.Count == 2);
+            uint addHEId1 = hEFreeIds[0];
+            uint addHEId2 = hEFreeIds[1];
+            {
+                HalfEdge addHE1 = new HalfEdge(addHEId1, hE1.UVId, addHEId1, addHEId1, addHEId2, 0);
+                addHE1.RadialHEId = hEId4;
+                addHE1.EId = eId;
+                addHE1.IsSameDir = hE1.IsSameDir;
+                uint tmpId = HalfEdgeArray.AddObject(addHE1);
+                System.Diagnostics.Debug.Assert(tmpId == addHEId1);
+            }
+            {
+                HalfEdge addHE2 = new HalfEdge(addHEId2, hE2.UVId, addHEId2, addHEId2, addHEId1, 0);
+                addHE2.RadialHEId = hEId1;
+                addHE2.EId = eId;
+                addHE2.IsSameDir = hE2.IsSameDir;
+                uint tmpId = HalfEdgeArray.AddObject(addHE2);
+                System.Diagnostics.Debug.Assert(tmpId == addHEId2);
+            }
+            {
+                hE1.RadialHEId = addHEId2;
+                hE4.RadialHEId = addHEId1;
+            }
+
+            IList<uint> addRadialHEIds = new List<uint>();
+            addRadialHEIds.Add(addHEId1);
+            addRadialHEIds.Add(addHEId2);
+            return addRadialHEIds;
+        }
+
+        public uint MakeRadialUseLoop(IList<uint> eIds, IList<bool> isSameDirs)
+        {
+            int edgeCnt = eIds.Count;
+
+            IList<IList<uint>> radialHEIdss = new List<IList<uint>>();
+            for (int i = 0; i < edgeCnt; i++)
+            {
+                uint eId = eIds[i];
+                IList<uint> radialHEIds = AddRadialEdgeToEdge(eId);
+                System.Diagnostics.Debug.Assert(radialHEIds.Count == 2);
+                radialHEIdss.Add(radialHEIds);
+            }
+
+            IList<uint> hitRadialHEIds = new List<uint>();
+            for (int i = 0; i < edgeCnt; i++)
+            {
+                bool inIsSameDir = isSameDirs[i];
+                IList<uint> hEIds = radialHEIdss[i];
+                uint hEId1 = hEIds[0];
+                uint hEId2 = hEIds[1];
+
+                HalfEdge hE1 = HalfEdgeArray.GetObject(hEId1);
+                HalfEdge hE2 = HalfEdgeArray.GetObject(hEId2);
+                uint uVId1 = hE1.UVId;
+                uint uVId2 = hE2.UVId;
+                bool isSameDir1 = hE1.IsSameDir;
+                bool isSameDir2 = hE2.IsSameDir;
+
+                uint hitHEId = 0; 
+                if (inIsSameDir == isSameDir1)
+                {
+                    hitHEId = hEId1;
+                }
+                else if (inIsSameDir == isSameDir2)
+                {
+                    hitHEId = hEId2;
+                }
+                else
+                {
+                    // fail
+                    System.Diagnostics.Debug.Assert(false);
+                }
+                hitRadialHEIds.Add(hitHEId);
+            }
+
+            for (int i = 0; i < edgeCnt; i++)
+            {
+                uint curHEId = hitRadialHEIds[i];
+                uint prevHEId = hitRadialHEIds[(i - 1) >= 0 ? (i - 1) : (edgeCnt - 1)];
+                uint nextHEId = hitRadialHEIds[(i + 1) % edgeCnt];
+
+                HalfEdge curHE = HalfEdgeArray.GetObject(curHEId);
+                curHE.BHEId = prevHEId;
+                curHE.FHEId = nextHEId;
+            }
+
+            uint addULId = UseLoopArray.GetFreeObjectId();
+            uint parentULId = 0; //!!!!!!
+            uint hEId0 = hitRadialHEIds[0];
+            {
+                UseLoop addUL = new UseLoop(addULId, hEId0, 0, parentULId);
+                uint tmpId = UseLoopArray.AddObject(addUL);
+                System.Diagnostics.Debug.Assert(tmpId == addULId);
+            }
+
+            for (int i = 0; i < edgeCnt; i++)
+            {
+                uint curHEId = hitRadialHEIds[i];
+                HalfEdge curHE = HalfEdgeArray.GetObject(curHEId);
+                curHE.ULId = addULId;
+            }
+
+            return addULId;
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////
+
+        public int AssertValidUse()
+        {
+            IList<uint> uVIds = UseVertexArray.GetObjectIds();
+            for (int i = 0; i < uVIds.Count; i++)
+            {
+                uint uVId = uVIds[i];
+                System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId));
+                UseVertex uV = UseVertexArray.GetObject(uVId);
+                System.Diagnostics.Debug.Assert(uV.Id == uVId);
+                uint hEId = uV.HEId;
+                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
+                HalfEdge hEdge = HalfEdgeArray.GetObject(hEId);
+                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
+                System.Diagnostics.Debug.Assert(hEdge.UVId == uVId);
+            }
+
+            IList<uint> hEdgeIds = HalfEdgeArray.GetObjectIds();
+            for (int i = 0; i < hEdgeIds.Count; i++)
+            {
+                uint hEId = hEdgeIds[i];
+                System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
+                HalfEdge hEdge = HalfEdgeArray.GetObject(hEId);
+                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
+
+                {
+                    uint uVId1 = hEdge.UVId;
+                    System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId1));
+                    UseVertex uV = UseVertexArray.GetObject(uVId1);
+                    System.Diagnostics.Debug.Assert(uV.Id == uVId1);
+                }
+
+                uint uVId2;
+                {
+                    uint fHEId = hEdge.FHEId;
+                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(fHEId));
+                    HalfEdge cwEdge = HalfEdgeArray.GetObject(fHEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.Id == fHEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.BHEId == hEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.ULId == hEdge.ULId);
+                    uVId2 = cwEdge.UVId;
+                    System.Diagnostics.Debug.Assert(UseVertexArray.IsObjectId(uVId2));
+                    UseVertex uV = UseVertexArray.GetObject(uVId2);
+                    System.Diagnostics.Debug.Assert(uV.Id == uVId2);
+                }
+
+                {
+                    uint ccwHEId = hEdge.BHEId;
+                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(ccwHEId));
+                    HalfEdge ccwEdge = HalfEdgeArray.GetObject(ccwHEId);
+                    System.Diagnostics.Debug.Assert(ccwEdge.Id == ccwHEId);
+                    System.Diagnostics.Debug.Assert(ccwEdge.FHEId == hEId);
+                    System.Diagnostics.Debug.Assert(ccwEdge.ULId == hEdge.ULId);
+                }
+
+                {
+                    uint oHEId = hEdge.OHEId;
+                    System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(oHEId));
+                    HalfEdge oEdge = HalfEdgeArray.GetObject(oHEId);
+                    System.Diagnostics.Debug.Assert(oEdge.Id == oHEId);
+                    System.Diagnostics.Debug.Assert(oEdge.OHEId == hEId);
+                    System.Diagnostics.Debug.Assert(oEdge.UVId == uVId2);
+                }
+            }
+
+            IList<uint> uLIds = UseLoopArray.GetObjectIds();
+            for (int i = 0; i < uLIds.Count; i++)
+            {
+                uint uLId = uLIds[i];
+                System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId));
+                UseLoop uL = UseLoopArray.GetObject(uLId);
+                System.Diagnostics.Debug.Assert(uL.Id == uLId);
+                {
+                    IList<uint> passedHEdge = new List<uint>();
+                    uint hEId = uL.HEId;
+                    while (true)
+                    {
+                        System.Diagnostics.Debug.Assert(passedHEdge.IndexOf(hEId) == -1);
+                        passedHEdge.Add(hEId);
+                        System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(hEId));
+                        HalfEdge hE = HalfEdgeArray.GetObject(hEId);
+                        System.Diagnostics.Debug.Assert(hE.Id == hEId);
+                        System.Diagnostics.Debug.Assert(hE.ULId == uLId);
+                        uint nextHEId = hE.FHEId;
+                        if (nextHEId == uL.HEId)
+                        {
+                            break;
+                        }
+                        hEId = nextHEId;
+                    }
+                }
+                if (uL.ParentULId != uLId && uL.ParentULId != 0)
+                {
+                    uint parentULId = uL.ParentULId;
+                    uint uLId2 = parentULId;
+                    bool flag = false;
+                    while (true)
+                    {
+                        System.Diagnostics.Debug.Assert(UseLoopArray.IsObjectId(uLId2));
+                        UseLoop uL2 = UseLoopArray.GetObject(uLId2);
+                        System.Diagnostics.Debug.Assert(uL2.ParentULId == parentULId);
+                        if (uLId2 == uLId)
+                        {
+                            flag = true;
+                        }
+                        uLId2 = uL2.ChildULId;
+                        if (uLId2 == 0)
+                        {
+                            break;
+                        }
+                    }
+                    System.Diagnostics.Debug.Assert(flag == true);
+                }
+            }
+            return 0;
+        }
     }
 }

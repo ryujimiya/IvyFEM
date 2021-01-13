@@ -604,19 +604,19 @@ namespace IvyFEM
             OpenTK.Vector2d ePt1 = e1.EPt;
             if (isShareS0 && isShareS1)
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(SPt, sPt1) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(SPt, sPt1) < 1.0e-20);
             }
             if (isShareS0 && !isShareS1)
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(SPt, ePt1) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(SPt, ePt1) < 1.0e-20);
             }
             if (!isShareS0 && isShareS1)
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(EPt, sPt1) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(EPt, sPt1) < 1.0e-20);
             }
             if (!isShareS0 && !isShareS1)
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(EPt, ePt1) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(EPt, ePt1) < 1.0e-20);
             }
             if (CurveType == CurveType.CurveLine && e1.CurveType == CurveType.CurveLine)
             {
@@ -683,8 +683,8 @@ namespace IvyFEM
                 {
                     sharePt = EPt;
                 }
-                double sqDist0 = CadUtils2D.SquareLength(sharePt, pt0);
-                double sqDist1 = CadUtils2D.SquareLength(sharePt, pt1);
+                double sqDist0 = CadUtils2D.SquareDistance(sharePt, pt0);
+                double sqDist1 = CadUtils2D.SquareDistance(sharePt, pt1);
                 if (sqDist0 < sqDist1 && IsDirectionArc(pt1) != 0 && e1.IsDirectionArc(pt1) != 0)
                 {
                     System.Diagnostics.Debug.Assert(sqDist0 < 1.0e-20);
@@ -830,13 +830,13 @@ namespace IvyFEM
         {
             if (isShareS0S1)
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(SPt, e1.SPt) < 1.0e-20 &&
-                    CadUtils2D.SquareLength(EPt, e1.EPt) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(SPt, e1.SPt) < 1.0e-20 &&
+                    CadUtils2D.SquareDistance(EPt, e1.EPt) < 1.0e-20);
             }
             else
             {
-                System.Diagnostics.Debug.Assert(CadUtils2D.SquareLength(SPt, e1.EPt) < 1.0e-20 &&
-                    CadUtils2D.SquareLength(EPt, e1.SPt) < 1.0e-20);
+                System.Diagnostics.Debug.Assert(CadUtils2D.SquareDistance(SPt, e1.EPt) < 1.0e-20 &&
+                    CadUtils2D.SquareDistance(EPt, e1.SPt) < 1.0e-20);
             }
 
             if (CurveType == CurveType.CurveLine && e1.CurveType == CurveType.CurveLine)
@@ -954,8 +954,8 @@ namespace IvyFEM
             double radius0;
             GetCenterRadius(out cPt0, out radius0);
 
-            bool isOut0 = CadUtils2D.SquareLength(cPt0, sPt1) > radius0 * radius0;
-            bool isOut1 = CadUtils2D.SquareLength(cPt0, ePt1) > radius0 * radius0;
+            bool isOut0 = CadUtils2D.SquareDistance(cPt0, sPt1) > radius0 * radius0;
+            bool isOut1 = CadUtils2D.SquareDistance(cPt0, ePt1) > radius0 * radius0;
             if (!isOut0 && !isOut1)
             {
                 return 0;
@@ -1025,7 +1025,7 @@ namespace IvyFEM
                     double r1 = dc1 / (-dc0 + dc1);
                     foot = sPt1 * r1 + ePt1 * r0;
                 }
-                if (CadUtils2D.SquareLength(cPt0, foot) > radius0 * radius0)
+                if (CadUtils2D.SquareDistance(cPt0, foot) > radius0 * radius0)
                 {
                     return 0;
                 }
@@ -1379,8 +1379,8 @@ namespace IvyFEM
                 {
                     return pPt;
                 }
-                double sDist = CadUtils2D.SquareLength(pt, SPt);
-                double eDist = CadUtils2D.SquareLength(pt, EPt);
+                double sDist = CadUtils2D.SquareDistance(pt, SPt);
+                double eDist = CadUtils2D.SquareDistance(pt, EPt);
                 if (sDist < eDist)
                 {
                     return SPt;
@@ -1487,6 +1487,93 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(false);
             OpenTK.Vector2d zeroV = new OpenTK.Vector2d(0,0);
             return zeroV;
+        }
+
+        public bool ConnectEdge(Edge2D e1, bool isAheadAdd, bool isSameDir)
+        {
+            if (isAheadAdd && isSameDir)
+            {
+                System.Diagnostics.Debug.Assert(EVId == e1.SVId);
+            }
+            else if (isAheadAdd && !isSameDir)
+            {
+                System.Diagnostics.Debug.Assert(EVId == e1.EVId);
+            }
+            else if (!isAheadAdd && isSameDir)
+            {
+                System.Diagnostics.Debug.Assert(SVId == e1.EVId);
+            }
+            else if (!isAheadAdd && !isSameDir)
+            {
+                System.Diagnostics.Debug.Assert(SVId == e1.SVId);
+            }
+            if (CurveType == CurveType.CurvePolyline)
+            {
+                IList<OpenTK.Vector2d> pts0 = Coords;
+
+                double aveELen = GetCurveLength() / (pts0.Count + 1.0);
+                IList<OpenTK.Vector2d> pts1;
+                {
+                    uint div1 = (uint)(e1.GetCurveLength() / aveELen);
+                    e1.GetCurveAsPolyline(out pts1, (int)div1);
+                }
+                IList<OpenTK.Vector2d> pts2;
+                if (isAheadAdd)
+                {
+                    pts2 = new List<OpenTK.Vector2d>(pts0);
+                    pts2.Add(EPt);
+                    if (isSameDir)
+                    {
+                        for (uint i = 0; i < (uint)pts1.Count; i++)
+                        {
+                            pts2.Add(pts1[(int)i]);
+                        }
+                        EVId = e1.EVId;
+                        EPt = e1.EPt;
+                    }
+                    else
+                    {
+                        for (int i = pts1.Count - 1; i >= 0; i--)
+                        {
+                            pts2.Add(pts1[i]);
+                        }
+                        EVId = e1.SVId;
+                        EPt = e1.SPt;
+                    }
+                }
+                else
+                {
+                    if (isSameDir)
+                    {
+                        pts2 = new List<OpenTK.Vector2d>(pts1);
+                        pts2.Add(SPt);
+                        for (uint i = 0; i < pts0.Count; i++)
+                        {
+                            pts2.Add(pts0[(int)i]);
+                        }
+                        SVId = e1.SVId;
+                        SPt = e1.SPt;
+                    }
+                    else
+                    {
+                        pts2 = new List<OpenTK.Vector2d>();
+                        for (int i = pts1.Count - 1; i >= 0; i--)
+                        {
+                            pts2.Add(pts1[i]);
+                        }
+                        pts2.Add(SPt);
+                        for (uint i = 0; i < pts0.Count; i++)
+                        {
+                            pts2.Add(pts0[(int)i]);
+                        }
+                        SVId = e1.EVId;
+                        SPt = e1.EPt;
+                    }
+                }
+
+                Coords = new List<OpenTK.Vector2d>(pts2);
+            }
+            return true;
         }
 
         public bool Split(Edge2D addEdge, OpenTK.Vector2d addPt)
@@ -1709,6 +1796,137 @@ namespace IvyFEM
             return 0;
         }
 
+        public bool GetNearestIntersectionPointAgainstHalfLine(
+            out OpenTK.Vector2d sec, OpenTK.Vector2d org, OpenTK.Vector2d dir)
+        {
+            sec = new OpenTK.Vector2d();
+
+            OpenTK.Vector2d dir1 = dir * (1.0 / dir.Length);
+            double lenlong = 0;
+            {
+                // BoundingBoxとの干渉チェック
+                double min_x, max_x, min_y, max_y;
+                GetBoundingBox(out min_x, out max_x, out min_y, out max_y);
+                OpenTK.Vector2d po_d = org + dir1;
+                double area1 = CadUtils2D.TriArea(org, po_d, new OpenTK.Vector2d(min_x, min_y));
+                double area2 = CadUtils2D.TriArea(org, po_d, new OpenTK.Vector2d(min_x, max_y));
+                double area3 = CadUtils2D.TriArea(org, po_d, new OpenTK.Vector2d(max_x, min_y));
+                double area4 = CadUtils2D.TriArea(org, po_d, new OpenTK.Vector2d(max_x, max_y));
+                if (area1 < 0 && area2 < 0 && area3 < 0 && area4 < 0)
+                {
+                    return false;
+                }
+                if (area1 > 0 && area2 > 0 && area3 > 0 && area4 > 0)
+                {
+                    return false;
+                }
+                var pt0 = new OpenTK.Vector2d(0.5 * (min_x + max_x), 0.5 * (min_y + max_y));
+
+                double len0 = (pt0 - org).Length;
+                double len1 = max_x - min_x;
+                double len2 = max_y - min_y;
+                lenlong = 2 * (len0 + len1 + len2);
+            }
+            OpenTK.Vector2d end = org + dir1 * lenlong;
+            if (CurveType == CurveType.CurveLine)
+            {
+                double area1 = CadUtils2D.TriArea(SPt, EPt, org);
+                double area2 = CadUtils2D.TriArea(SPt, EPt, end);
+                if ((area1 > 0) == (area2 > 0))
+                {
+                    return false;
+                }
+                double area3 = CadUtils2D.TriArea(org, end, SPt);
+                double area4 = CadUtils2D.TriArea(org, end, EPt);
+                if ((area3 > 0) == (area4 > 0))
+                {
+                    return false;
+                }
+                double t = area1 / (area1 - area2);
+                sec = org + (end - org) * t;
+                return true;
+            }
+
+            else if (CurveType == CurveType.CurveArc)
+            {
+                OpenTK.Vector2d cPt;
+                double radius1;
+                GetCenterRadius(out cPt, out radius1);
+                ////////////////
+                double t0;
+                double t1;
+                if (!CadUtils2D.IsCrossLineCircle(cPt, radius1, org, end, out t0, out t1))
+                {
+                    return false;
+                }
+                OpenTK.Vector2d p0 = org + (end - org) * t0;
+                OpenTK.Vector2d p1 = org + (end - org) * t1;
+                bool is_sec0 = 0 < t0 && t0 < 1 && (IsDirectionArc(p0) != 0);
+                bool is_sec1 = 0 < t1 && t1 < 1 && (IsDirectionArc(p1) != 0);
+                if (is_sec0 && !is_sec1)
+                {
+                    sec = p0;
+                    return true;
+                }
+                if (!is_sec0 && is_sec1)
+                {
+                    sec = p1;
+                    return true;
+                }
+                if (is_sec0 && is_sec1)
+                {
+                    sec = (t0 < t1) ? p0 : p1;
+                    return true;
+                }
+                return false;
+            }
+            else if (CurveType == CurveType.CurvePolyline)
+            {
+                uint ndiv = (uint)(RelCos.Count / 2 + 1);
+                OpenTK.Vector2d h0 = EPt - SPt;
+                var v0 = new OpenTK.Vector2d(-h0.Y, h0.X);
+                for (uint idiv = 0; idiv < ndiv; idiv++)
+                {
+                    OpenTK.Vector2d pt0;
+                    if (idiv == 0)
+                    {
+                        pt0 = SPt;
+                    }
+                    else
+                    {
+                        pt0 = SPt + h0 * RelCos[(int)((idiv - 1) * 2 + 0)] + v0 * RelCos[(int)((idiv - 1) * 2 + 1)];
+                    }
+                    OpenTK.Vector2d pt1;
+                    if (idiv == ndiv - 1)
+                    {
+                        pt1 = EPt;
+                    }
+                    else
+                    {
+                        pt1 = SPt + h0 * RelCos[(int)(idiv * 2 + 0)] + v0 * RelCos[(int)(idiv * 2 + 1)];
+                    }
+                    double area1 = CadUtils2D.TriArea(pt0, pt1, org);
+                    double area2 = CadUtils2D.TriArea(pt0, pt1, end);
+                    if ((area1 > 0) == (area2 > 0))
+                    {
+                        continue;
+                    }
+                    double area3 = CadUtils2D.TriArea(org, end, pt0);
+                    double area4 = CadUtils2D.TriArea(org, end, pt1);
+                    if ((area3 > 0) == (area4 > 0))
+                    {
+                        continue;
+                    }
+                    double t = area1 / (area1 - area2);
+                    sec = org + (end - org) * t;
+                    return false;
+                }
+                return true;
+            }
+            System.Diagnostics.Debug.Assert(false);
+            return false;
+        }
+
         public int NumIntersectAgainstHalfLine(OpenTK.Vector2d bPt, OpenTK.Vector2d dir0)
         {
             OpenTK.Vector2d dir1 = dir0 * (1.0 / dir0.Length);
@@ -1770,92 +1988,6 @@ namespace IvyFEM
             return 0;
         }
 
-        public bool ConnectEdge(Edge2D e1, bool isAheadAdd, bool isSameDir)
-        {
-            if (isAheadAdd && isSameDir)
-            {
-                System.Diagnostics.Debug.Assert(EVId == e1.SVId);
-            }
-            else if (isAheadAdd && !isSameDir)
-            {
-                System.Diagnostics.Debug.Assert(EVId == e1.EVId);
-            }
-            else if (!isAheadAdd && isSameDir)
-            {
-                System.Diagnostics.Debug.Assert(SVId == e1.EVId);
-            }
-            else if (!isAheadAdd && !isSameDir)
-            {
-                System.Diagnostics.Debug.Assert(SVId == e1.SVId);
-            }
-            if (CurveType == CurveType.CurvePolyline)
-            {
-                IList<OpenTK.Vector2d> pts0 = Coords;
-
-                double aveELen = GetCurveLength() / (pts0.Count + 1.0);
-                IList<OpenTK.Vector2d> pts1;
-                {
-                    uint div1 = (uint)(e1.GetCurveLength() / aveELen);
-                    e1.GetCurveAsPolyline(out pts1, (int)div1);
-                }
-                IList<OpenTK.Vector2d> pts2;
-                if (isAheadAdd)
-                {
-                    pts2 = new List<OpenTK.Vector2d>(pts0);
-                    pts2.Add(EPt);
-                    if (isSameDir)
-                    {
-                        for (uint i = 0; i < (uint)pts1.Count; i++)
-                        {
-                            pts2.Add(pts1[(int)i]);
-                        }
-                        EVId = e1.EVId;
-                        EPt = e1.EPt;
-                    }
-                    else
-                    {
-                        for (int i = pts1.Count - 1; i >= 0; i--)
-                        {
-                            pts2.Add(pts1[i]);
-                        }
-                        EVId = e1.SVId;
-                        EPt = e1.SPt;
-                    }
-                }
-                else
-                {
-                    if (isSameDir)
-                    {
-                        pts2 = new List<OpenTK.Vector2d>(pts1);
-                        pts2.Add(SPt);
-                        for (uint i = 0; i < pts0.Count; i++)
-                        {
-                            pts2.Add(pts0[(int)i]);
-                        }
-                        SVId = e1.SVId;
-                        SPt = e1.SPt;
-                    }
-                    else
-                    {
-                        pts2 = new List<OpenTK.Vector2d>();
-                        for (int i = pts1.Count - 1; i >= 0; i--)
-                        {
-                            pts2.Add(pts1[i]);
-                        }
-                        pts2.Add(SPt);
-                        for (uint i = 0; i < pts0.Count; i++)
-                        {
-                            pts2.Add(pts0[(int)i]);
-                        }
-                        SVId = e1.EVId;
-                        SPt = e1.EPt;
-                    }
-                }
-
-                Coords = new List<OpenTK.Vector2d>(pts2);
-            }
-            return true;
-        }
 
     }
 }

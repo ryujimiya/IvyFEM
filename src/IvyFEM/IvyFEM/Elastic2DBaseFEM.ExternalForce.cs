@@ -26,7 +26,7 @@ namespace IvyFEM
             }
             int nodeCnt = (int)World.GetNodeCount(quantityId);
             int dof = (int)World.GetDof(quantityId);
-            int offset = GetOffset(quantityId);
+            int offset = World.GetOffset(quantityId);
 
             uint portCnt = World.GetPortCount(quantityId);
             IList<PortCondition> portConditions = World.GetPortConditions(quantityId);

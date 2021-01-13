@@ -11,8 +11,9 @@ namespace IvyFEM
         public double MassDensity { get => Values[0]; set => Values[0] = value; }
         public double GravityX { get => Values[1]; set => Values[1] = value; }
         public double GravityY { get => Values[2]; set => Values[2] = value; }
-        public double Young { get => Values[3]; set => Values[3] = value; }
-        public double Poisson { get => Values[4]; set => Values[4] = value; }
+        public double GravityZ { get => Values[3]; set => Values[3] = value; }
+        public double Young { get => Values[4]; set => Values[4] = value; }
+        public double Poisson { get => Values[5]; set => Values[5] = value; }
         public double LameLambda {
             get
             {
@@ -31,7 +32,7 @@ namespace IvyFEM
 
         public ElasticBaseMaterial()
         {
-            int len = 5;
+            int len = 6;
             Values = new double[len];
 
             int intLen = 1;
@@ -40,6 +41,7 @@ namespace IvyFEM
             MassDensity = 1.0;
             GravityX = 0.0;
             GravityY = 0.0;
+            GravityZ = 0.0;
             Young = 0.0;
             Poisson = 0.0;
             IsPlainStressLame = false;

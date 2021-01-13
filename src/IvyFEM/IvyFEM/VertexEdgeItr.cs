@@ -116,7 +116,11 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(HEId));
             HalfEdge hE = BRep2D.BRep.GetHalfEdge(HEId);
             uint uLId = hE.ULId;
-            System.Diagnostics.Debug.Assert(BRep2D.BRep.IsUseLoopId(uLId));
+            if (!BRep2D.BRep.IsUseLoopId(uLId))
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return 0;
+            }
             UseLoop uL = BRep2D.BRep.GetUseLoop(uLId);
             return uL.LId;
         }

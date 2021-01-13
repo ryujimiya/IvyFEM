@@ -56,33 +56,6 @@ namespace IvyFEM
 
         }
 
-        public Mesher2DDrawPart(Mesher2DDrawPart src)
-        {
-            IsSelected = src.IsSelected;
-            IsShown = src.IsShown;
-            SelectedElems = new List<uint>(src.SelectedElems);
-            MeshId = src.MeshId;
-            CadId = src.CadId;
-            src.Color.CopyTo(Color, 0);
-            LineWidth = src.LineWidth;
-            ElemCount = src.ElemCount;
-            ElemIndexs = null;
-            if (src.ElemIndexs != null)
-            {
-                ElemIndexs = new int[src.EdgeIndexs.Length];
-                src.ElemIndexs.CopyTo(ElemIndexs, 0);
-            }
-            EdgeCount = src.EdgeCount;
-            EdgeIndexs = null;
-            if (src.EdgeIndexs != null)
-            {
-                EdgeIndexs = new int[src.EdgeIndexs.Length];
-                src.EdgeIndexs.CopyTo(EdgeIndexs, 0);
-            }
-            Height = src.Height;
-            Type = src.Type;
-        }
-
         public Mesher2DDrawPart(MeshTriArray2D triArray)
         {
             IsSelected = false;
@@ -112,7 +85,7 @@ namespace IvyFEM
                 }
             }
 
-            {   
+            {
                 // 辺のセット
                 EdgeCount = ElemCount * 3;
                 EdgeIndexs = new int[EdgeCount * 2];
@@ -128,6 +101,33 @@ namespace IvyFEM
                     EdgeIndexs[(itri * 3 + 2) * 2 + 1] = (int)triArray.Tris[itri].V[0];
                 }
             }
+        }
+
+        public Mesher2DDrawPart(Mesher2DDrawPart src)
+        {
+            IsSelected = src.IsSelected;
+            IsShown = src.IsShown;
+            SelectedElems = new List<uint>(src.SelectedElems);
+            MeshId = src.MeshId;
+            CadId = src.CadId;
+            src.Color.CopyTo(Color, 0);
+            LineWidth = src.LineWidth;
+            ElemCount = src.ElemCount;
+            ElemIndexs = null;
+            if (src.ElemIndexs != null)
+            {
+                ElemIndexs = new int[src.EdgeIndexs.Length];
+                src.ElemIndexs.CopyTo(ElemIndexs, 0);
+            }
+            EdgeCount = src.EdgeCount;
+            EdgeIndexs = null;
+            if (src.EdgeIndexs != null)
+            {
+                EdgeIndexs = new int[src.EdgeIndexs.Length];
+                src.EdgeIndexs.CopyTo(EdgeIndexs, 0);
+            }
+            Height = src.Height;
+            Type = src.Type;
         }
 
         public Mesher2DDrawPart(MeshBarArray2D barArray)

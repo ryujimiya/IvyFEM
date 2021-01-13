@@ -6,20 +6,6 @@ using System.Threading.Tasks;
 
 namespace IvyFEM
 {
-    public class ConnectVertexRes
-    {
-        public uint VId1 { get; set; } = 0;
-        public uint VId2 { get; set; } = 0;
-        public uint LId { get; set; } = 0;
-        public uint AddEId { get; set; } = 0;
-        public uint AddLId { get; set; } = 0;
-        public bool IsLeftAddL { get; set; } = true;
-
-        public ConnectVertexRes()
-        {
-        }
-    }
-
     public class BRep2D
     {
         internal BRep BRep { get; private set; } = new BRep();
@@ -186,132 +172,6 @@ namespace IvyFEM
                 Edge2HalfEdge.Remove(eId1);
             }
             System.Diagnostics.Debug.Assert(AssertValid());
-            return true;
-        }
-
-        public bool AssertValid()
-        {
-            foreach (var pair in Loop2UseLoop)
-            {
-                uint lId = pair.Key;
-                uint parentULId = pair.Value;
-                System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(parentULId));
-                {
-                    UseLoop uL = BRep.GetUseLoop(parentULId);
-                    System.Diagnostics.Debug.Assert(uL.Id == parentULId);
-                    System.Diagnostics.Debug.Assert(uL.LId == lId);
-                }
-                System.Diagnostics.Debug.Assert(GetUseLoopType(parentULId) == 2);
-                uint uLId = parentULId;
-                while (true)
-                {
-                    System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
-                    UseLoop uL = BRep.GetUseLoop(uLId);
-                    System.Diagnostics.Debug.Assert(uL.Id == uLId);
-                    System.Diagnostics.Debug.Assert(uL.LId == lId);      
-                    System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId);
-                    uLId = uL.ChildULId;
-                    if (uLId == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            foreach (var pair in Edge2HalfEdge)
-            {
-                uint hEId = pair.Value;
-                System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
-            }
-
-            IList<uint> uLIds = BRep.UseLoopArray.GetObjectIds();
-            for (int i = 0; i < uLIds.Count; i++)
-            {
-                uint uLId = uLIds[i];
-                System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
-                UseLoop uL = BRep.GetUseLoop(uLId);
-                System.Diagnostics.Debug.Assert(uL.Id == uLId);
-                uint lId = uL.LId;
-                if (lId == 0)
-                {
-                    System.Diagnostics.Debug.Assert(uL.ParentULId == 0);
-                    //2019-03-11 RemoveElement FIX
-                    //System.Diagnostics.Debug.Assert(uL.ChildULId == 0);
-                    continue;
-                }
-                System.Diagnostics.Debug.Assert(Loop2UseLoop.ContainsKey(lId));
-            }
-
-            IList<uint> hEIds = BRep.HalfEdgeArray.GetObjectIds();
-            for (int i = 0; i < hEIds.Count; i++)
-            {
-                uint hEId = hEIds[i];
-                System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
-                HalfEdge hEdge = BRep.GetHalfEdge(hEId);
-                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
-
-                uint vId1;
-                {
-                    uint uVId1 = hEdge.UVId;
-                    System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uVId1));
-                    UseVertex uV = BRep.GetUseVertex(uVId1);
-                    System.Diagnostics.Debug.Assert(uV.Id == uVId1);
-                    vId1 = uV.VId;
-                }
-
-                uint vId2;
-                {
-                    uint fHEId = hEdge.FHEId;
-                    System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(fHEId));
-                    HalfEdge cwEdge = BRep.GetHalfEdge(fHEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.Id == fHEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.BHEId == hEId);
-                    System.Diagnostics.Debug.Assert(cwEdge.ULId == hEdge.ULId);
-                    uint uvId2 = cwEdge.UVId;
-                    System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uvId2));
-                    UseVertex uV = BRep.GetUseVertex(uvId2);
-                    System.Diagnostics.Debug.Assert(uV.Id == uvId2);
-                    vId2 = uV.VId;
-                }
-
-                bool isSameDir = hEdge.IsSameDir;
-                uint eId = hEdge.EId;
-                if (eId == 0)
-                {
-                    System.Diagnostics.Debug.Assert(hEdge.OHEId == hEId);
-                    System.Diagnostics.Debug.Assert(hEdge.BHEId == hEId);
-                    System.Diagnostics.Debug.Assert(hEdge.FHEId == hEId);
-                    continue;
-                }
-
-                System.Diagnostics.Debug.Assert(Edge2HalfEdge.ContainsKey(eId));
-
-                uint sVId;
-                uint eVId;
-                GetEdgeVertexId(eId, out sVId, out eVId);
-
-                if (isSameDir)
-                {
-                    System.Diagnostics.Debug.Assert(vId1 == sVId);
-                    System.Diagnostics.Debug.Assert(vId2 == eVId);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.Assert(vId1 == eVId);
-                    System.Diagnostics.Debug.Assert(vId2 == sVId);
-                }
-            }
-
-            IList<uint> uVIds = BRep.UseVertexArray.GetObjectIds();
-            for (int i = 0; i < uVIds.Count; i++)
-            {
-                uint uVId = uVIds[i];
-                System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uVId));
-                UseVertex uV = BRep.GetUseVertex(uVId);
-                System.Diagnostics.Debug.Assert(uV.Id == uVId);
-                uint vId = uV.VId;
-                System.Diagnostics.Debug.Assert(uVId == vId);
-            }
             return true;
         }
 
@@ -1024,21 +884,21 @@ namespace IvyFEM
                 }
                 else if (isEdgeVertex1 && !isEdgeVertex2)
                 {
-                    uint id_ul_add;
-                    if (!BRep.KEMLOneFloatingVertex(out id_ul_add, hEId1))
+                    uint addULId;
+                    if (!BRep.KEMLOneFloatingVertex(out addULId, hEId1))
                     {
                         System.Diagnostics.Debug.Assert(false);
                     }
-                    BRep.SetUseLoopLoopId(id_ul_add, lId1);
+                    BRep.SetUseLoopLoopId(addULId, lId1);
                 }
                 else if (isEdgeVertex2 && !isEdgeVertex1)
                 {
-                    uint id_ul_add;
-                    if (!BRep.KEMLOneFloatingVertex(out id_ul_add, hEId2))
+                    uint addULId;
+                    if (!BRep.KEMLOneFloatingVertex(out addULId, hEId2))
                     {
                         System.Diagnostics.Debug.Assert(false);
                     }
-                    BRep.SetUseLoopLoopId(id_ul_add, lId1);
+                    BRep.SetUseLoopLoopId(addULId, lId1);
                 }
                 Edge2HalfEdge.Remove(eId);
                 System.Diagnostics.Debug.Assert(AssertValid());
@@ -1079,6 +939,196 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId1));
             BRep.SetUseLoopLoopId(uLId1, 0);
             Loop2UseLoop.Remove(lId);
+            return true;
+        }
+
+        public uint SealHole(uint eId, bool isLeft)
+        {
+            uint uLId = 0;
+            {
+                uint hEId1 = 0;
+                if (Edge2HalfEdge.ContainsKey(eId))
+                {
+                    hEId1 = Edge2HalfEdge[eId];
+                }
+                else
+                {
+                    return 0;
+                }
+                System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId1));
+                HalfEdge hE1 = BRep.GetHalfEdge(hEId1);
+                if (hE1.IsSameDir == isLeft)
+                { 
+                    uLId = hE1.ULId;
+                }
+                else
+                {
+                    uint hEId2 = hE1.OHEId;
+                    if (hEId1 == hEId2)
+                    {
+                        return 0;  // uv is floating vertex
+                    }
+                    System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId2));
+                    HalfEdge hE2 = BRep.GetHalfEdge(hEId2);
+                    uLId = hE2.ULId;
+                }
+            }
+            System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
+            {
+                UseLoop ul = BRep.GetUseLoop(uLId);
+                if (ul.LId != 0)
+                {
+                    return 0;
+                }
+            }
+            System.Diagnostics.Debug.Assert(GetUseLoopType(uLId) == 2);
+            uint newLId = GetFreeKey(Loop2UseLoop);
+            BRep.SetUseLoopLoopId(uLId, newLId);
+            Loop2UseLoop.Add(newLId, uLId);
+            return newLId;
+        }
+
+        public uint MakeRadialLoop(IList<uint> eIds, IList<bool> isSameDirs)
+        {
+            uint uLId = BRep.MakeRadialUseLoop(eIds, isSameDirs);
+
+            System.Diagnostics.Debug.Assert(GetUseLoopType(uLId) == 2);
+            uint newLId = GetFreeKey(Loop2UseLoop);
+            BRep.SetUseLoopLoopId(uLId, newLId);
+            Loop2UseLoop.Add(newLId, uLId);
+            return newLId;
+        }
+
+        public bool AssertValid()
+        {
+            foreach (var pair in Loop2UseLoop)
+            {
+                uint lId = pair.Key;
+                uint parentULId = pair.Value;
+                System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(parentULId));
+                {
+                    UseLoop uL = BRep.GetUseLoop(parentULId);
+                    System.Diagnostics.Debug.Assert(uL.Id == parentULId);
+                    System.Diagnostics.Debug.Assert(uL.LId == lId);
+                }
+                System.Diagnostics.Debug.Assert(GetUseLoopType(parentULId) == 2);
+                uint uLId = parentULId;
+                while (true)
+                {
+                    System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
+                    UseLoop uL = BRep.GetUseLoop(uLId);
+                    System.Diagnostics.Debug.Assert(uL.Id == uLId);
+                    System.Diagnostics.Debug.Assert(uL.LId == lId);
+                    System.Diagnostics.Debug.Assert(uL.ParentULId == parentULId);
+                    uLId = uL.ChildULId;
+                    if (uLId == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            foreach (var pair in Edge2HalfEdge)
+            {
+                uint hEId = pair.Value;
+                System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
+            }
+
+            IList<uint> uLIds = BRep.UseLoopArray.GetObjectIds();
+            for (int i = 0; i < uLIds.Count; i++)
+            {
+                uint uLId = uLIds[i];
+                System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
+                UseLoop uL = BRep.GetUseLoop(uLId);
+                System.Diagnostics.Debug.Assert(uL.Id == uLId);
+                uint lId = uL.LId;
+                if (lId == 0)
+                {
+                    System.Diagnostics.Debug.Assert(uL.ParentULId == 0);
+                    //2019-03-11 RemoveElement FIX
+                    //System.Diagnostics.Debug.Assert(uL.ChildULId == 0);
+                    continue;
+                }
+                System.Diagnostics.Debug.Assert(Loop2UseLoop.ContainsKey(lId));
+            }
+
+            IList<uint> hEIds = BRep.HalfEdgeArray.GetObjectIds();
+            for (int i = 0; i < hEIds.Count; i++)
+            {
+                uint hEId = hEIds[i];
+                System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
+                HalfEdge hEdge = BRep.GetHalfEdge(hEId);
+                System.Diagnostics.Debug.Assert(hEdge.Id == hEId);
+
+                uint vId1;
+                {
+                    uint uVId1 = hEdge.UVId;
+                    System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uVId1));
+                    UseVertex uV = BRep.GetUseVertex(uVId1);
+                    System.Diagnostics.Debug.Assert(uV.Id == uVId1);
+                    vId1 = uV.VId;
+                }
+
+                uint vId2;
+                {
+                    uint fHEId = hEdge.FHEId;
+                    System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(fHEId));
+                    HalfEdge cwEdge = BRep.GetHalfEdge(fHEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.Id == fHEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.BHEId == hEId);
+                    System.Diagnostics.Debug.Assert(cwEdge.ULId == hEdge.ULId);
+                    uint uvId2 = cwEdge.UVId;
+                    System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uvId2));
+                    UseVertex uV = BRep.GetUseVertex(uvId2);
+                    System.Diagnostics.Debug.Assert(uV.Id == uvId2);
+                    vId2 = uV.VId;
+                }
+
+                bool isSameDir = hEdge.IsSameDir;
+                uint eId = hEdge.EId;
+                if (eId == 0)
+                {
+                    System.Diagnostics.Debug.Assert(hEdge.OHEId == hEId);
+                    System.Diagnostics.Debug.Assert(hEdge.BHEId == hEId);
+                    System.Diagnostics.Debug.Assert(hEdge.FHEId == hEId);
+                    continue;
+                }
+                // Radial Edge対応
+                if (hEdge.RadialHEId != 0 &&
+                    hEdge.FHEId == hEId &&
+                    hEdge.BHEId == hEId)
+                {
+                    continue;
+                }
+
+                System.Diagnostics.Debug.Assert(Edge2HalfEdge.ContainsKey(eId));
+
+                uint sVId;
+                uint eVId;
+                GetEdgeVertexId(eId, out sVId, out eVId);
+
+                if (isSameDir)
+                {
+                    System.Diagnostics.Debug.Assert(vId1 == sVId);
+                    System.Diagnostics.Debug.Assert(vId2 == eVId);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(vId1 == eVId);
+                    System.Diagnostics.Debug.Assert(vId2 == sVId);
+                }
+            }
+
+            IList<uint> uVIds = BRep.UseVertexArray.GetObjectIds();
+            for (int i = 0; i < uVIds.Count; i++)
+            {
+                uint uVId = uVIds[i];
+                System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uVId));
+                UseVertex uV = BRep.GetUseVertex(uVId);
+                System.Diagnostics.Debug.Assert(uV.Id == uVId);
+                uint vId = uV.VId;
+                System.Diagnostics.Debug.Assert(uVId == vId);
+            }
             return true;
         }
 

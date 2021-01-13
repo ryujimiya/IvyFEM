@@ -9,6 +9,7 @@ namespace IvyFEM
 {
     public class Mesher3DDrawPart
     {
+        public byte[] Mask { get; set; } = null;
         public bool IsSelected { get; set; } = false;
         public bool IsShown { get; set; } = true;
         public IList<uint> SelectedElems { get; set; } = new List<uint>();
@@ -48,6 +49,8 @@ namespace IvyFEM
             }
         }
 
+        public double Height { get; set; } = 0.0;
+
         private ElementType Type;
 
         public Mesher3DDrawPart()
@@ -81,6 +84,76 @@ namespace IvyFEM
             Type = src.Type;
         }
 
+        public Mesher3DDrawPart(MeshTetArray tetArray)
+        {
+            IsSelected = false;
+            IsShown = true;
+            Color = new double[3] { 0.8, 0.8, 0.8 };
+            LineWidth = 1;
+            ElemIndexs = null;
+            EdgeIndexs = null;
+
+            CadId = tetArray.SCadId;
+
+            MeshId = tetArray.Id;
+            System.Diagnostics.Debug.Assert(MeshId != 0);
+            Type = ElementType.Tet;
+
+            Height = 0;
+
+            ////////////////////////////////
+            // 面のセット
+            ElemCount = 0;
+            for (uint iTet = 0; iTet < tetArray.Tets.Count; iTet++)
+            {
+                for (uint ielemtet = 0; ielemtet < 4; ielemtet++)
+                {
+                    if (tetArray.Tets[(int)iTet].G[ielemtet] == -2)
+                    {
+                        continue;
+                    }
+                    ElemCount++;
+                }
+            }
+            ElemIndexs = new int[ElemCount * 3];
+            {
+                uint icnt = 0;
+                for (uint iTet = 0; iTet < tetArray.Tets.Count; iTet++)
+                {
+                    for (uint iTetFace = 0; iTetFace < 4; iTetFace++)
+                    {
+                        if (tetArray.Tets[(int)iTet].G[iTetFace] == -2)
+                        {
+                            continue;
+                        }
+                        ElemIndexs[icnt * 3 + 0] =
+                            (int)tetArray.Tets[(int)iTet].V[(int)MeshUtils3D.ElNoTetFace[iTetFace][0]];
+                        ElemIndexs[icnt * 3 + 1] =
+                            (int)tetArray.Tets[(int)iTet].V[(int)MeshUtils3D.ElNoTetFace[iTetFace][1]];
+                        ElemIndexs[icnt * 3 + 2] =
+                            (int)tetArray.Tets[(int)iTet].V[(int)MeshUtils3D.ElNoTetFace[iTetFace][2]];
+                        icnt++;
+                    }
+                }
+            }
+
+            ////////////////////////////////
+            // 辺のセット
+            EdgeCount = ElemCount * 3;
+            EdgeIndexs = new int[EdgeCount * 2];
+            for (uint ielem = 0; ielem < ElemCount; ielem++)
+            {
+                EdgeIndexs[(ielem * 3) * 2 + 0] = ElemIndexs[ielem * 3];
+                EdgeIndexs[(ielem * 3) * 2 + 1] = ElemIndexs[ielem * 3 + 1];
+
+                EdgeIndexs[(ielem * 3 + 1) * 2 + 0] = ElemIndexs[ielem * 3 + 1];
+                EdgeIndexs[(ielem * 3 + 1) * 2 + 1] = ElemIndexs[ielem * 3 + 2];
+
+                EdgeIndexs[(ielem * 3 + 2) * 2 + 0] = ElemIndexs[ielem * 3 + 2];
+                EdgeIndexs[(ielem * 3 + 2) * 2 + 1] = ElemIndexs[ielem * 3];
+            }
+        }
+
         public Mesher3DDrawPart(MeshTriArray3D triArray)
         {
             IsSelected = false;
@@ -101,28 +174,28 @@ namespace IvyFEM
             {
                 // 面のセット
                 ElemIndexs = new int[ElemCount * 3];
-                for (int itri = 0; itri < ElemCount; itri++)
+                for (int iTri = 0; iTri < ElemCount; iTri++)
                 {
-                    ElemIndexs[itri * 3 + 0] = (int)triArray.Tris[itri].V[0];
-                    ElemIndexs[itri * 3 + 1] = (int)triArray.Tris[itri].V[1];
-                    ElemIndexs[itri * 3 + 2] = (int)triArray.Tris[itri].V[2];
+                    ElemIndexs[iTri * 3 + 0] = (int)triArray.Tris[iTri].V[0];
+                    ElemIndexs[iTri * 3 + 1] = (int)triArray.Tris[iTri].V[1];
+                    ElemIndexs[iTri * 3 + 2] = (int)triArray.Tris[iTri].V[2];
                 }
             }
 
-            {   
+            {
                 // 辺のセット
                 EdgeCount = ElemCount * 3;
                 EdgeIndexs = new int[EdgeCount * 2];
-                for (int itri = 0; itri < ElemCount; itri++)
+                for (int iTri = 0; iTri < ElemCount; iTri++)
                 {
-                    EdgeIndexs[(itri * 3) * 2 + 0] = (int)triArray.Tris[itri].V[0];
-                    EdgeIndexs[(itri * 3) * 2 + 1] = (int)triArray.Tris[itri].V[1];
+                    EdgeIndexs[(iTri * 3) * 2 + 0] = (int)triArray.Tris[iTri].V[0];
+                    EdgeIndexs[(iTri * 3) * 2 + 1] = (int)triArray.Tris[iTri].V[1];
 
-                    EdgeIndexs[(itri * 3 + 1) * 2 + 0] = (int)triArray.Tris[itri].V[1];
-                    EdgeIndexs[(itri * 3 + 1) * 2 + 1] = (int)triArray.Tris[itri].V[2];
+                    EdgeIndexs[(iTri * 3 + 1) * 2 + 0] = (int)triArray.Tris[iTri].V[1];
+                    EdgeIndexs[(iTri * 3 + 1) * 2 + 1] = (int)triArray.Tris[iTri].V[2];
 
-                    EdgeIndexs[(itri * 3 + 2) * 2 + 0] = (int)triArray.Tris[itri].V[2];
-                    EdgeIndexs[(itri * 3 + 2) * 2 + 1] = (int)triArray.Tris[itri].V[0];
+                    EdgeIndexs[(iTri * 3 + 2) * 2 + 0] = (int)triArray.Tris[iTri].V[2];
+                    EdgeIndexs[(iTri * 3 + 2) * 2 + 1] = (int)triArray.Tris[iTri].V[0];
                 }
             }
         }
@@ -187,7 +260,7 @@ namespace IvyFEM
             }
             else if (Type == ElementType.Tet)
             {
-                new NotImplementedException();
+                DrawElementsTet();
             }
             else
             {
@@ -211,7 +284,7 @@ namespace IvyFEM
             }
             else if (Type == ElementType.Tet)
             {
-                new NotImplementedException();
+                DrawElementsSelectionTet();
             }
             else
             {
@@ -219,6 +292,76 @@ namespace IvyFEM
             }
         }
 
+        private void DrawElementsTet()
+        {
+            if (!IsShown)
+            {
+                return;
+            }
+            // 辺を描画
+            GL.LineWidth(1);
+            if (IsSelected)
+            {
+                GL.LineWidth(2);
+                GL.Color3(1.0, 1.0, 0.0);
+            }
+            else
+            {
+                GL.LineWidth(1);
+                GL.Color3(0.0, 0.0, 0.0);
+            }
+
+            GL.DrawElements(PrimitiveType.Lines, (int)EdgeCount * 2, DrawElementsType.UnsignedInt, EdgeIndexs);
+
+            // ピックされた面を描画
+            GL.Color3(1.0, 0.0, 0.0);
+            for (uint iiElem = 0; iiElem < SelectedElems.Count; iiElem++)
+            {
+                uint iElem0 = SelectedElems[(int)iiElem];
+                GL.Begin(PrimitiveType.Triangles);
+                GL.ArrayElement(ElemIndexs[iElem0 * 3]);
+                GL.ArrayElement(ElemIndexs[iElem0 * 3 + 1]);
+                GL.ArrayElement(ElemIndexs[iElem0 * 3 + 2]);
+                GL.End();
+            }
+
+            if (Mask != null)
+            {
+                //----------------------
+                GL.Enable(EnableCap.PolygonStipple);
+                GL.PolygonStipple(Mask);
+                //----------------------
+            }
+            // 面を描画
+            GL.Color3(Color);
+            GL.DrawElements(PrimitiveType.Triangles, (int)ElemCount * 3, DrawElementsType.UnsignedInt, ElemIndexs);
+            if (Mask != null)
+            {
+                //----------------------
+                GL.Disable(EnableCap.PolygonStipple);
+                //----------------------
+            }
+        }
+
+        private void DrawElementsSelectionTet()
+        {
+            if (!IsShown)
+            {
+                return;
+            }
+            for (uint iElem = 0; iElem < ElemCount; iElem++)
+            {
+                GL.PushName(iElem);
+                GL.Begin(PrimitiveType.Triangles);
+
+                GL.ArrayElement(ElemIndexs[iElem * 3]);
+                GL.ArrayElement(ElemIndexs[iElem * 3 + 1]);
+                GL.ArrayElement(ElemIndexs[iElem * 3 + 2]);
+
+                GL.End();
+                GL.PopName();
+            }
+        }
 
         private void DrawElementsTri()
         {
@@ -256,9 +399,22 @@ namespace IvyFEM
             }
             GL.End();
 
+            if (Mask != null)
+            {
+                //----------------------
+                GL.Enable(EnableCap.PolygonStipple);
+                GL.PolygonStipple(Mask);
+                //----------------------
+            }
             // 面を描画
             GL.Color3(0.8, 0.8, 0.8);
             GL.DrawElements(PrimitiveType.Triangles, (int)ElemCount * 3, DrawElementsType.UnsignedInt, ElemIndexs);
+            if (Mask != null)
+            {
+                //----------------------
+                GL.Disable(EnableCap.PolygonStipple);
+                //----------------------
+            }
         }
 
         private void DrawElementsSelectionTri()
@@ -269,14 +425,14 @@ namespace IvyFEM
             }
 
             // 面を描画
-            for (int itri = 0; itri < ElemCount; itri++)
+            for (int iTri = 0; iTri < ElemCount; iTri++)
             {
-                GL.PushName(itri);
+                GL.PushName(iTri);
                 GL.Begin(PrimitiveType.Triangles);
 
-                GL.ArrayElement(ElemIndexs[itri * 3]);
-                GL.ArrayElement(ElemIndexs[itri * 3 + 1]);
-                GL.ArrayElement(ElemIndexs[itri * 3 + 2]);
+                GL.ArrayElement(ElemIndexs[iTri * 3]);
+                GL.ArrayElement(ElemIndexs[iTri * 3 + 1]);
+                GL.ArrayElement(ElemIndexs[iTri * 3 + 2]);
 
                 GL.End();
                 GL.PopName();

@@ -50,8 +50,8 @@ namespace IvyFEM
             double[,] sNN = triFE.CalcSNN();
             double[,][,] sNuNv = triFE.CalcSNuNv();
             double[,] sNxNx = sNuNv[0, 0];
-            double[,] sNyNx = sNuNv[1, 0];
             double[,] sNxNy = sNuNv[0, 1];
+            double[,] sNyNx = sNuNv[1, 0];
             double[,] sNyNy = sNuNv[1, 1];
 
             for (int row = 0; row < elemNodeCnt; row++)
@@ -72,13 +72,13 @@ namespace IvyFEM
                     double[,] k = new double[dof, dof];
                     double[,] m = new double[dof, dof];
                     k[0, 0] = (lambda + mu) * sNxNx[row, col] + mu * (sNxNx[row, col] + sNyNy[row, col]);
-                    k[1, 0] = lambda * sNyNx[row, col] + mu * sNxNy[row, col];
                     k[0, 1] = lambda * sNxNy[row, col] + mu * sNyNx[row, col];
+                    k[1, 0] = lambda * sNyNx[row, col] + mu * sNxNy[row, col];
                     k[1, 1] = (lambda + mu) * sNyNy[row, col] + mu * (sNxNx[row, col] + sNyNy[row, col]);
 
                     m[0, 0] = rho * sNN[row, col];
-                    m[1, 0] = 0.0;
                     m[0, 1] = 0.0;
+                    m[1, 0] = 0.0;
                     m[1, 1] = rho * sNN[row, col];
 
                     for (int rowDof = 0; rowDof < dof; rowDof++)

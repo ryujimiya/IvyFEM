@@ -248,8 +248,6 @@ namespace IvyFEM
 
         public double[][,] CalcSNuN()
         {
-            double[][,] sNuN = new double[6][,];
-
             double A = Owner.GetArea();
             double[] a;
             double[] b;
@@ -260,6 +258,8 @@ namespace IvyFEM
             double[,] cx;
             double[,] cy;
             CalcDNduCoef(a, b, c, out cx, out cy);
+
+            double[][,] sNuN = new double[2][,];
 
             // sNxN
             double[,] sNxN = new double[6, 6];

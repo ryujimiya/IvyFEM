@@ -11,5 +11,10 @@ namespace IvyFEM
         public uint Id { get; set; }
         public uint ECadId { get; set; }
         public IList<MeshBar> Bars { get; set; } = new List<MeshBar>();
+
+        public MeshBarArray3D()
+        {
+
+        }
     }
 }

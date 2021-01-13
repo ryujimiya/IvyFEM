@@ -151,7 +151,7 @@ namespace IvyFEM
         private static double[] TriangleIP3Alpha = { 1.0 / 3.0, 0.6, 0.2 };
         // α, β, γ, δ, ε
         private static double[] TriangleIP7Alpha = 
-            { 1.0 / 3.0, 0.05971587, 0.47014206, 0.79742669, 0.10128651};
+            { 1.0 / 3.0, 0.05971587, 0.47014206, 0.79742669, 0.10128651 };
 
         public static IntegrationPoints[] TriangleIntegrationPoints =
         {
@@ -159,7 +159,7 @@ namespace IvyFEM
                 PointCount = (int)TriangleIntegrationPointCount.Point1,
                 Ls = new double[(int)TriangleIntegrationPointCount.Point1][]
                 {
-                    new double[3] {1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0}
+                    new double[3] { 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0 }
                 },
                 Weights = new double[(int)TriangleIntegrationPointCount.Point1]
                 {
@@ -170,9 +170,9 @@ namespace IvyFEM
                 PointCount = (int)TriangleIntegrationPointCount.Point3,
                 Ls = new double[(int)TriangleIntegrationPointCount.Point3][]
                 {
-                    new double[3] {1.0 / 2.0, 1.0 / 2.0, 0.0},
-                    new double[3] {0.0, 1.0 / 2.0, 1.0 / 2.0},
-                    new double[3] {1.0 / 2.0, 0.0, 1.0 / 2.0}
+                    new double[3] { 1.0 / 2.0, 1.0 / 2.0, 0.0 },
+                    new double[3] { 0.0, 1.0 / 2.0, 1.0 / 2.0 },
+                    new double[3] { 1.0 / 2.0, 0.0, 1.0 / 2.0 }
                 },
                 Weights = new double[(int)TriangleIntegrationPointCount.Point3]
                 {
@@ -185,10 +185,10 @@ namespace IvyFEM
                 PointCount = (int)TriangleIntegrationPointCount.Point4,
                 Ls = new double[(int)TriangleIntegrationPointCount.Point4][]
                 {
-                    new double[3] {TriangleIP3Alpha[0], TriangleIP3Alpha[0], TriangleIP3Alpha[0]},
-                    new double[3] {TriangleIP3Alpha[1], TriangleIP3Alpha[2], TriangleIP3Alpha[2]},
-                    new double[3] {TriangleIP3Alpha[2], TriangleIP3Alpha[1], TriangleIP3Alpha[2]},
-                    new double[3] {TriangleIP3Alpha[2], TriangleIP3Alpha[2], TriangleIP3Alpha[1]}
+                    new double[3] { TriangleIP3Alpha[0], TriangleIP3Alpha[0], TriangleIP3Alpha[0] },
+                    new double[3] { TriangleIP3Alpha[1], TriangleIP3Alpha[2], TriangleIP3Alpha[2] },
+                    new double[3] { TriangleIP3Alpha[2], TriangleIP3Alpha[1], TriangleIP3Alpha[2] },
+                    new double[3] { TriangleIP3Alpha[2], TriangleIP3Alpha[2], TriangleIP3Alpha[1] }
                 },
                 Weights = new double[(int)TriangleIntegrationPointCount.Point4]
                 {
@@ -202,13 +202,13 @@ namespace IvyFEM
                 PointCount = (int)TriangleIntegrationPointCount.Point7,
                 Ls = new double[(int)TriangleIntegrationPointCount.Point7][]
                 {
-                    new double[3] {TriangleIP7Alpha[0], TriangleIP7Alpha[0], TriangleIP7Alpha[0]},
-                    new double[3] {TriangleIP7Alpha[1], TriangleIP7Alpha[2], TriangleIP7Alpha[2]},
-                    new double[3] {TriangleIP7Alpha[2], TriangleIP7Alpha[1], TriangleIP7Alpha[2]},
-                    new double[3] {TriangleIP7Alpha[2], TriangleIP7Alpha[2], TriangleIP7Alpha[1]},
-                    new double[3] {TriangleIP7Alpha[3], TriangleIP7Alpha[4], TriangleIP7Alpha[4]},
-                    new double[3] {TriangleIP7Alpha[4], TriangleIP7Alpha[3], TriangleIP7Alpha[4]},
-                    new double[3] {TriangleIP7Alpha[4], TriangleIP7Alpha[4], TriangleIP7Alpha[3]}
+                    new double[3] { TriangleIP7Alpha[0], TriangleIP7Alpha[0], TriangleIP7Alpha[0] },
+                    new double[3] { TriangleIP7Alpha[1], TriangleIP7Alpha[2], TriangleIP7Alpha[2] },
+                    new double[3] { TriangleIP7Alpha[2], TriangleIP7Alpha[1], TriangleIP7Alpha[2] },
+                    new double[3] { TriangleIP7Alpha[2], TriangleIP7Alpha[2], TriangleIP7Alpha[1] },
+                    new double[3] { TriangleIP7Alpha[3], TriangleIP7Alpha[4], TriangleIP7Alpha[4] },
+                    new double[3] { TriangleIP7Alpha[4], TriangleIP7Alpha[3], TriangleIP7Alpha[4] },
+                    new double[3] { TriangleIP7Alpha[4], TriangleIP7Alpha[4], TriangleIP7Alpha[3] }
                 },
                 Weights = new double[(int)TriangleIntegrationPointCount.Point7]
                 {
@@ -280,6 +280,72 @@ namespace IvyFEM
                     0.0094216669
                 }
             }
+        };
+
+        // α, β
+        private static double[] TetrahedronIP4Alpha = { 0.58541020, 0.13819660 };
+        // α, β, γ
+        private static double[] TetrahedronIP5Alpha =
+            { 1.0 / 4.0, 1.0 / 3.0, 1.0 / 6.0};
+
+        public static IntegrationPoints[] TetrahedronIntegrationPoints =
+        {
+            new IntegrationPoints{
+                PointCount = (int)TetrahedronIntegrationPointCount.Point1,
+                Ls = new double[(int)TetrahedronIntegrationPointCount.Point1][]
+                {
+                    new double[4] { 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0 }
+                },
+                Weights = new double[(int)TetrahedronIntegrationPointCount.Point1]
+                {
+                    1.0
+                }
+            },
+            new IntegrationPoints{
+                PointCount = (int)TetrahedronIntegrationPointCount.Point4,
+                Ls = new double[(int)TetrahedronIntegrationPointCount.Point4][]
+                {
+                    new double[4] {
+                        TetrahedronIP4Alpha[0], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1] },
+                    new double[4] {
+                        TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[0], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1] },
+                    new double[4] {
+                        TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[0], TetrahedronIP4Alpha[1] },
+                    new double[4] {
+                        TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[1], TetrahedronIP4Alpha[0] }
+                },
+                Weights = new double[(int)TetrahedronIntegrationPointCount.Point4]
+                {
+                    1.0 / 4.0,
+                    1.0 / 4.0,
+                    1.0 / 4.0,
+                    1.0 / 4.0
+                }
+            },
+            new IntegrationPoints{
+                PointCount = (int)TetrahedronIntegrationPointCount.Point5,
+                Ls = new double[(int)TetrahedronIntegrationPointCount.Point5][]
+                {
+                    new double[4] {
+                        TetrahedronIP5Alpha[0], TetrahedronIP5Alpha[0], TetrahedronIP5Alpha[0], TetrahedronIP5Alpha[0] },
+                    new double[4] {
+                        TetrahedronIP5Alpha[1], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2] },
+                    new double[4] {
+                        TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[1], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2] },
+                    new double[4] {
+                        TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[1], TetrahedronIP5Alpha[2] },
+                    new double[4] {
+                        TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[2], TetrahedronIP5Alpha[1] }
+                },
+                Weights = new double[(int)TetrahedronIntegrationPointCount.Point5]
+                {
+                    -4.0 / 5.0,
+                    9.0 / 20.0,
+                    9.0 / 20.0,
+                    9.0 / 20.0,
+                    9.0 / 20.0
+                }
+            },
         };
     }
 }

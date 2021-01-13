@@ -24,13 +24,24 @@ namespace IvyFEM
                 System.Diagnostics.Debug.Assert(BRep2D.Loop2UseLoop.ContainsKey(lId));
                 ULId = BRep2D.Loop2UseLoop[lId];
             }
-            System.Diagnostics.Debug.Assert(BRep2D.BRep.IsUseLoopId(ULId));
-            UseLoop uL = BRep2D.BRep.GetUseLoop(ULId);
-            System.Diagnostics.Debug.Assert(uL.Id == ULId);
-            HEId = uL.HEId;
-            IsInitial = true;
-            IsValid = true;
-            IsChildEnd = false;
+            //System.Diagnostics.Debug.Assert(BRep2D.BRep.IsUseLoopId(ULId));
+            if (BRep2D.BRep.IsUseLoopId(ULId))
+            {
+                UseLoop uL = BRep2D.BRep.GetUseLoop(ULId);
+                System.Diagnostics.Debug.Assert(uL.Id == ULId);
+                HEId = uL.HEId;
+                IsInitial = true;
+                IsValid = true;
+                IsChildEnd = false;
+            }
+            else
+            {
+                // 不正な情報
+                System.Diagnostics.Debug.Assert(false);
+                IsInitial = true;
+                IsValid = false;
+                IsChildEnd = true;
+            }
         }
 
         public LoopEdgeItr(BRep2D bRep2D, uint hEId, uint uLId)
@@ -101,6 +112,10 @@ namespace IvyFEM
 
         public bool IsEnd()
         {
+            if (!IsValid)
+            {
+                return false;
+            }
             if (IsInitial)
             {
                 return false;
@@ -256,6 +271,10 @@ namespace IvyFEM
 
         public bool IsEdgeBothSideSameLoop()
         {
+            if (!IsValid)
+            {
+                return true;
+            }
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(HEId));
             HalfEdge hE = BRep2D.BRep.GetHalfEdge(HEId);
             uint oHEId = hE.OHEId;

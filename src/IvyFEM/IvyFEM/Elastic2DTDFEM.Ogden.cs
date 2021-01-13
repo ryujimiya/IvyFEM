@@ -30,7 +30,7 @@ namespace IvyFEM
             int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
             int lNodeCnt = (int)World.GetNodeCount(lQuantityId);
             //System.Diagnostics.Debug.Assert(uNodeCnt * uDof + lNodeCnt * lDof == A.RowLength);
-            int offset = GetOffset(lQuantityId);
+            int offset = World.GetOffset(lQuantityId);
             System.Diagnostics.Debug.Assert(offset == uNodeCnt * uDof);
 
             double dt = TimeStep;
@@ -674,8 +674,8 @@ namespace IvyFEM
                     double[,] m = new double[2, 2];
 
                     m[0, 0] = rho * uSNN[row, col];
-                    m[1, 0] = 0.0;
                     m[0, 1] = 0.0;
+                    m[1, 0] = 0.0;
                     m[1, 1] = rho * uSNN[row, col];
                     for (int rowDof = 0; rowDof < uDof; rowDof++)
                     {

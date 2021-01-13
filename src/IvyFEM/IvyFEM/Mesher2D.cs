@@ -11,8 +11,8 @@ namespace IvyFEM
         public uint Dimension => 2;
         public Cad2D Cad { get; private set; } = null;
         public double MinTriArea { get; set; } = CadUtils2D.DefMinTriArea;
-        private IList<CadIdELen> MeshingLoopCadIdELens = new List<CadIdELen>();
         private IList<CadIdELen> MeshingEdgeCadIdELens = new List<CadIdELen>();
+        private IList<CadIdELen> MeshingLoopCadIdELens = new List<CadIdELen>();
         private uint MeshingMode = 0; // 0: for cad 1: for mesh
 
         private IList<MeshTypeLoc> TypeLocs = new List<MeshTypeLoc>();
@@ -104,15 +104,15 @@ namespace IvyFEM
             Clear();
             Cad = src.Cad;
             MinTriArea = src.MinTriArea;
-            MeshingLoopCadIdELens = new List<CadIdELen>();
-            foreach (var srcCadIdELen in src.MeshingLoopCadIdELens)
-            {
-                MeshingLoopCadIdELens.Add(new CadIdELen(srcCadIdELen));
-            }
             MeshingEdgeCadIdELens = new List<CadIdELen>();
             foreach (var srcCadIdELen in src.MeshingEdgeCadIdELens)
             {
                 MeshingEdgeCadIdELens.Add(new CadIdELen(srcCadIdELen));
+            }
+            MeshingLoopCadIdELens = new List<CadIdELen>();
+            foreach (var srcCadIdELen in src.MeshingLoopCadIdELens)
+            {
+                MeshingLoopCadIdELens.Add(new CadIdELen(srcCadIdELen));
             }
             MeshingMode = src.MeshingMode;
 
@@ -131,8 +131,8 @@ namespace IvyFEM
 
         public void Clear()
         {
-            MeshingLoopCadIdELens.Clear();
             MeshingEdgeCadIdELens.Clear();
+            MeshingLoopCadIdELens.Clear();
             MeshingMode = 1;
             ClearMeshData();
         }

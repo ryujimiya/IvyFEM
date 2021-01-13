@@ -13,10 +13,10 @@ namespace IvyFEM
         public double[] DoubleAdditionalParameters { get; protected set; } = null;
         public System.Numerics.Complex[] ComplexAdditionalParameters { get; protected set; } = null;
 
-        public ConstPortCondition(IList<uint> eIds,
+        public ConstPortCondition(IList<uint> cadIds,  CadElementType cadElemType,
             FieldValueType valueType, IList<uint> fixedDofIndexs, IList<double> fixedValues,
             uint additionalParametersDof) :
-            base(eIds, valueType, fixedDofIndexs, additionalParametersDof)
+            base(cadIds, cadElemType, valueType, fixedDofIndexs, additionalParametersDof)
         {
             System.Diagnostics.Debug.Assert(FixedDofIndexs.Count == fixedValues.Count);
             DoubleValues = new double[Dof];
@@ -31,10 +31,10 @@ namespace IvyFEM
             ComplexAdditionalParameters = null;
         }
 
-        public ConstPortCondition(IList<uint> eIds,
+        public ConstPortCondition(IList<uint> cadIds, CadElementType cadElemType, 
             FieldValueType valueType, IList<uint> fixedDofIndexs, IList<System.Numerics.Complex> fixedValues,
             uint additionalParametersDof) :
-            base(eIds, valueType, fixedDofIndexs, additionalParametersDof)
+            base(cadIds, cadElemType, valueType, fixedDofIndexs, additionalParametersDof)
         {
             System.Diagnostics.Debug.Assert(FixedDofIndexs.Count == fixedValues.Count);
             DoubleValues = null;

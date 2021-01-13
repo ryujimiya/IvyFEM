@@ -36,7 +36,7 @@ namespace IvyFEM
             int cDof = 1;
             int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
             int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
-            int offset = GetOffset(cQuantityId);
+            int offset = World.GetOffset(cQuantityId);
 
             // 線要素の変位を更新
             UpdateLineFEDisplacements(uQuantityId, uDof, cQuantityId);
@@ -385,7 +385,7 @@ namespace IvyFEM
             int cDof = 1;
             int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
             int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
-            int offset = GetOffset(cQuantityId);
+            int offset = World.GetOffset(cQuantityId);
 
             // 線要素の変位を更新
             UpdateLineFEDisplacements(uQuantityId, uDof, cQuantityId);

@@ -27,16 +27,19 @@ namespace IvyFEM
         public double TexScale { get; private set; } = 1;
         public RotMode SutableRotMode { get; private set; } = RotMode.RotModeNotSet;
         public bool IsAntiAliasing { get; set; } = false;
+        public bool IsMask { get; set; } = false;
+        private byte[] Mask = new byte[128];
 
         public FaceFieldDrawer()
         {
-
+            SetupMask();
         }
 
         public FaceFieldDrawer(uint valueId, FieldDerivativeType valueDt, bool isntDisplacementValue,
             FEWorld world, 
             uint colorValueId = 0, FieldDerivativeType colorValueDt = FieldDerivativeType.Value)
         {
+            SetupMask();
             Set(valueId, valueDt, isntDisplacementValue, world, colorValueId, colorValueDt);
         }
 
@@ -45,8 +48,32 @@ namespace IvyFEM
             uint colorValueId, FieldDerivativeType colorValueDt,
             double min, double max)
         {
+            SetupMask();
             ColorMap = new ColorMap(min, max);
             Set(valueId, valueDt, isntDisplacementValue, world, colorValueId, colorValueDt);
+        }
+
+        private void SetupMask()
+        {
+            for (uint j = 0; j < 4; j++)
+            {
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + i] = 0x33;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 8 + i] = 0xcc;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 16 + i] = 0x33;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 24 + i] = 0xcc;
+                }
+            }
         }
 
         private void Set(uint valueId, FieldDerivativeType valueDt, bool isntDisplacementValue,
@@ -513,7 +540,8 @@ namespace IvyFEM
                     }
                     float[] color1 = { (float)dp.Color[0], (float)dp.Color[1], (float)dp.Color[2] };
                     GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Diffuse, color1);
-                    //GL.Color3(0.8, 0.8, 0.8);      
+                    //GL.Color3(0.8, 0.8, 0.8);
+                    dp.Mask = IsMask ? Mask : null;
                     dp.DrawElements();
                 }
 
@@ -549,6 +577,7 @@ namespace IvyFEM
                 for (int idp = 0; idp < DrawParts.Count; idp++)
                 {
                     FaceFieldDrawPart dp = DrawParts[idp];
+                    dp.Mask = IsMask ? Mask : null;
                     int layer = dp.Layer;
                     double height = (layer - minLayer) * layerHeight;
                     GL.Translate(0, 0, +height);

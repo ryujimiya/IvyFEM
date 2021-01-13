@@ -102,9 +102,9 @@ namespace IvyFEM
             }
             double tmpVal = 1.0 / (area * area * 16.0);
 
-            double dtmp0 = CadUtils2D.SquareLength(p1, p2);
-            double dtmp1 = CadUtils2D.SquareLength(p0, p2);
-            double dtmp2 = CadUtils2D.SquareLength(p0, p1);
+            double dtmp0 = CadUtils2D.SquareDistance(p1, p2);
+            double dtmp1 = CadUtils2D.SquareDistance(p0, p2);
+            double dtmp2 = CadUtils2D.SquareDistance(p0, p1);
 
             double etmp0 = tmpVal * dtmp0 * (dtmp1 + dtmp2 - dtmp0);
             double etmp1 = tmpVal * dtmp1 * (dtmp0 + dtmp2 - dtmp1);
@@ -114,8 +114,8 @@ namespace IvyFEM
                 etmp0 * p0.X + etmp1 * p1.X + etmp2 * p2.X,
                 etmp0 * p0.Y + etmp1 * p1.Y + etmp2 * p2.Y);
 
-            double qradius = CadUtils2D.SquareLength(outCenter, p0);
-            double qdistance = CadUtils2D.SquareLength(outCenter, p3);
+            double qradius = CadUtils2D.SquareDistance(outCenter, p0);
+            double qdistance = CadUtils2D.SquareDistance(outCenter, p3);
 
             //System.Diagnostics.Debug.Assert(Math.Abs(qradius - CadUtils.SquareLength(outCenter, p1)) < 1.0e-10 * qradius);
             //System.Diagnostics.Debug.Assert(Math.Abs(qradius - CadUtils.SquareLength(outCenter, p2)) < 1.0e-10 * qradius);

@@ -12,6 +12,11 @@ namespace IvyFEM
         public uint LCadId { get; set; } = 0;
         public int Layer { get; set; } = 0;
         public IList<MeshTri2D> Tris { get; set; } = new List<MeshTri2D>();
+
+        public MeshTriArray2D()
+        {
+
+        }
     }
 
 }

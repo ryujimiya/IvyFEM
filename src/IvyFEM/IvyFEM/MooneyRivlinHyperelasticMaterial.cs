@@ -12,13 +12,14 @@ namespace IvyFEM
         public double MassDensity { get => Values[0]; set => Values[0] = value; }
         public double GravityX { get => Values[1]; set => Values[1] = value; }
         public double GravityY { get => Values[2]; set => Values[2] = value; }
-        public double D1 { get => Values[3]; set => Values[3] = value; }
-        public double C1 { get => Values[4]; set => Values[4] = value; }
-        public double C2 { get => Values[5]; set => Values[5] = value; }
+        public double GravityZ { get => Values[3]; set => Values[3] = value; }
+        public double D1 { get => Values[4]; set => Values[4] = value; }
+        public double C1 { get => Values[5]; set => Values[5] = value; }
+        public double C2 { get => Values[6]; set => Values[6] = value; }
 
         public MooneyRivlinHyperelasticMaterial()
         {
-            int len = 6;
+            int len = 7;
             Values = new double[len];
             int intLen = 1;
             IntValues = new int[intLen];
@@ -26,6 +27,7 @@ namespace IvyFEM
             MassDensity = 1.0;
             GravityX = 0.0;
             GravityY = 0.0;
+            GravityZ = 0.0;
             IsCompressible = false;
             D1 = 1.0;
             C1 = 0.0;

@@ -79,6 +79,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvectionDiffusion3DTDFEM.cs" />
+    <Compile Include="AdvectionDiffusion3DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DFEM.cs" />
     <Compile Include="AdvectionDiffusion2DTDFEM.cs" />
     <Compile Include="Cad3DDrawer.cs" />
@@ -89,8 +91,13 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="Diffusion3DTDFEM.cs" />
     <Compile Include="EddyCurrent2DTDFEM.cs" />
     <Compile Include="EddyCurrentMaterial.cs" />
+    <Compile Include="Elastic3DTDFEM.StVenantHyperelastic.cs" />
+    <Compile Include="Elastic3DFEM.StVenantHyperelastic.cs" />
+    <Compile Include="Elastic3DTDFEM.LinearElastic.cs" />
+    <Compile Include="Elastic3DFEM.LinearElastic.cs" />
     <Compile Include="Elastic3DEigenFEM.MindlinPlate.cs" />
     <Compile Include="Elastic3DEigenFEM.MITCLinearPlate.cs" />
     <Compile Include="Elastic3DFEM.MITCStVenantThicknessStretchPlate.cs" />
@@ -113,7 +120,13 @@
     <Compile Include="ElasticLambWaveguide2DFEM.cs" />
     <Compile Include="ElasticLambWaveguide2DFirstOrderABCFEM.cs" />
     <Compile Include="ElasticLambWaveguide2DPMLTDFEM.cs" />
+    <Compile Include="FEWorldQuantity.2D.cs" />
+    <Compile Include="FEWorldQuantity.3D.cs" />
+    <Compile Include="Helmholtz3DFEM.cs" />
     <Compile Include="LinearElasticPMLMaterial.cs" />
+    <Compile Include="MeshTet.cs" />
+    <Compile Include="MeshTetArray.cs" />
+    <Compile Include="MeshUtils3D.cs" />
     <Compile Include="MITCMooneyRivlinPlateMaterial.cs" />
     <Compile Include="MITCStVenantThicknessStretchPlateMaterial.cs" />
     <Compile Include="MITCStVenantPlateMaterial.cs" />
@@ -149,6 +162,11 @@
     <Compile Include="MeshTriArray3D.cs" />
     <Compile Include="MeshVertex3D.cs" />
     <Compile Include="PlateBaseMaterial.cs" />
+    <Compile Include="Poisson3DFEM.cs" />
+    <Compile Include="Solid.cs" />
+    <Compile Include="TetGen.cs" />
+    <Compile Include="TetrahedronFE.cs" />
+    <Compile Include="TetrahedronFE2ndInterpolate.cs" />
     <Compile Include="TimoshenkoCorotationalFrameMaterial.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoTLFrame.cs" />
@@ -331,6 +349,7 @@
     <Compile Include="PCWaveguideUtils.cs" />
     <Compile Include="PortCondition.cs" />
     <Compile Include="TriangleFE.3D.cs" />
+    <Compile Include="TetrahedronFE1stInterpolate.cs" />
     <Compile Include="TriangleFEConstantInterpolate.cs" />
     <Compile Include="TriangleFEEdge2ndInterpolate.cs" />
     <Compile Include="TriangleFEEdge1stInterpolate.cs" />

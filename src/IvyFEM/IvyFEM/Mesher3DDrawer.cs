@@ -11,30 +11,117 @@ namespace IvyFEM
     {
         public RotMode SutableRotMode { get; private set; } = RotMode.RotMode3D;
         public bool IsAntiAliasing { get; set; } = false;
-
+        public bool IsMask { get; set; } = false;
+        private byte[] Mask = new byte[128];
         private IList<Mesher3DDrawPart> DrawParts = new List<Mesher3DDrawPart>();
         private VertexArray VertexArray = new VertexArray();
 
         public Mesher3DDrawer()
         {
-
+            SetupMask();
         }
 
         public Mesher3DDrawer(Mesher3D mesher)
         {
+            SetupMask();
             Set(mesher);
+        }
+
+        private void SetupMask()
+        {
+            for (uint j = 0; j < 4; j++)
+            {
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + i] = 0x33;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 8 + i] = 0xcc;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 16 + i] = 0x33;
+                }
+                for (uint i = 0; i < 8; i++)
+                {
+                    Mask[j * 32 + 24 + i] = 0xcc;
+                }
+            }
         }
 
         private bool Set(Mesher3D mesher)
         {
             SutableRotMode = RotMode.RotMode3D;
 
+            Cad3D cad = mesher.Cad;
+            {
+                // 四面体要素をセット
+                IList<MeshTetArray> tetArrays = mesher.GetTetArrays();
+
+                IList<uint> sIds = cad.GetElementIds(CadElementType.Solid);
+                for (int iSId = 0; iSId < sIds.Count; iSId++)
+                {
+                    uint sId = sIds[iSId];
+
+                    uint cadId = sId;
+                    CadElementType cadType = CadElementType.Solid;
+                    if (!cad.IsElementId(cadType, cadId))
+                    {
+                        continue;
+                    }
+                    uint meshId = mesher.GetIdFromCadId(cadId, cadType);
+                    if (meshId == 0)
+                    {
+                        continue;
+                    }
+                    MeshType meshType;
+                    uint elemCnt;
+                    int loc;
+                    uint cadId0;
+                    mesher.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId0);
+                    System.Diagnostics.Debug.Assert(cadId0 == cadId);
+                    if (meshType != MeshType.Tet)
+                    {
+                        continue;
+                    }
+
+                    Mesher3DDrawPart dp = new Mesher3DDrawPart(tetArrays[loc]);
+                    DrawParts.Add(dp);
+                }
+            }
             {
                 // 三角形要素をセット
                 IList<MeshTriArray3D> triArrays = mesher.GetTriArrays();
-                for (int itri = 0; itri < triArrays.Count; itri++)
+
+                IList<uint> lIds = cad.GetElementIds(CadElementType.Loop);
+                for (int iLId = 0; iLId < lIds.Count; iLId++)
                 {
-                    Mesher3DDrawPart dp = new Mesher3DDrawPart(triArrays[itri]);
+                    uint lId = lIds[iLId];
+
+                    uint cadId = lId;
+                    CadElementType cadType = CadElementType.Loop;
+                    if (!cad.IsElementId(cadType, cadId))
+                    {
+                        continue;
+                    }
+                    uint meshId = mesher.GetIdFromCadId(cadId, cadType);
+                    if (meshId == 0)
+                    {
+                        continue;
+                    }
+                    MeshType meshType;
+                    uint elemCnt;
+                    int loc;
+                    uint cadId0;
+                    mesher.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId0);
+                    System.Diagnostics.Debug.Assert(cadId0 == cadId);
+                    if (meshType != MeshType.Tri)
+                    {
+                        continue;
+                    }
+
+                    Mesher3DDrawPart dp = new Mesher3DDrawPart(triArrays[loc]);
                     DrawParts.Add(dp);
                 }
             }
@@ -42,9 +129,35 @@ namespace IvyFEM
             {
                 // 線要素をセット
                 IList<MeshBarArray3D> barArrays = mesher.GetBarArrays();
-                for (int ibar = 0; ibar < barArrays.Count; ibar++)
+
+                IList<uint> eIds = cad.GetElementIds(CadElementType.Edge);
+                for (int iEId = 0; iEId < eIds.Count; iEId++)
                 {
-                    Mesher3DDrawPart dp = new Mesher3DDrawPart(barArrays[ibar]);
+                    uint eId = eIds[iEId];
+
+                    uint cadId = eId;
+                    CadElementType cadType = CadElementType.Edge;
+                    if (!cad.IsElementId(cadType, cadId))
+                    {
+                        continue;
+                    }
+                    uint meshId = mesher.GetIdFromCadId(cadId, cadType);
+                    if (meshId == 0)
+                    {
+                        continue;
+                    }
+                    MeshType meshType;
+                    uint elemCnt;
+                    int loc;
+                    uint cadId0;
+                    mesher.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId0);
+                    System.Diagnostics.Debug.Assert(cadId0 == cadId);
+                    if (meshType != MeshType.Bar)
+                    {
+                        continue;
+                    }
+
+                    Mesher3DDrawPart dp = new Mesher3DDrawPart(barArrays[loc]);
                     DrawParts.Add(dp);
                 }
             }
@@ -52,9 +165,35 @@ namespace IvyFEM
             {
                 // 頂点をセット
                 IList<MeshVertex3D> vertexs = mesher.GetVertexs();
-                for (int iver = 0; iver < vertexs.Count; iver++)
+
+                IList<uint> vIds = cad.GetElementIds(CadElementType.Vertex);
+                for (int iVId = 0; iVId < vIds.Count; iVId++)
                 {
-                    Mesher3DDrawPart dp = new Mesher3DDrawPart(vertexs[iver]);
+                    uint vCadId = vIds[iVId];
+
+                    uint cadId = vCadId;
+                    CadElementType cadType = CadElementType.Vertex;
+                    if (!cad.IsElementId(cadType, cadId))
+                    {
+                        continue;
+                    }
+                    uint meshId = mesher.GetIdFromCadId(cadId, cadType);
+                    if (meshId == 0)
+                    {
+                        continue;
+                    }
+                    MeshType meshType;
+                    uint elemCnt;
+                    int loc;
+                    uint cadId0;
+                    mesher.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId0);
+                    System.Diagnostics.Debug.Assert(cadId0 == cadId);
+                    if (meshType != MeshType.Vertex)
+                    {
+                        continue;
+                    }
+
+                    Mesher3DDrawPart dp = new Mesher3DDrawPart(vertexs[loc]);
                     DrawParts.Add(dp);
                 }
             }
@@ -123,6 +262,7 @@ namespace IvyFEM
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
                 Mesher3DDrawPart dp = DrawParts[idp];
+                dp.Mask = IsMask ? Mask : null;
                 dp.DrawElements();
             }
 

@@ -19,39 +19,35 @@ namespace IvyFEM
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
+
+        ////////////////////////////////////////////////////////////
+        // 3D
+        // Calc Matrix
+        protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
+
+        ////////////////////////////////////////////////////////////
+        // 2D
         // Init/Update
         public bool IsUseInit { get; set; } = false;
         public bool IsUseUpdate { get; set; } = false;
         public int TimeIndexForInit { get; set; } = -1;
-        // Init
-        protected IList<SetNodeValues> InitNodeValuess { get; set; } = new List<SetNodeValues>();
-        protected IList<SetElementValues> InitElementValuess { get; set; } = new List<SetElementValues>();
-
-        // Update
-        protected IList<SetNodeValues> UpdateNodeValuess { get; set; } = new List<SetNodeValues>();
-        protected IList<SetElementValues> UpdateElementValuess { get; set; } = new List<SetElementValues>();
-
-        // Calc Matrix
-        protected IList<CalcElementDoubleAB> CalcElementABs { get; set; } = new List<CalcElementDoubleAB>();
-
         // Init/Update
         public IList<uint> AdditionalValueIds { get; set; } = new List<uint>();
+
+        // Init
+        protected IList<SetNodeValues> InitNodeValuessForPlate { get; set; } = new List<SetNodeValues>();
+        protected IList<SetElementValues> InitElementValuessForPlate { get; set; } = new List<SetElementValues>();
+
+        // Update
+        protected IList<SetNodeValues> UpdateNodeValuessForPlate { get; set; } = new List<SetNodeValues>();
+        protected IList<SetElementValues> UpdateElementValuessForPlate { get; set; } = new List<SetElementValues>();
+
+        // Calc Matrix
+        protected IList<CalcElementDoubleAB> CalcElementABsForPlate { get; set; } = new List<CalcElementDoubleAB>();
 
         //Solve
         // Output
         public double[] U { get; protected set; }
-
-        protected int GetOffset(uint quantityId)
-        {
-            int cnt = 0;
-            for (uint tmpId = 0; tmpId < quantityId; tmpId++)
-            {
-                int quantityDof = (int)World.GetDof(tmpId);
-                int quantityNodeCnt = (int)World.GetNodeCount(tmpId);
-                cnt += quantityDof * quantityNodeCnt;
-            }
-            return cnt;
-        }
 
         protected void InitValues()
         {
@@ -60,7 +56,14 @@ namespace IvyFEM
                 return;
             }
 
-            // node 
+            ////////////////////////////////////////////////////
+            // 3D
+            // なし
+
+            ////////////////////////////////////////////////////
+            // 2D
+            // node
+            if (InitNodeValuessForPlate.Count > 0)
             {
                 int quantityCnt = World.GetQuantityCount();
                 for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
@@ -68,22 +71,23 @@ namespace IvyFEM
                     int coCnt = (int)World.GetCoordCount(quantityId);
                     for (int coId = 0; coId < coCnt; coId++)
                     {
-                        foreach (var initNodeValues in InitNodeValuess)
+                        foreach (var initNodeValuesForPlate in InitNodeValuessForPlate)
                         {
-                            initNodeValues(quantityId, coId);
+                            initNodeValuesForPlate(quantityId, coId);
                         }
                     }
                 }
             }
             // element
+            if (InitElementValuessForPlate.Count > 0)
             {
                 uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
                 IList<uint> feIds = World.GetTriangleFEIds(quantityId);
                 foreach (uint feId in feIds)
                 {
-                    foreach (var initElementValues in InitElementValuess)
+                    foreach (var initElementValuesForPlate in InitElementValuessForPlate)
                     {
-                        initElementValues(feId);
+                        initElementValuesForPlate(feId);
                     }
                 }
             }
@@ -96,7 +100,14 @@ namespace IvyFEM
                 return;
             }
 
-            // node 
+            ////////////////////////////////////////////////////
+            // 3D
+            // なし
+
+            ////////////////////////////////////////////////////
+            // 2D
+            // node
+            if (UpdateNodeValuessForPlate.Count > 0)
             {
                 int quantityCnt = World.GetQuantityCount();
                 for (uint quantityId = 0; quantityId < quantityCnt; quantityId++)
@@ -104,22 +115,23 @@ namespace IvyFEM
                     int coCnt = (int)World.GetCoordCount(quantityId);
                     for (int coId = 0; coId < coCnt; coId++)
                     {
-                        foreach (var updateNodeValues in UpdateNodeValuess)
+                        foreach (var updateNodeValuesForPlate in UpdateNodeValuessForPlate)
                         {
-                            updateNodeValues(quantityId, coId);
+                            updateNodeValuesForPlate(quantityId, coId);
                         }
                     }
                 }
             }
             // element
+            if (UpdateElementValuessForPlate.Count > 0)
             {
                 uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
                 IList<uint> feIds = World.GetTriangleFEIds(quantityId);
                 foreach (uint feId in feIds)
                 {
-                    foreach (var updateElementValues in UpdateElementValuess)
+                    foreach (var updateElementValuesForPlate in UpdateElementValuessForPlate)
                     {
-                        updateElementValues(feId);
+                        updateElementValuesForPlate(feId);
                     }
                 }
             }
@@ -128,22 +140,28 @@ namespace IvyFEM
         protected void CalcAB(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
-            IList<uint> feIds = World.GetTriangleFEIds(quantityId);
-            foreach (uint feId in feIds)
+            if (CalcElementABs.Count > 0)
             {
-                foreach (var calcElementAB in CalcElementABs)
+                IList<uint> feIds = World.GetTetrahedronFEIds(quantityId);
+                foreach (uint feId in feIds)
                 {
-                    calcElementAB(feId, A, B);
+                    foreach (var calcElementAB in CalcElementABs)
+                    {
+                        calcElementAB(feId, A, B);
+                    }
                 }
             }
-
-            /*
-            // DEBUG
-            for (int i = 0; i < A.RowLength; i++)
+            if (CalcElementABsForPlate.Count > 0)
             {
-                System.Diagnostics.Debug.Assert(Math.Abs(A[i, i]) >= Constants.PrecisionLowerLimit);
+                IList<uint> triFEIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in triFEIds)
+                {
+                    foreach (var calcElementABForPlate in CalcElementABsForPlate)
+                    {
+                        calcElementABForPlate(feId, A, B);
+                    }
+                }
             }
-            */
         }
 
         protected void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
@@ -281,36 +299,59 @@ namespace IvyFEM
         {
             bool hasNonlinear = false;
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
-            IList<uint> feIds = World.GetTriangleFEIds(quantityId);
+            IList<uint> feIds = World.GetTetrahedronFEIds(quantityId);
             foreach (uint feId in feIds)
             {
-                TriangleFE triFE = World.GetTriangleFE(quantityId, feId);
-                Material ma = World.GetMaterial(triFE.MaterialId);
+                TetrahedronFE tetFE = World.GetTetrahedronFE(quantityId, feId);
+                Material ma = World.GetMaterial(tetFE.MaterialId);
                 if (ma is NullMaterial)
                 {
                     // null
                 }
-                else if (ma is DKTPlateMaterial)
+                else if (ma is LinearElasticMaterial)
                 {
-                    // linear
-                }
-                else if (ma is MindlinPlateMaterial)
-                {
-                    // linear
-                }
-                else if (ma is MITCLinearPlateMaterial)
-                {
-                    // linear
-                }
-                else if (ma is MITCStVenantPlateMaterial)
-                {
-                    // 非線形問題だが、方程式は線形化できる
                     // linear
                 }
                 else
                 {
                     hasNonlinear = true;
                     break;
+                }
+            }
+
+            if (!hasNonlinear)
+            {
+                IList<uint> triFEIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in triFEIds)
+                {
+                    TriangleFE triFE = World.GetTriangleFE(quantityId, feId);
+                    Material ma = World.GetMaterial(triFE.MaterialId);
+                    if (ma is NullMaterial)
+                    {
+                        // null
+                    }
+                    else if (ma is DKTPlateMaterial)
+                    {
+                        // linear
+                    }
+                    else if (ma is MindlinPlateMaterial)
+                    {
+                        // linear
+                    }
+                    else if (ma is MITCLinearPlateMaterial)
+                    {
+                        // linear
+                    }
+                    else if (ma is MITCStVenantPlateMaterial)
+                    {
+                        // 非線形問題だが、方程式は線形化できる
+                        // linear
+                    }
+                    else
+                    {
+                        hasNonlinear = true;
+                        break;
+                    }
                 }
             }
             return hasNonlinear;

@@ -30,7 +30,7 @@ namespace IvyFEM
             int uNodeCnt = (int)World.GetNodeCount(uQuantityId);
             int lNodeCnt = (int)World.GetNodeCount(lQuantityId);
             //System.Diagnostics.Debug.Assert(uNodeCnt * uDof + lNodeCnt * lDof == A.RowLength);
-            int offset = GetOffset(lQuantityId);
+            int offset = World.GetOffset(lQuantityId);
             System.Diagnostics.Debug.Assert(offset == uNodeCnt * uDof);
 
             TriangleFE uTriFE = World.GetTriangleFE(uQuantityId, feId);

@@ -73,9 +73,9 @@ namespace IvyFEM
             return cv * k + c;
         }
 
-        public static double SquareLength(OpenTK.Vector2d iPt0, OpenTK.Vector2d iPt1)
+        public static double SquareDistance(OpenTK.Vector2d pt0, OpenTK.Vector2d pt1)
         {
-            OpenTK.Vector2d v = iPt1 - iPt0;
+            OpenTK.Vector2d v = pt1 - pt0;
             double len = v.Length;
             return len * len;
         }
@@ -89,18 +89,13 @@ namespace IvyFEM
         public static double TriHeight(OpenTK.Vector2d v1, OpenTK.Vector2d v2, OpenTK.Vector2d v3)
         {
             double area = TriArea(v1, v2, v3);
-            double len = Math.Sqrt(SquareLength(v2, v3));
+            double len = Math.Sqrt(SquareDistance(v2, v3));
             return area * 2.0 / len;
         }
 
         public static double TriArea(OpenTK.Vector2d v1, OpenTK.Vector2d v2, OpenTK.Vector2d v3)
         {
             return 0.5 * ((v2.X - v1.X) * (v3.Y - v1.Y) - (v3.X - v1.X) * (v2.Y - v1.Y));
-        }
-
-        public static double TriArea(int iv1, int iv2, int iv3, IList<OpenTK.Vector2d> points)
-        {
-            return TriArea(points[iv1], points[iv2], points[iv3]);
         }
 
         public static void UnitNormalAreaTri3D(out double[] n, out double a,
@@ -121,9 +116,9 @@ namespace IvyFEM
         {
             double area = TriArea(p0, p1, p2);
 
-            double dtmp0 = SquareLength(p1, p2);
-            double dtmp1 = SquareLength(p0, p2);
-            double dtmp2 = SquareLength(p0, p1);
+            double dtmp0 = SquareDistance(p1, p2);
+            double dtmp1 = SquareDistance(p0, p2);
+            double dtmp2 = SquareDistance(p0, p1);
 
             return dtmp0 * dtmp1 * dtmp2 / (16.0 * area * area);
         }
@@ -141,9 +136,9 @@ namespace IvyFEM
             }
             double tmpVal = 1.0 / (area * area * 16.0);
 
-            double dtmp0 = SquareLength(p1, p2);
-            double dtmp1 = SquareLength(p0, p2);
-            double dtmp2 = SquareLength(p0, p1);
+            double dtmp0 = SquareDistance(p1, p2);
+            double dtmp1 = SquareDistance(p0, p2);
+            double dtmp2 = SquareDistance(p0, p1);
 
             double etmp0 = tmpVal * dtmp0 * (dtmp1 + dtmp2 - dtmp0);
             double etmp1 = tmpVal * dtmp1 * (dtmp0 + dtmp2 - dtmp1);
@@ -209,7 +204,7 @@ namespace IvyFEM
             pt0 = new OpenTK.Vector2d();
             pt1 = new OpenTK.Vector2d();
 
-            double sqDist = SquareLength(cPt0, cPt1);
+            double sqDist = SquareDistance(cPt0, cPt1);
             double dist = Math.Sqrt(sqDist);
             if (radius0 + radius1 < dist)
             {
@@ -563,6 +558,28 @@ namespace IvyFEM
             destPt[0] = cosA * (srcPt[0] - x0) + sinA * (srcPt[1] - y0);
             destPt[1] = -sinA * (srcPt[0] - x0) + cosA * (srcPt[1] - y0);
             return destPt;
+        }
+
+        public static bool IsPointInsideTriangle(
+            OpenTK.Vector2d p, OpenTK.Vector2d v1, OpenTK.Vector2d v2, OpenTK.Vector2d v3)
+        {
+            var vec1 = v3 - v1;
+            var vec2 = v2 - v1;
+            var vec3 = p - v1;
+
+            double dot11 = OpenTK.Vector2d.Dot(vec1, vec1);
+            double dot12 = OpenTK.Vector2d.Dot(vec1, vec2);
+            double dot13 = OpenTK.Vector2d.Dot(vec1, vec3);
+            double dot22 = OpenTK.Vector2d.Dot(vec2, vec2);
+            double dot23 = OpenTK.Vector2d.Dot(vec2, vec3);
+
+            // Compute barycentric coordinates
+            double invDenom = 1 / (dot11 * dot22 - dot12 * dot12);
+            double u = (dot22 * dot13 - dot12 * dot23) * invDenom;
+            double v = (dot11 * dot23 - dot12 * dot13) * invDenom;
+
+            // Check if point is in triangle
+            return (u >= 0) && (v >= 0) && (u + v < 1);
         }
     }
 }
