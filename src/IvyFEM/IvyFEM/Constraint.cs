@@ -13,6 +13,7 @@ namespace IvyFEM
         public abstract double GetValue(double[] x);
         public abstract double GetDerivative(int iDof, double[] x);
         public abstract double Get2ndDerivative(int iDof, int jDof, double[] x);
+        public abstract RotMode SutableRotMode { get; }
         public abstract BoundingBox3D GetBoundingBox(OpenTK.Matrix3d rot);
     }
 }

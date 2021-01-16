@@ -16,6 +16,8 @@ namespace IvyFEM
 
         // Calc Matrix
         protected IList<CalcElementDoubleKM> CalcElementKMs { get; set; } = new List<CalcElementDoubleKM>();
+        // Calc Matrix for plate
+        protected IList<CalcElementDoubleKM> CalcElementKMsForPlate { get; set; } = new List<CalcElementDoubleKM>();
 
         protected int ConstraintCount => 0;
         // for non-linear
@@ -35,23 +37,43 @@ namespace IvyFEM
 
         protected void SetupCalcKMs()
         {
-            CalcElementKMs.Clear();
+            CalcElementKMsForPlate.Clear();
+
+            // Linear/Staint Venant
+            CalcElementKMs.Add(CalcLinearElasticElementKM);
+            CalcElementKMs.Add(CalcStVenantHyperelasticElementAB);
+
+            // Hyperelastic
 
             // Plate
-            CalcElementKMs.Add(CalcDKTPlateElementKM);
-            CalcElementKMs.Add(CalcMindlinPlateElementKM);
-            CalcElementKMs.Add(CalcMITCLinearPlateElementKM);
+            CalcElementKMsForPlate.Add(CalcDKTPlateElementKM);
+            CalcElementKMsForPlate.Add(CalcMindlinPlateElementKM);
+            CalcElementKMsForPlate.Add(CalcMITCLinearPlateElementKM);
         }
 
         protected void CalcKM(IvyFEM.Lapack.DoubleMatrix K, IvyFEM.Lapack.DoubleMatrix M)
         {
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
-            IList<uint> feIds = World.GetTriangleFEIds(quantityId);
-            foreach (uint feId in feIds)
+            if (CalcElementKMs.Count > 0)
             {
-                foreach (var calcElementKM in CalcElementKMs)
+                IList<uint> feIds = World.GetTetrahedronFEIds(quantityId);
+                foreach (uint feId in feIds)
                 {
-                    calcElementKM(feId, K, M);
+                    foreach (var calcElementKM in CalcElementKMs)
+                    {
+                        calcElementKM(feId, K, M);
+                    }
+                }
+            }
+            if (CalcElementKMsForPlate.Count > 0)
+            {
+                IList<uint> triFEIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in triFEIds)
+                {
+                    foreach (var calcElementKMForPlate in CalcElementKMsForPlate)
+                    {
+                        calcElementKMForPlate(feId, K, M);
+                    }
                 }
             }
         }

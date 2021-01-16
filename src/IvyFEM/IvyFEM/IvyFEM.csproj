@@ -91,9 +91,18 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="SphereConstraint.cs" />
     <Compile Include="Diffusion3DTDFEM.cs" />
     <Compile Include="EddyCurrent2DTDFEM.cs" />
     <Compile Include="EddyCurrentMaterial.cs" />
+    <Compile Include="Elastic3DBaseFEM.MultipointConstraint.cs" />
+    <Compile Include="Elastic3DEigenFEM.StVenantHyperelastic.cs" />
+    <Compile Include="Elastic3DEigenFEM.LinearElastic.cs" />
+    <Compile Include="Elastic3DTDFEM.Ogden.cs" />
+    <Compile Include="Elastic3DFEMUtils.Ogden.cs" />
+    <Compile Include="Elastic3DFEM.Ogden.cs" />
+    <Compile Include="Elastic3DTDFEM.MooneyRivlin.cs" />
+    <Compile Include="Elastic3DFEM.MooneyRivlin.cs" />
     <Compile Include="Elastic3DTDFEM.StVenantHyperelastic.cs" />
     <Compile Include="Elastic3DFEM.StVenantHyperelastic.cs" />
     <Compile Include="Elastic3DTDFEM.LinearElastic.cs" />
@@ -124,6 +133,7 @@
     <Compile Include="FEWorldQuantity.3D.cs" />
     <Compile Include="Helmholtz3DFEM.cs" />
     <Compile Include="LinearElasticPMLMaterial.cs" />
+    <Compile Include="PlaneConstraint.cs" />
     <Compile Include="MeshTet.cs" />
     <Compile Include="MeshTetArray.cs" />
     <Compile Include="MeshUtils3D.cs" />

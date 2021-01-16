@@ -57,20 +57,26 @@ namespace IvyFEM
         protected void CalcKM(IvyFEM.Lapack.DoubleMatrix K, IvyFEM.Lapack.DoubleMatrix M)
         {
             uint quantityId = 0; // Note: 複数変数のときでも要素Idは同じはずなので0指定
-            IList<uint> feIds = World.GetTriangleFEIds(quantityId);
-            foreach (uint feId in feIds)
+            if (CalcElementKMs.Count > 0)
             {
-                foreach (var calcElementKM in CalcElementKMs)
+                IList<uint> feIds = World.GetTriangleFEIds(quantityId);
+                foreach (uint feId in feIds)
                 {
-                    calcElementKM(feId, K, M);
+                    foreach (var calcElementKM in CalcElementKMs)
+                    {
+                        calcElementKM(feId, K, M);
+                    }
                 }
             }
-            IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
-            foreach (uint feId in lineFEIds)
+            if (CalcElementKMsForLine.Count > 0)
             {
-                foreach (var calcElementKMForLine in CalcElementKMsForLine)
+                IList<uint> lineFEIds = World.GetLineFEIds(quantityId);
+                foreach (uint feId in lineFEIds)
                 {
-                    calcElementKMForLine(feId, K, M);
+                    foreach (var calcElementKMForLine in CalcElementKMsForLine)
+                    {
+                        calcElementKMForLine(feId, K, M);
+                    }
                 }
             }
         }

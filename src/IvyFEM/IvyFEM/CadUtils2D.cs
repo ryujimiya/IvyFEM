@@ -66,6 +66,12 @@ namespace IvyFEM
             return normal;
         }
 
+        public static double Cross(OpenTK.Vector2d v1, OpenTK.Vector2d v2)
+        {
+            double cross = v1.X * v2.Y - v1.Y * v2.X;
+            return cross;
+        }
+
         public static OpenTK.Vector2d GetProjectedPointOnCircle(OpenTK.Vector2d c, double r, OpenTK.Vector2d v)
         {
             OpenTK.Vector2d cv = v - c;

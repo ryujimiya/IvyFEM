@@ -21,7 +21,25 @@ namespace IvyFEM
             MakeCoordsAndElements3D(
                 world, vertexCoords, cadSolid2Material, cadLoop2Material, cadEdge2Material);
 
+            // 多点拘束の座標生成
+            MakeCo2MultipointConstraints(world);
+
             IList<int> zeroCoordIds = GetZeroCoordIds(world);
+
+            // 多点拘束の対象外の節点を除外する
+            if (Co2MultipointConstraints.Count > 0)
+            {
+                for (int coId = 0; coId < Coords.Count; coId++)
+                {
+                    if (!Co2MultipointConstraints.ContainsKey(coId))
+                    {
+                        if (zeroCoordIds.IndexOf(coId) == -1)
+                        {
+                            zeroCoordIds.Add(coId);
+                        }
+                    }
+                }
+            }
 
             MakeCo2FixedCads(world, FieldFixedCads, Co2FixedCads);
             MakeCo2FixedCads(world, ForceFieldFixedCads, Co2ForceFixedCads);

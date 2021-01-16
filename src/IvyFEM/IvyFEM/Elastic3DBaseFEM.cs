@@ -45,6 +45,8 @@ namespace IvyFEM
         // Calc Matrix
         protected IList<CalcElementDoubleAB> CalcElementABsForPlate { get; set; } = new List<CalcElementDoubleAB>();
 
+        protected int ConstraintCount { get => HasMultipointConstraints() ? 1 : 0; }
+
         //Solve
         // Output
         public double[] U { get; protected set; }
@@ -167,6 +169,7 @@ namespace IvyFEM
         protected void SetSpecialBC(IvyFEM.Linear.DoubleSparseMatrix A, double[] B)
         {
             SetExternalForceSpecialBC(A, B);
+            SetMultipointConstraintSpecialBC(A, B);
         }
 
         public override void Solve()
@@ -288,6 +291,10 @@ namespace IvyFEM
 
         protected bool MustUseNonlinearIter()
         {
+            if (HasMultipointConstraints())
+            {
+                return true;
+            }
             if (HasNonLinearElasticMaterial())
             {
                 return true;
@@ -355,6 +362,21 @@ namespace IvyFEM
                 }
             }
             return hasNonlinear;
+        }
+
+        private bool HasMultipointConstraints()
+        {
+            bool hasMPC = false;
+            for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
+            {
+                int cnt = World.GetMultipointConstraintCount(quantityId);
+                if (cnt > 0)
+                {
+                    hasMPC = true;
+                    break;
+                }
+            }
+            return hasMPC;
         }
     }
 }

@@ -10,6 +10,7 @@ namespace IvyFEM
     {
         public OpenTK.Vector2d Point { get; set; } = new OpenTK.Vector2d();
         public OpenTK.Vector2d Normal { get; set; } = new OpenTK.Vector2d();
+        public override RotMode SutableRotMode => RotMode.RotMode2D;
         public double BoundingBoxLen { get; set; } = 1.0;
 
         public LineConstraint()
@@ -70,7 +71,6 @@ namespace IvyFEM
 
         public override BoundingBox3D GetBoundingBox(OpenTK.Matrix3d rot)
         {
-            // 2D
             var pt = Point;
             var normal = Normal;
             var horizontal = new OpenTK.Vector2d(-normal.Y, normal.X);
@@ -80,8 +80,10 @@ namespace IvyFEM
             IList<double> coords = new List<double>();
             coords.Add(pt1.X);
             coords.Add(pt1.Y);
+
             coords.Add(pt2.X);
             coords.Add(pt2.Y);
+
             int pointCnt = coords.Count / 2;
 
             BoundingBox3D bb;

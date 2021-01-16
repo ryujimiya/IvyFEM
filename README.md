@@ -16,10 +16,10 @@
 　　　　弾性体力学：線形弾性体(2D/3D)  
 　　　　　　　　　　超弾性体  
 　　　　　　　　　　St.Venant Kirchhoff(2D/3D)  
-　　　　　　　　　　Mooney-Rivlin (非圧縮、微圧縮)  
-　　　　　　　　　　Ogden (非圧縮、微圧縮)  
-　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(直線)  
-　　　　　　　　　　剛体との接触(直線、円)  
+　　　　　　　　　　Mooney-Rivlin (非圧縮、微圧縮)(2D/3D)  
+　　　　　　　　　　Ogden (非圧縮、微圧縮)(2D/3D)  
+　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(2D:直線/3D:平面)  
+　　　　　　　　　　剛体との接触(2D:直線、円/3D:平面、球)  
 　　　　　　　　　　弾性体二体接触※  
 　　　　　　　　　　構造要素(線形)  
 　　　　　　　　　　　Truss要素(トラス)  
@@ -124,9 +124,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-01-13更新）**  
+　**バイナリ（2021-01-16更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.55  
+　　IvyFEM.dll version 0.0.0.56  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

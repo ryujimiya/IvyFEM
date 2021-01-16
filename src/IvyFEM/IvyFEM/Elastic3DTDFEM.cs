@@ -75,6 +75,10 @@ namespace IvyFEM
             CalcElementABs.Add(CalcLinearElasticElementAB);
             CalcElementABs.Add(CalcStVenantHyperelasticElementAB);
 
+            // Hyperelastic
+            CalcElementABs.Add(CalcMooneyRivlinHyperelasticElementAB);
+            CalcElementABs.Add(CalcOgdenRivlinHyperelasticElementAB);
+
             // Plate
             CalcElementABsForPlate.Add(CalcDKTPlateElementAB);
             CalcElementABsForPlate.Add(CalcMindlinPlateElementAB);
@@ -93,6 +97,14 @@ namespace IvyFEM
                     TimeStep,
                     NewmarkBeta, NewmarkGamma);
             }
+        }
+
+        /////////////////////////////////////////////////////////
+        public void SolvePrincipalValues(
+            double[,] c, out System.Numerics.Complex[] fLambdas, out System.Numerics.Complex[][] cNormals)
+        {
+            Elastic3DFEMUtils.SolvePrincipalValues(
+                c, out fLambdas, out cNormals);
         }
     }
 }

@@ -248,7 +248,7 @@ namespace IvyFEM
                     }
                 }
 
-                // 主軸構成則テンソル(オリジナルの方)
+                // 主軸構成則テンソル (オリジナルの方)
                 System.Numerics.Complex[,] principalC21st = new System.Numerics.Complex[uDof, uDof];
                 System.Numerics.Complex[,] principalC22nd = new System.Numerics.Complex[uDof, uDof];
                 /*

@@ -10,6 +10,7 @@ namespace IvyFEM
     {
         public OpenTK.Vector2d Point { get; set; } = new OpenTK.Vector2d();
         public double R { get; set; } = 0;
+        public override RotMode SutableRotMode => RotMode.RotMode2D;
 
         public CircleConstraint()
         {
@@ -48,8 +49,8 @@ namespace IvyFEM
             OpenTK.Vector2d xVec = new OpenTK.Vector2d(x[0], x[1]);
             OpenTK.Vector2d rVec = xVec - Point;
             double r = rVec.Length;
-            double[] rVec2 = { rVec.X, rVec.Y };
-            double value = -rVec2[iDof] / r;
+            double[] rVecXY = { rVec.X, rVec.Y };
+            double value = -rVecXY[iDof] / r;
             if (Equality == EqualityType.LessEq)
             {
                 value *= -1.0;
@@ -67,13 +68,13 @@ namespace IvyFEM
             OpenTK.Vector2d xVec = new OpenTK.Vector2d(x[0], x[1]);
             OpenTK.Vector2d rVec = xVec - Point;
             double r = rVec.Length;
-            double[] rVec2 = { rVec.X, rVec.Y };
+            double[] rVecXY = { rVec.X, rVec.Y };
             double value = 0;
             if (iDof  == jDof)
             {
                 value += -1.0 / r;
             }
-            value += rVec2[iDof] * rVec2[jDof] / (r * r * r);
+            value += rVecXY[iDof] * rVecXY[jDof] / (r * r * r);
             if (Equality == EqualityType.LessEq)
             {
                 value *= -1.0;
@@ -83,16 +84,19 @@ namespace IvyFEM
 
         public override BoundingBox3D GetBoundingBox(OpenTK.Matrix3d rot)
         {
-            // 2D
             IList<double> coords = new List<double>();
             coords.Add(Point.X + R);
-            coords.Add(0.0);
-            coords.Add(0.0);
+            coords.Add(Point.Y);
+
+            coords.Add(Point.X);
             coords.Add(Point.Y + R);
+
             coords.Add(Point.X - R);
-            coords.Add(0.0);
-            coords.Add(0.0);
+            coords.Add(Point.Y);
+
+            coords.Add(Point.X);
             coords.Add(Point.Y - R);
+
             int pointCnt = coords.Count / 2;
 
             BoundingBox3D bb;

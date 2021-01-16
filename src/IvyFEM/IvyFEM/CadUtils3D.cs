@@ -42,7 +42,66 @@ namespace IvyFEM
             return dir;
         }
 
-        public static double TriArea(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3)
+		public static OpenTK.Vector3d GetVerticalUnitVector(OpenTK.Vector3d v)
+        {
+			double x;
+			double y;
+			double z;
+			if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+			{
+				if (Math.Abs(v.Y) >= Constants.PrecisionLowerLimit)
+                {
+					y = 1.0;
+					z = 0.0;
+				}
+				else
+                {
+					y = 0.0;
+					z = 1.0;
+				}
+				x = (-v.Y * y - v.Z * z) / v.X;
+			}
+			else if (Math.Abs(v.Y) >= Constants.PrecisionLowerLimit)
+			{
+				if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+				{
+					x = 1.0;
+					z = 0.0;
+				}
+				else
+				{
+					x = 0.0;
+					z = 1.0;
+				}
+				y = (-v.X * x - v.Z * z) / v.Y;
+			}
+			else if (Math.Abs(v.Z) >= Constants.PrecisionLowerLimit)
+			{
+				if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+				{
+					x = 1.0;
+					y = 0.0;
+				}
+				else
+				{
+					x = 0.0;
+					y = 1.0;
+				}
+				z = (-v.X * x - v.Y * y) / v.Z;
+			}
+			else
+            {
+				// fail
+				x = 0;
+				y = 0;
+				z = 0;
+            }
+			OpenTK.Vector3d normal = new OpenTK.Vector3d(x, y, z);
+			normal.Normalize();
+			return normal;
+		}
+
+		public static double TriArea(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3)
         {
             // Area vector
             double Ax = (v2.Y - v1.Y) * (v3.Z - v1.Z) - (v3.Y - v1.Y) * (v2.Z - v1.Z);

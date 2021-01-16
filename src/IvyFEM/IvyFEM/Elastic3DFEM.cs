@@ -53,6 +53,10 @@ namespace IvyFEM
             CalcElementABs.Add(CalcLinearElasticElementAB);
             CalcElementABs.Add(CalcStVenantHyperelasticElementAB);
 
+            // Hyperelastic
+            CalcElementABs.Add(CalcMooneyRivlinHyperelasticElementAB);
+            CalcElementABs.Add(CalcOgdenHyperelasticElementAB);
+
             // Plate
             CalcElementABsForPlate.Add(CalcDKTPlateElementAB);
             CalcElementABsForPlate.Add(CalcMindlinPlateElementAB);
@@ -60,6 +64,14 @@ namespace IvyFEM
             CalcElementABsForPlate.Add(CalcMITCStVenantPlateElementAB);
             CalcElementABsForPlate.Add(CalcMITCStVenantThicknessStretchPlateElementAB);
             CalcElementABsForPlate.Add(CalcMITCMooneyRivlinPlateElementAB);
+        }
+
+        /////////////////////////////////////////////////////////
+        public void SolvePrincipalValues(
+            double[,] c, out System.Numerics.Complex[] fLambdas, out System.Numerics.Complex[][] cNormals)
+        {
+            Elastic3DFEMUtils.SolvePrincipalValues(
+                c, out fLambdas, out cNormals);
         }
     }
 }

@@ -36,6 +36,8 @@ namespace IvyFEM
 
             bool[] lConstraintNodeIds = new bool[cNodeCnt];
             IList<uint> slaveFEIds = World.GetContactSlaveLineFEIds(cQuantityId);
+            System.Diagnostics.Debug.Assert(slaveFEIds.Count > 0);
+
             foreach (uint slaveFEId in slaveFEIds)
             {
                 LineFE lineFE = World.GetLineFE(uQuantityId, slaveFEId);

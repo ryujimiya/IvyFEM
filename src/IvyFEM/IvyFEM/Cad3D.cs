@@ -324,6 +324,96 @@ namespace IvyFEM
             return res;
         }
 
+        public AddSurfaceRes AddCubeWithMultiLayers(IList<OpenTK.Vector3d> pts, uint layerCnt)
+        {
+            AddSurfaceRes res = new AddSurfaceRes();
+
+            System.Diagnostics.Debug.Assert(pts.Count == 4 * (layerCnt + 1));
+            IList<uint> vIds = new List<uint>();
+            IList<uint> eIds = new List<uint>();
+            IList<uint> lIds = new List<uint>();
+
+            for (int layer = 0; layer < (layerCnt + 1); layer++)
+            {
+                IList<OpenTK.Vector3d> pts1 = new List<OpenTK.Vector3d>();
+                for (int i = 0; i < 4; i++)
+                {
+                    pts1.Add(pts[i + layer * 4]);
+                }
+                for (int i = 0; i < pts1.Count; i++)
+                {
+                    var pt = pts1[i];
+                    uint addVId = AddVertex(CadElementType.Solid, 0, pt).AddVId;
+                    System.Diagnostics.Debug.Assert(addVId != 0);
+                    vIds.Add(addVId);
+                }
+            }
+
+            for (int layer = 0; layer < (layerCnt + 1); layer++)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    var res1 = ConnectVertexLine(vIds[i + layer * 4], vIds[(i + 1) % 4 + layer * 4]);
+                    uint addEId1 = res1.AddEId;
+                    uint addLId1 = res1.AddLId;
+                    System.Diagnostics.Debug.Assert(addEId1 != 0);
+                    eIds.Add(addEId1);
+                    if (layer == 0 && i != 3)
+                    {
+                        System.Diagnostics.Debug.Assert(addLId1 == 0);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.Assert(addLId1 != 0);
+                        lIds.Add(addLId1);
+                    }
+                }
+                if (layer == 0)
+                {
+                    // nothing
+                }
+                else if (layer != 0 && layer != layerCnt)
+                {
+                    // あとで
+                }
+                else if (layer == layerCnt)
+                {
+                    uint eId1 = eIds[eIds.Count - 1];
+                    uint addLId1 = SealHole(eId1, false);
+                    System.Diagnostics.Debug.Assert(addLId1 != 0);
+                    lIds.Add(addLId1);
+                }
+                if (layer <= (layerCnt - 1))
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var res1 = ConnectVertexLine(vIds[i + layer * 4], vIds[(i + 4) + layer * 4]);
+                        uint addEId1 = res1.AddEId;
+                        uint addLId1 = res1.AddLId;
+                        System.Diagnostics.Debug.Assert(addEId1 != 0);
+                        System.Diagnostics.Debug.Assert(addLId1 == 0);
+                        eIds.Add(addEId1);
+                    }
+                }
+            }
+            for (int layer = 1; layer < layerCnt; layer++)
+            {
+                IList<uint> eIds1 = new List<uint>();
+                for (int i = 0; i < 4; i++)
+                {
+                    eIds1.Add(eIds[i + layer * 8]);
+                }
+                uint addLId1 = MakeRadialLoop(eIds1);
+                System.Diagnostics.Debug.Assert(addLId1 != 0);
+                lIds.Add(addLId1);
+            }
+
+            res.AddVIds = vIds;
+            res.AddEIds = eIds;
+            res.AddLIds = lIds;
+            return res;
+        }
+
         public AddSurfaceRes AddSphere(OpenTK.Vector3d cPt, double r, int divCnt)
         {
             AddSurfaceRes res = new AddSurfaceRes();
