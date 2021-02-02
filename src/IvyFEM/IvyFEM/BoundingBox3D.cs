@@ -21,7 +21,8 @@ namespace IvyFEM
 
         }
 
-        public BoundingBox3D(double minX, double maxX, 
+        public BoundingBox3D(
+            double minX, double maxX, 
             double minY, double maxY, 
             double minZ, double maxZ)
         {
@@ -49,7 +50,7 @@ namespace IvyFEM
             IsntEmpty = src.IsntEmpty;
         }
 
-        public static BoundingBox3D operator +(BoundingBox3D bb1,BoundingBox3D bb2)
+        public static BoundingBox3D operator +(BoundingBox3D bb1, BoundingBox3D bb2)
         {
             BoundingBox3D result = new BoundingBox3D(bb1);
             if (!bb2.IsntEmpty)

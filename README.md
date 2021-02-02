@@ -20,7 +20,7 @@
 　　　　　　　　　　Ogden (非圧縮、微圧縮)(2D/3D)  
 　　　　　　　　　　多点拘束(Multipoint Constraint [MPC])(2D:直線/3D:平面)  
 　　　　　　　　　　剛体との接触(2D:直線、円/3D:平面、球)  
-　　　　　　　　　　弾性体二体接触※  
+　　　　　　　　　　弾性体二体接触(2D/3D)※  
 　　　　　　　　　　構造要素(線形)  
 　　　　　　　　　　　Truss要素(トラス)  
 　　　　　　　　　　　Beam要素(X方向の梁)(非推奨）  
@@ -124,9 +124,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-01-16更新）**  
+　**バイナリ（2021-02-02更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.56  
+　　IvyFEM.dll version 0.0.0.57  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

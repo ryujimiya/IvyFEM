@@ -19,12 +19,12 @@ namespace IvyFEM
 
         }
 
-        public BoundingBox2D(double xMin, double xMax, double yMin, double yMax)
+        public BoundingBox2D(double minX, double maxX, double minY, double maxY)
         {
-            MinX = xMin;
-            MaxX = xMax;
-            MinY = yMin;
-            MaxY = yMax;
+            MinX = minX;
+            MaxX = maxX;
+            MinY = minY;
+            MaxY = maxY;
             System.Diagnostics.Debug.Assert(MinX <= MaxX);
             System.Diagnostics.Debug.Assert(MinY <= MaxY);
             IsntEmpty = true;

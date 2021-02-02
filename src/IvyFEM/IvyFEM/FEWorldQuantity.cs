@@ -24,8 +24,8 @@ namespace IvyFEM
         private IList<double> Coords = new List<double>();
         private IList<string> Edges = new List<string>();
         private IList<MultipointConstraint> MultipointConstraints = new List<MultipointConstraint>();
-        public IList<uint> ContactSlaveEIds { get; set; } = new List<uint>();
-        public IList<uint> ContactMasterEIds { get; set; } = new List<uint>();
+        public IList<uint> ContactSlaveCadIds { get; set; } = new List<uint>();
+        public IList<uint> ContactMasterCadIds { get; set; } = new List<uint>();
         private Dictionary<int, IList<MultipointConstraint>> Co2MultipointConstraints =
             new Dictionary<int, IList<MultipointConstraint>>();
         public int IncidentPortId { get; set; } = -1;
@@ -49,8 +49,8 @@ namespace IvyFEM
         private Dictionary<int, IList<uint>> Co2TriangleFE = new Dictionary<int, IList<uint>>();
         private Dictionary<string, IList<uint>> EdgeCos2TriangleFE = new Dictionary<string, IList<uint>>();
         private Dictionary<int, IList<uint>> Co2TetrahedronFE = new Dictionary<int, IList<uint>>();
-        private IList<uint> ContactSlaveLineFEIds = new List<uint>();
-        private IList<uint> ContactMasterLineFEIds = new List<uint>();
+        private IList<uint> ContactSlaveFEIds = new List<uint>();
+        private IList<uint> ContactMasterFEIds = new List<uint>();
         private ObjectArray<LineFE> LineFEArray = new ObjectArray<LineFE>();
         private ObjectArray<TriangleFE> TriangleFEArray = new ObjectArray<TriangleFE>();
         private ObjectArray<TetrahedronFE> TetrahedronFEArray = new ObjectArray<TetrahedronFE>();
@@ -104,8 +104,8 @@ namespace IvyFEM
             Co2TriangleFE.Clear();
             Co2TetrahedronFE.Clear();
             EdgeCos2TriangleFE.Clear();
-            ContactSlaveLineFEIds.Clear();
-            ContactMasterLineFEIds.Clear();
+            ContactSlaveFEIds.Clear();
+            ContactMasterFEIds.Clear();
             LineFEArray.Clear();
             PortLineFEIdss.Clear();
             PeriodicPortLineFEIdsss.Clear();
@@ -735,14 +735,14 @@ namespace IvyFEM
             return PortTriangleFEIdss[(int)portId];
         }
 
-        public IList<uint> GetContactSlaveLineFEIds()
+        public IList<uint> GetContactSlaveFEIds()
         {
-            return ContactSlaveLineFEIds;
+            return ContactSlaveFEIds;
         }
 
-        public IList<uint> GetContactMasterLineFEIds()
+        public IList<uint> GetContactMasterFEIds()
         {
-            return ContactMasterLineFEIds;
+            return ContactMasterFEIds;
         }
 
         public IList<uint> GetTriangleFEIds()

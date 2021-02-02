@@ -12,8 +12,8 @@ namespace IvyFEM
         {
             for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
             {
-                int slaveCnt = World.GetContactSlaveEIds(quantityId).Count;
-                int masterCnt = World.GetContactMasterEIds(quantityId).Count;
+                int slaveCnt = World.GetContactSlaveCadIds(quantityId).Count;
+                int masterCnt = World.GetContactMasterCadIds(quantityId).Count;
                 if (slaveCnt > 0 && masterCnt > 0)
                 {
                     SetTwoBodyContactMortarSegmentationQuantitySpecialBC(quantityId, A, B);
@@ -21,58 +21,10 @@ namespace IvyFEM
             }
         }
 
-        private void UpdateLineFEDisplacements(uint uQuantityId, int uDof, uint cQuantityId)
-        {
-            IList<uint> slaveFEIds = World.GetContactSlaveLineFEIds(cQuantityId);
-            IList<uint> masterFEIds = World.GetContactMasterLineFEIds(cQuantityId);
-            IList<uint>[] feIdss = { slaveFEIds, masterFEIds };
-
-            foreach (IList<uint> feIds in feIdss)
-            {
-                foreach (uint feId in feIds)
-                {
-                    LineFE lineFE = World.GetLineFE(uQuantityId, feId);
-                    uint elemNodeCnt = lineFE.NodeCount;
-                    int[] nodes = new int[elemNodeCnt];
-                    for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-                    {
-                        int coId = lineFE.NodeCoordIds[iNode];
-                        int nodeId = World.Coord2Node(uQuantityId, coId);
-                        nodes[iNode] = nodeId;
-                    }
-                    double[][] displacements = new double[elemNodeCnt][];
-                    for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-                    {
-                        double[] u = new double[uDof];
-                        int nodeId = nodes[iNode];
-                        if (nodeId == -1)
-                        {
-                            for (int iDof = 0; iDof < uDof; iDof++)
-                            {
-                                u[iDof] = 0;
-                            }
-                        }
-                        else
-                        {
-                            for (int iDof = 0; iDof < uDof; iDof++)
-                            {
-                                u[iDof] = U[nodeId * uDof + iDof];
-                            }
-                        }
-                        displacements[iNode] = u;
-                    }
-                    lineFE.SetDisplacements(displacements);
-
-                    LineFE lLineFE = World.GetLineFE(cQuantityId, feId);
-                    lLineFE.SetDisplacements(displacements);
-                }
-            }
-        }
-
         private Dictionary<int, double[]> GetSlaveLineFECo2Normal(uint uQuantityId, int uDof, uint cQuantityId)
         {
             Dictionary<int, double[]> co2Normal = new Dictionary<int, double[]>();
-            IList<uint> slaveFEIds = World.GetContactSlaveLineFEIds(cQuantityId);
+            IList<uint> slaveFEIds = World.GetContactSlaveFEIds(cQuantityId);
             Dictionary<int, IList<double[]>> co2NormalList = new Dictionary<int, IList<double[]>>();
             foreach (uint slaveFEId in slaveFEIds)
             {
@@ -118,7 +70,7 @@ namespace IvyFEM
             uint uQuantityId, int uDof, uint cQuantityId)
         {
             Dictionary<uint, IList<double>> slaveFEL2s = new Dictionary<uint, IList<double>>();
-            IList<uint> masterFEIds = World.GetContactMasterLineFEIds(cQuantityId);
+            IList<uint> masterFEIds = World.GetContactMasterFEIds(cQuantityId);
             IList<int> masterCoIds = new List<int>();
             System.Diagnostics.Debug.Assert(masterFEIds.Count > 0);
 
@@ -205,8 +157,8 @@ namespace IvyFEM
             slaveFEId = 0;
             slaveL = null;
 
-            OpenTK.Vector2d masterX = new OpenTK.Vector2d(masterCurCoord[0], masterCurCoord[1]);
-            IList<uint> feIds = World.GetContactSlaveLineFEIds(cQuantityId);
+            OpenTK.Vector2d masterPt = new OpenTK.Vector2d(masterCurCoord[0], masterCurCoord[1]);
+            IList<uint> feIds = World.GetContactSlaveFEIds(cQuantityId);
 
             double minGap = double.MaxValue;
             foreach (uint feId in feIds)
@@ -244,12 +196,12 @@ namespace IvyFEM
                         }
                     }
                 }
-                OpenTK.Vector2d slaveX1 = new OpenTK.Vector2d(
+                OpenTK.Vector2d slavePt1 = new OpenTK.Vector2d(
                     curNodeCoords[0][0], curNodeCoords[0][1]);
-                OpenTK.Vector2d slaveX2 = new OpenTK.Vector2d(
+                OpenTK.Vector2d slavePt2 = new OpenTK.Vector2d(
                     curNodeCoords[1][0], curNodeCoords[1][1]);
-                var v1 = slaveX2 - slaveX1;
-                var v2 = masterX - slaveX1;
+                var v1 = slavePt2 - slavePt1;
+                var v2 = masterPt - slavePt1;
                 double[][] nodeNormals = new double[elemNodeCnt][];
                 for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
@@ -314,7 +266,7 @@ namespace IvyFEM
                         -nodeNormals[0][1] + nodeNormals[1][1]
                     };
                     // dg/dL2
-                    double[] gapL2 = { slaveX1.X - slaveX2.X, slaveX1.Y - slaveX2.Y };
+                    double[] gapL2 = { slavePt1.X - slavePt2.X, slavePt1.Y - slavePt2.Y };
                     double R = normal[0] * gap[1] - normal[1] * gap[0];
                     sqNorm = R * R;
                     if (iter == 0)
@@ -349,13 +301,13 @@ namespace IvyFEM
                 {
                     double[] L = { 1.0 - L2, L2 };
                     double[] N = lineFE.CalcN(L);
-                    OpenTK.Vector2d slaveX = new OpenTK.Vector2d();
+                    OpenTK.Vector2d slavePt = new OpenTK.Vector2d();
                     for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                     {
-                        slaveX.X += N[iNode] * curNodeCoords[iNode][0];
-                        slaveX.Y += N[iNode] * curNodeCoords[iNode][1];
+                        slavePt.X += N[iNode] * curNodeCoords[iNode][0];
+                        slavePt.Y += N[iNode] * curNodeCoords[iNode][1];
                     }
-                    double gap = OpenTK.Vector2d.Dot(n, masterX - slaveX);
+                    double gap = OpenTK.Vector2d.Dot(n, masterPt - slavePt);
                     if (gap < minGap)
                     {
                         minGap = gap;
@@ -373,8 +325,8 @@ namespace IvyFEM
         {
             masterFEId = 0;
             masterL = null;
-            IList<uint> masterFEIds = World.GetContactMasterLineFEIds(cQuantityId);
-            OpenTK.Vector2d slaveX = new OpenTK.Vector2d(slaveCurCoord[0], slaveCurCoord[1]);
+            IList<uint> masterFEIds = World.GetContactMasterFEIds(cQuantityId);
+            OpenTK.Vector2d slavePt = new OpenTK.Vector2d(slaveCurCoord[0], slaveCurCoord[1]);
             OpenTK.Vector2d n = new OpenTK.Vector2d(normal[0], normal[1]);
             // t = e3 x n
             OpenTK.Vector2d t = new OpenTK.Vector2d(-normal[1], normal[0]);
@@ -415,12 +367,12 @@ namespace IvyFEM
                         }
                     }
                 }
-                OpenTK.Vector2d masterX1 = new OpenTK.Vector2d(
+                OpenTK.Vector2d masterPt1 = new OpenTK.Vector2d(
                     masterCurNodeCoords[0][0], masterCurNodeCoords[0][1]);
-                OpenTK.Vector2d masterX2 = new OpenTK.Vector2d(
+                OpenTK.Vector2d masterPt2 = new OpenTK.Vector2d(
                     masterCurNodeCoords[1][0], masterCurNodeCoords[1][1]);
-                var v1 = masterX2 - masterX1;
-                var v2 = slaveX - masterX1;
+                var v1 = masterPt2 - masterPt1;
+                var v2 = slavePt - masterPt1;
                 if (Math.Abs(OpenTK.Vector2d.Dot(v1, t)) < IvyFEM.Constants.PrecisionLowerLimit)
                 {
                     continue;
@@ -430,10 +382,10 @@ namespace IvyFEM
                 {
                     // 対象となる要素
                     double[] L = { 1.0 - L2, L2 };
-                    OpenTK.Vector2d masterX = new OpenTK.Vector2d(
+                    OpenTK.Vector2d masterPt = new OpenTK.Vector2d(
                         L[0] * masterCurNodeCoords[0][0] + L[1] * masterCurNodeCoords[1][0],
                         L[0] * masterCurNodeCoords[0][1] + L[1] * masterCurNodeCoords[1][1]);
-                    double gap = OpenTK.Vector2d.Dot(n, masterX - slaveX);
+                    double gap = OpenTK.Vector2d.Dot(n, masterPt - slavePt);
                     if (gap < minGap) // ギャップの小さい方を採用する
                     {
                         minGap = gap;

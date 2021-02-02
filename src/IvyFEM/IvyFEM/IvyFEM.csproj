@@ -91,6 +91,9 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="Elastic3DBaseFEM.TwoBodyContactMortar.cs" />
+    <Compile Include="Elastic3DBaseFEM.TwoBodyContact.cs" />
+    <Compile Include="Elastic3DBaseFEM.TwoBodyContactNTS.cs" />
     <Compile Include="SphereConstraint.cs" />
     <Compile Include="Diffusion3DTDFEM.cs" />
     <Compile Include="EddyCurrent2DTDFEM.cs" />

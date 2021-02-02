@@ -587,5 +587,160 @@ namespace IvyFEM
             // Check if point is in triangle
             return (u >= 0) && (v >= 0) && (u + v < 1);
         }
+
+        public static bool GetTwoLineSegIntersectPoint(
+            OpenTK.Vector2d line1P1, OpenTK.Vector2d line1P2,
+            OpenTK.Vector2d line2P1, OpenTK.Vector2d line2P2,
+            out OpenTK.Vector2d intersectP)
+        {
+            intersectP = new OpenTK.Vector2d();
+
+            double a1 = line1P2.Y - line1P1.Y;
+            double b1 = line1P1.X - line1P2.X;
+            double c1 = a1 * line1P1.X + b1 * line1P1.Y;
+
+            double a2 = line2P2.Y - line2P1.Y;
+            double b2 = line2P1.X - line2P2.X;
+            double c2 = a2 * line2P1.X + b2 * line2P1.Y;
+            double eps = Constants.PrecisionLowerLimit;
+
+            //lines are parallel
+            double det = a1 * b2 - a2 * b1;
+            if (Math.Abs(det) < eps)
+            {
+                //parallel lines
+                return false;
+            }
+            else
+            {
+                double x = (b2 * c1 - b1 * c2) / det;
+                double y = (a1 * c2 - a2 * c1) / det;
+                bool online1 = (
+                    (Math.Min(line1P1.X, line1P2.X) < x || Math.Abs(Math.Min(line1P1.X, line1P2.X) - x) < eps) &&
+                    (Math.Max(line1P1.X, line1P2.X) > x || Math.Abs(Math.Max(line1P1.X, line1P2.X) - x) < eps) &&
+                    (Math.Min(line1P1.Y, line1P2.Y) < y || Math.Abs(Math.Min(line1P1.Y, line1P2.Y) - y) < eps) &&
+                    (Math.Max(line1P1.Y, line1P2.Y) > y || Math.Abs(Math.Max(line1P1.Y, line1P2.Y) - y) < eps));
+                bool online2 = (
+                    (Math.Min(line2P1.X, line2P2.X) < x || Math.Abs(Math.Min(line2P1.X, line2P2.X) - x) < eps) &&
+                    (Math.Max(line2P1.X, line2P2.X) > x || Math.Abs(Math.Max(line2P1.X, line2P2.X) - x) < eps) &&
+                    (Math.Min(line2P1.Y, line2P2.Y) < y || Math.Abs(Math.Min(line2P1.Y, line2P2.Y) - y) < eps) &&
+                    (Math.Max(line2P1.Y, line2P2.Y) > y || Math.Abs(Math.Max(line2P1.Y, line2P2.Y) - y) < eps)
+                    );
+
+                if (online1 && online2)
+                {
+                    intersectP = new OpenTK.Vector2d(x, y);
+                    return true;
+                }
+            }
+
+            //intersection is at out of at least one segment.
+            return false; 
+        }
+
+        public static bool IsPointInsidePolygon(OpenTK.Vector2d test, OpenTK.Vector2d[] polyPoints)
+        {
+            bool result = false;
+            for (int i = 0; i < polyPoints.Length; i++)
+            {
+                int j = i == 0 ? (polyPoints.Length - 1) : (i - 1);
+                if ((polyPoints[i].Y > test.Y) != (polyPoints[j].Y > test.Y) &&
+                    (test.X < (polyPoints[j].X - polyPoints[i].X) * 
+                    (test.Y - polyPoints[i].Y) / (polyPoints[j].Y - polyPoints[i].Y) + polyPoints[i].X))
+                {
+                    result = !result;
+                }
+            }
+            return result;
+        }
+
+        public static OpenTK.Vector2d[] GetLineSegPolyIntersectPoints(
+            OpenTK.Vector2d line1P1, OpenTK.Vector2d line1P2, OpenTK.Vector2d[] polyPoints)
+        {
+            IList<OpenTK.Vector2d> intersectionPoints = new List<OpenTK.Vector2d>();
+            for (int i = 0; i < polyPoints.Length; i++)
+            {
+                int next = (i + 1 == polyPoints.Length) ? 0 : i + 1;
+                OpenTK.Vector2d intersectP;
+                bool isIntersect = GetTwoLineSegIntersectPoint(
+                    line1P1, line1P2, polyPoints[i], polyPoints[next], out intersectP);
+                if (isIntersect)
+                {
+                    intersectionPoints.Add(intersectP);
+                }
+
+            }
+            return intersectionPoints.ToArray();
+        }
+
+        private static void _AddPoint(IList<OpenTK.Vector2d> points, OpenTK.Vector2d newPoint)
+        {
+            bool found = false;
+            foreach (OpenTK.Vector2d p in points)
+            {
+                if ((p - newPoint).Length < Constants.PrecisionLowerLimit)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                points.Add(newPoint);
+            }
+        }
+
+        private static IList<OpenTK.Vector2d> _OrderCounterClockwise(IList<OpenTK.Vector2d> points)
+        {
+            double mX = 0;
+            double mY = 0;
+            foreach (OpenTK.Vector2d p in points)
+            {
+                mX += p.X;
+                mY += p.Y;
+            }
+            mX /= points.Count;
+            mY /= points.Count;
+
+            return points.OrderBy(v => Math.Atan2(v.Y - mY, v.X - mX)).ToList();
+        }
+
+        public static OpenTK.Vector2d[] GetTwoPolygonsIntersectPoints(
+            OpenTK.Vector2d[] polyPoints1, OpenTK.Vector2d[] polyPoints2)
+        {
+            IList<OpenTK.Vector2d> clippedPoints = new List<OpenTK.Vector2d>();
+
+            // poly1の点でpoly2内部にある頂点を追加       
+            for (int i = 0; i < polyPoints1.Length; i++)
+            {
+                if (IsPointInsidePolygon(polyPoints1[i], polyPoints2))
+                {
+                    _AddPoint(clippedPoints, polyPoints1[i]);
+                }
+            }
+
+            // poly2の点でpoly1内部にある頂点を追加
+            for (int i = 0; i < polyPoints2.Length; i++)
+            {
+                if (IsPointInsidePolygon(polyPoints2[i], polyPoints1))
+                {
+                    _AddPoint(clippedPoints, polyPoints2[i]);
+                }
+            }
+
+            // poly1の線分とpoly2の交点を追加
+            for (int i = 0, next = 1; i < polyPoints1.Length; i++, next = (i + 1 == polyPoints1.Length) ? 0 : i + 1)
+            {
+                OpenTK.Vector2d[] intesectPoints =
+                    GetLineSegPolyIntersectPoints(polyPoints1[i], polyPoints1[next], polyPoints2);
+                foreach (OpenTK.Vector2d intersectP in intesectPoints)
+                {
+                    _AddPoint(clippedPoints, intersectP);
+                }
+            }
+
+            clippedPoints = _OrderCounterClockwise(clippedPoints);
+            return clippedPoints.ToArray();
+        }
     }
 }

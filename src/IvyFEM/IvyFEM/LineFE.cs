@@ -54,22 +54,6 @@ namespace IvyFEM
             return edgeInterpolate.GetEdgeCount();
         }
 
-        private double[] AddDisplacement(int iNode, double[] co)
-        {
-            int dim = co.Length;
-            double[] curCo = new double[dim];
-            co.CopyTo(curCo, 0);
-            if (Displacements != null)
-            {
-                double[] u = Displacements[iNode];
-                for (int iDim = 0; iDim < dim; iDim++)
-                {
-                    curCo[iDim] += u[iDim];
-                }
-            }
-            return curCo;
-        }
-
         public double GetLineLength()
         {
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
@@ -143,6 +127,7 @@ namespace IvyFEM
             {
                 int coId = coIds[iNode];
                 ptValue[iNode] = World.GetCoord((uint)QuantityId, coId);
+                ptValue[iNode] = AddDisplacement(iNode, ptValue[iNode]);
             }
 
             double[] N = CalcN(L);
@@ -160,6 +145,8 @@ namespace IvyFEM
         {
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
+            co1 = AddDisplacement(0, co1);
+            co2 = AddDisplacement(1, co2);
             double[] dir12 = CadUtils.GetDirection(co1, co2);
             double[] dir = CadUtils.GetDirection(co1, pt);
             double x = CadUtils.Dot(dir12, dir);

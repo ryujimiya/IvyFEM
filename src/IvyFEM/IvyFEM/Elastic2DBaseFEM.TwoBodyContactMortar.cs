@@ -23,8 +23,9 @@ namespace IvyFEM
             int cNodeCnt = (int)World.GetNodeCount(cQuantityId);
             int offset = World.GetOffset(cQuantityId);
 
-            // 線要素の変位を更新
-            UpdateLineFEDisplacements(uQuantityId, uDof, cQuantityId);
+            // 要素の変位を更新
+            World.UpdateFEDisplacements(uQuantityId, U);
+            World.UpdateFEDisplacements(cQuantityId, U);
 
             // 節点法線ベクトルの計算
             Dictionary<int, double[]> co2Normal = GetSlaveLineFECo2Normal(uQuantityId, uDof, cQuantityId);
@@ -35,7 +36,7 @@ namespace IvyFEM
                 uQuantityId, uDof, cQuantityId);
 
             bool[] lConstraintNodeIds = new bool[cNodeCnt];
-            IList<uint> slaveFEIds = World.GetContactSlaveLineFEIds(cQuantityId);
+            IList<uint> slaveFEIds = World.GetContactSlaveFEIds(cQuantityId);
             System.Diagnostics.Debug.Assert(slaveFEIds.Count > 0);
 
             foreach (uint slaveFEId in slaveFEIds)
@@ -211,6 +212,7 @@ namespace IvyFEM
                             }
                         }
                         // Karush-Kuhn-Tucker条件
+                        // NOTE: l[0]: normal、l[1]: tan
                         double tolerance = IvyFEM.Linear.Constants.ConvRatioTolerance;
                         if (l[0] <= tolerance &&
                             Math.Abs(l[1]) <= tolerance &&
@@ -339,7 +341,7 @@ namespace IvyFEM
                         }
                         for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                         {
-                            for (int iDof = 0; iDof < cDof; iDof++)
+                            for (int iDof = 0; iDof < uDof; iDof++)
                             {
                                 ql[iNode, 0] +=
                                     detJWeight * lN[iNode] * normal[iDof] * curCoord[iDof];
@@ -436,6 +438,10 @@ namespace IvyFEM
                     B[offset + iNodeId * cDof + iDof] = 0;
                 }
             }
+
+            // 後片付け
+            World.ClearFEDisplacements(uQuantityId);
+            World.ClearFEDisplacements(cQuantityId);
         }
     }
 }

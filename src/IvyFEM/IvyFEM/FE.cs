@@ -363,15 +363,38 @@ namespace IvyFEM
 
         public void SetDisplacements(double[][] displacements)
         {
-            System.Diagnostics.Debug.Assert(NodeCount == displacements.Length);
-            Displacements = new double[NodeCount][];
-            for (int i = 0; i < NodeCount; i++)
+            if (displacements == null)
             {
-                double[] srcU = displacements[i];
-                double[] u = new double[srcU.Length];
-                srcU.CopyTo(u, 0);
-                Displacements[i] = u;
+                Displacements = null;
             }
+            else
+            {
+                System.Diagnostics.Debug.Assert(NodeCount == displacements.Length);
+                Displacements = new double[NodeCount][];
+                for (int i = 0; i < NodeCount; i++)
+                {
+                    double[] srcU = displacements[i];
+                    double[] u = new double[srcU.Length];
+                    srcU.CopyTo(u, 0);
+                    Displacements[i] = u;
+                }
+            }
+        }
+
+        protected double[] AddDisplacement(int iNode, double[] co)
+        {
+            int dim = co.Length;
+            double[] curCo = new double[dim];
+            co.CopyTo(curCo, 0);
+            if (Displacements != null)
+            {
+                double[] u = Displacements[iNode];
+                for (int iDim = 0; iDim < dim; iDim++)
+                {
+                    curCo[iDim] += u[iDim];
+                }
+            }
+            return curCo;
         }
     }
 }

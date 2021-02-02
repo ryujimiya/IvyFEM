@@ -19,8 +19,6 @@ namespace IvyFEM
         // Calc Matrix for truss
         protected IList<CalcElementDoubleAB> CalcElementABsForLine { get; set; } = new List<CalcElementDoubleAB>();
 
-        protected int ConstraintCount { get => (HasMultipointConstraints() || HasTwoBodyContact()) ? 1 : 0; }
-
         //Solve
         // Output
         public double[] U { get; protected set; }
@@ -277,8 +275,8 @@ namespace IvyFEM
             bool hasContact = false;
             for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
             {
-                int slaveCnt = World.GetContactSlaveEIds(quantityId).Count;
-                int masterCnt = World.GetContactMasterEIds(quantityId).Count;
+                int slaveCnt = World.GetContactSlaveCadIds(quantityId).Count;
+                int masterCnt = World.GetContactMasterCadIds(quantityId).Count;
                 if (slaveCnt > 0 && masterCnt > 0)
                 {
                     hasContact = true;

@@ -56,6 +56,9 @@ namespace IvyFEM
             // 四面体要素の節点ナンバリング
             NumberTetrahedronNodes3D(world, zeroCoordIds);
 
+            // 接触解析のMaster/Slave三角形要素を準備する
+            SetupContactMasterSlaveTriangleElements3D(world);
+
             // 節点→座標のマップ作成
             MakeNode2CoFromCo2Node();
 
@@ -667,6 +670,37 @@ namespace IvyFEM
                         }
                         targetIds.Add(feId);
                     }
+                }
+            }
+        }
+
+        // 接触解析のMaster/Slave三角形要素を準備する
+        private void SetupContactMasterSlaveTriangleElements3D(FEWorld world)
+        {
+            var mesh = world.Mesh;
+
+            IList<uint> feIds = TriangleFEArray.GetObjectIds();
+            foreach (var feId in feIds)
+            {
+                TriangleFE triFE = TriangleFEArray.GetObject(feId);
+                uint cadId;
+                {
+                    uint meshId = triFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Tri);
+                }
+                if (ContactSlaveCadIds.Contains(cadId))
+                {
+                    // Slave上の三角形要素
+                    ContactSlaveFEIds.Add(feId);
+                }
+                if (ContactMasterCadIds.Contains(cadId))
+                {
+                    // Master上の三角形要素
+                    ContactMasterFEIds.Add(feId);
                 }
             }
         }

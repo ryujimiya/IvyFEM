@@ -42,14 +42,42 @@ namespace IvyFEM
             return dir;
         }
 
+		public static double[] TriNormal3D(double[] v1, double[] v2, double[] v3)
+		{
+			// Area vector
+			double Ax = (v2[1] - v1[1]) * (v3[2] - v1[2]) - (v3[1] - v1[1]) * (v2[2] - v1[2]);
+			double Ay = (v2[2] - v1[2]) * (v3[0] - v1[0]) - (v3[2] - v1[2]) * (v2[0] - v1[0]);
+			double Az = (v2[0] - v1[0]) * (v3[1] - v1[1]) - (v3[0] - v1[0]) * (v2[1] - v1[1]);
+			double[] n = { Ax, Ay, Az };
+			n = Normalize3D(n);
+			return n;
+		}
+
+		public static OpenTK.Vector2d ProjectToPlane(
+			OpenTK.Vector3d p,
+			OpenTK.Vector3d planeOrigin, OpenTK.Vector3d planeNormal, OpenTK.Vector3d planeXDir)
+		{
+			double x = OpenTK.Vector3d.Dot((p - planeOrigin), planeXDir);
+			double y = OpenTK.Vector3d.Dot((p - planeOrigin), OpenTK.Vector3d.Cross(planeNormal, planeXDir));
+			return new OpenTK.Vector2d(x, y);
+		}
+
+		public static OpenTK.Vector3d UnProjectFromPlane(
+			OpenTK.Vector2d p,
+			OpenTK.Vector3d planeOrigin, OpenTK.Vector3d planeNormal, OpenTK.Vector3d planeXDir)
+		{
+			return planeOrigin + planeXDir * p.X + OpenTK.Vector3d.Cross(planeNormal, planeXDir) * p.Y;
+		}
+
 		public static OpenTK.Vector3d GetVerticalUnitVector(OpenTK.Vector3d v)
         {
+			double eps = Constants.PrecisionLowerLimit;
 			double x;
 			double y;
 			double z;
-			if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+			if (Math.Abs(v.X) >= eps)
 			{
-				if (Math.Abs(v.Y) >= Constants.PrecisionLowerLimit)
+				if (Math.Abs(v.Y) >= eps)
                 {
 					y = 1.0;
 					z = 0.0;
@@ -61,9 +89,9 @@ namespace IvyFEM
 				}
 				x = (-v.Y * y - v.Z * z) / v.X;
 			}
-			else if (Math.Abs(v.Y) >= Constants.PrecisionLowerLimit)
+			else if (Math.Abs(v.Y) >= eps)
 			{
-				if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+				if (Math.Abs(v.X) >= eps)
 				{
 					x = 1.0;
 					z = 0.0;
@@ -75,9 +103,9 @@ namespace IvyFEM
 				}
 				y = (-v.X * x - v.Z * z) / v.Y;
 			}
-			else if (Math.Abs(v.Z) >= Constants.PrecisionLowerLimit)
+			else if (Math.Abs(v.Z) >= eps)
 			{
-				if (Math.Abs(v.X) >= Constants.PrecisionLowerLimit)
+				if (Math.Abs(v.X) >= eps)
 				{
 					x = 1.0;
 					y = 0.0;
@@ -119,33 +147,7 @@ namespace IvyFEM
             OpenTK.Vector3d n = new OpenTK.Vector3d(Ax, Ay, Az);
             n = OpenTK.Vector3d.Normalize(n);
             return n;
-
-			/* 以下と同じ
-			// 単位法線ベクトル
-			var n = UnitNormal(v1, v2, v3);
-			return n;
-			*/
         }
-
-		///////////////////////////////////////////////////////////////////////////
-
-		// 法線ベクトル(規格化しない)
-		public static OpenTK.Vector3d Normal(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3)
-		{
-			double x = (v2.Y - v1.Y) * (v3.Z - v1.Z) - (v2.Z - v1.Z) * (v3.Y - v1.Y);
-			double y = (v2.Z - v1.Z) * (v3.X - v1.X) - (v2.X - v1.X) * (v3.Z - v1.Z);
-			double z = (v2.X - v1.X) * (v3.Y - v1.Y) - (v2.Y - v1.Y) * (v3.X - v1.X);
-			OpenTK.Vector3d n = new OpenTK.Vector3d(x, y, z);
-			return n;
-		}
-		
-		// 単位法線ベクトル
-		public static OpenTK.Vector3d UnitNormal(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3)
-		{
-			OpenTK.Vector3d n = Normal(v1, v2, v3);
-			n.Normalize();
-			return n;
-		}
 
 		// 四面体の高さ
 		public static double TetHeight(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3, OpenTK.Vector3d v4)
@@ -167,10 +169,10 @@ namespace IvyFEM
 		// 四面体の体積
         public static double TetVolume(OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3, OpenTK.Vector3d v4)
         {
-            double vol = ((v2.X - v1.X) * ((v3.Y - v1.Y) * (v4.Z - v1.Z) - (v4.Y - v1.Y) * (v3.Z - v1.Z))
-            - (v2.Y - v1.Y) * ((v3.X - v1.X) * (v4.Z - v1.Z) - (v4.X - v1.X) * (v3.Z - v1.Z))
-            + (v2.Z - v1.Z) * ((v3.X - v1.X) * (v4.Y - v1.Y) - (v4.X - v1.X) * (v3.Y - v1.Y))
-            ) * 0.16666666666666666666666666666667;
+            double vol = (
+				(v2.X - v1.X) * ((v3.Y - v1.Y) * (v4.Z - v1.Z) - (v4.Y - v1.Y) * (v3.Z - v1.Z)) -
+				(v2.Y - v1.Y) * ((v3.X - v1.X) * (v4.Z - v1.Z) - (v4.X - v1.X) * (v3.Z - v1.Z)) +
+				(v2.Z - v1.Z) * ((v3.X - v1.X) * (v4.Y - v1.Y) - (v4.X - v1.X) * (v3.Y - v1.Y))) / 6.0;
             return vol;
         }
 
@@ -265,11 +267,12 @@ namespace IvyFEM
 			OpenTK.Vector3d p,
 			OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3, OpenTK.Vector3d v4)
 		{
+			double eps = 1.0e-12;
 			OpenTK.Vector3d normal = OpenTK.Vector3d.Cross(v2 - v1, v3 - v1);
 			double dotV4 = OpenTK.Vector3d.Dot(normal, v4 - v1);
 			double dotP = OpenTK.Vector3d.Dot(normal, p - v1);
 			return (Math.Sign(dotV4) == Math.Sign(dotP) ||
-					Math.Abs(dotP) < 1.0e-12);
+					Math.Abs(dotP) < eps);
 		}
 
 		public static bool IsPointInsideTetrahedron(
@@ -280,6 +283,70 @@ namespace IvyFEM
 				   IsPointSameSideOfFace(p, v2, v3, v4, v1) &&
 				   IsPointSameSideOfFace(p, v3, v4, v1, v2) &&
 				   IsPointSameSideOfFace(p, v4, v1, v2, v3);
+		}
+
+		public static bool GetLineTriangleIntersectPoint(
+			OpenTK.Vector3d lineOrigin, OpenTK.Vector3d lineDir,
+			OpenTK.Vector3d v1, OpenTK.Vector3d v2, OpenTK.Vector3d v3,
+			out OpenTK.Vector3d intersectPoint)
+		{
+			intersectPoint = new OpenTK.Vector3d();
+			double eps1 = 1.0e-12;
+			double eps2 = 1.0e-12;
+			OpenTK.Vector3d edge1;
+			OpenTK.Vector3d edge2;
+			OpenTK.Vector3d h;
+			OpenTK.Vector3d s;
+			OpenTK.Vector3d q;
+			double a;
+			double f;
+			double u;
+			double v;
+			edge1 = v2 - v1;
+			edge2 = v3 - v1;
+			h = OpenTK.Vector3d.Cross(lineDir, edge2);
+			a = OpenTK.Vector3d.Dot(edge1, h);
+			if (a > -eps1 && a < eps1)
+            {
+				// 直線は三角形と平行
+				return false;
+			}
+			f = 1.0 / a;
+			s = lineOrigin - v1;
+			u = f * OpenTK.Vector3d.Dot(s, h);
+			if (u < 0.0 -  eps2 || u > 1.0 + eps2)
+            {
+				return false;
+			}
+			q = OpenTK.Vector3d.Cross(s, edge1);
+			v = f * OpenTK.Vector3d.Dot(lineDir, q);
+			if (v < 0.0 - eps2 || u + v > 1.0 + eps2)
+            {
+				return false;
+			}
+
+			double t = f * OpenTK.Vector3d.Dot(edge2, q);
+			intersectPoint = lineOrigin + lineDir * t;
+			return true;
+		}
+
+		public static bool GetLinePlaneIntersectPoint(
+			OpenTK.Vector3d lineOrigin, OpenTK.Vector3d lineDir,
+			OpenTK.Vector3d planeOrigin, OpenTK.Vector3d planeNormal,
+			out OpenTK.Vector3d intersectPoint)
+		{
+			intersectPoint = new OpenTK.Vector3d();
+			double eps = 1.0e-12;
+			double a = OpenTK.Vector3d.Dot(planeNormal, lineDir);
+			if (Math.Abs(a) < eps)
+            {
+				// 直線と平面は平行
+				return false;
+            }
+			double b = OpenTK.Vector3d.Dot(planeNormal, planeOrigin - lineOrigin);
+			double t = b / a;
+			intersectPoint = lineOrigin + lineDir * t;
+			return true;
 		}
 	}
 }

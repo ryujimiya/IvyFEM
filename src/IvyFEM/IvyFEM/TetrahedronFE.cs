@@ -55,18 +55,16 @@ namespace IvyFEM
             return edgeInterpolate.GetEdgeCount();
         }
 
-        public double[] GetNodeL(int nodeId)
-        {
-            double[] ret = Interpolate.GetNodeL(nodeId);
-            return ret;
-        }
-
         public double GetVolume()
         {
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
             double[] co4 = World.GetVertexCoord(VertexCoordIds[3]);
+            co1 = AddDisplacement(0, co1);
+            co2 = AddDisplacement(1, co2);
+            co3 = AddDisplacement(2, co3);
+            co4 = AddDisplacement(3, co4);
             double vol = CadUtils.TetVolume(co1, co2, co3, co4);
             return vol;
         }
@@ -91,6 +89,10 @@ namespace IvyFEM
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
             double[] co4 = World.GetVertexCoord(VertexCoordIds[3]);
+            co1 = AddDisplacement(0, co1);
+            co2 = AddDisplacement(1, co2);
+            co3 = AddDisplacement(2, co3);
+            co4 = AddDisplacement(3, co4);
             OpenTK.Vector3d v1 = new OpenTK.Vector3d(co1[0], co1[1], co1[2]);
             OpenTK.Vector3d v2 = new OpenTK.Vector3d(co2[0], co2[1], co2[2]);
             OpenTK.Vector3d v3 = new OpenTK.Vector3d(co3[0], co3[1], co3[2]);
@@ -122,6 +124,12 @@ namespace IvyFEM
             }
         }
 
+        public double[] GetNodeL(int nodeId)
+        {
+            double[] ret = Interpolate.GetNodeL(nodeId);
+            return ret;
+        }
+
         public double[] L2Coord(double[] L)
         {
             uint dim = World.Dimension;
@@ -132,6 +140,7 @@ namespace IvyFEM
             {
                 int coId = coIds[iNode];
                 ptValue[iNode] = World.GetCoord((uint)QuantityId, coId);
+                ptValue[iNode] = AddDisplacement(iNode, ptValue[iNode]);
             }
 
             double[] N = CalcN(L);

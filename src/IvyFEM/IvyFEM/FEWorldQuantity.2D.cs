@@ -70,7 +70,7 @@ namespace IvyFEM
             }
 
             // 接触解析のMaster/Slave線要素を準備する
-            SetupContactMasterSlaveLineElements(world);
+            SetupContactMasterSlaveLineElements2D(world);
 
             // 節点→座標のマップ作成
             MakeNode2CoFromCo2Node();
@@ -905,37 +905,6 @@ namespace IvyFEM
             }
         }
 
-        // 接触解析のMaster/Slave線要素を準備する
-        private void SetupContactMasterSlaveLineElements(FEWorld world)
-        {
-            var mesh = world.Mesh;
-
-            IList<uint> feIds = LineFEArray.GetObjectIds();
-            foreach (var feId in feIds)
-            {
-                LineFE lineFE = LineFEArray.GetObject(feId);
-                uint cadId;
-                {
-                    uint meshId = lineFE.MeshId;
-                    uint elemCnt;
-                    MeshType meshType;
-                    int loc;
-                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
-                    System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
-                }
-                if (ContactSlaveEIds.Contains(cadId))
-                {
-                    // Slave上の線要素
-                    ContactSlaveLineFEIds.Add(feId);
-                }
-                if (ContactMasterEIds.Contains(cadId))
-                {
-                    // Master上の線要素
-                    ContactMasterLineFEIds.Add(feId);
-                }
-            }
-        }
-
         // 三角形要素の節点ナンバリング
         private void NumberTriangleNodes2D(FEWorld world, IList<int> zeroCoordIds)
         {
@@ -1356,6 +1325,37 @@ namespace IvyFEM
                         }
                         targetIds.Add(feId);
                     }
+                }
+            }
+        }
+
+        // 接触解析のMaster/Slave線要素を準備する
+        private void SetupContactMasterSlaveLineElements2D(FEWorld world)
+        {
+            var mesh = world.Mesh;
+
+            IList<uint> feIds = LineFEArray.GetObjectIds();
+            foreach (var feId in feIds)
+            {
+                LineFE lineFE = LineFEArray.GetObject(feId);
+                uint cadId;
+                {
+                    uint meshId = lineFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadId);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+                }
+                if (ContactSlaveCadIds.Contains(cadId))
+                {
+                    // Slave上の線要素
+                    ContactSlaveFEIds.Add(feId);
+                }
+                if (ContactMasterCadIds.Contains(cadId))
+                {
+                    // Master上の線要素
+                    ContactMasterFEIds.Add(feId);
                 }
             }
         }

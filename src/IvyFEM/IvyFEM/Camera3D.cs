@@ -65,7 +65,9 @@ namespace IvyFEM
         public override OpenTK.Matrix3d RotMatrix33()
         {
             OpenTK.Matrix3d m = new OpenTK.Matrix3d();
-                double vx = RotQuat.X, vy = RotQuat.Y, vz = RotQuat.Z;
+            double vx = RotQuat.X;
+            double vy = RotQuat.Y;
+            double vz = RotQuat.Z;
             double real = RotQuat.W;
 
             m[0, 0] = 1.0 - 2.0 * (vy * vy + vz * vz);

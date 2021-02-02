@@ -19,7 +19,6 @@ namespace IvyFEM
         public double ConvRatioToleranceForNonlinearIter { get; set; }
             = 1.0e+2 * IvyFEM.Linear.Constants.ConvRatioTolerance; // 収束しないので収束条件を緩めている
 
-
         ////////////////////////////////////////////////////////////
         // 3D
         // Calc Matrix
@@ -170,6 +169,7 @@ namespace IvyFEM
         {
             SetExternalForceSpecialBC(A, B);
             SetMultipointConstraintSpecialBC(A, B);
+            SetTwoBodyContactSpecialBC(A, B);
         }
 
         public override void Solve()
@@ -295,6 +295,10 @@ namespace IvyFEM
             {
                 return true;
             }
+            if (HasTwoBodyContact())
+            {
+                return true;
+            }
             if (HasNonLinearElasticMaterial())
             {
                 return true;
@@ -377,6 +381,22 @@ namespace IvyFEM
                 }
             }
             return hasMPC;
+        }
+
+        private bool HasTwoBodyContact()
+        {
+            bool hasContact = false;
+            for (uint quantityId = 0; quantityId < World.GetQuantityCount(); quantityId++)
+            {
+                int slaveCnt = World.GetContactSlaveCadIds(quantityId).Count;
+                int masterCnt = World.GetContactMasterCadIds(quantityId).Count;
+                if (slaveCnt > 0 && masterCnt > 0)
+                {
+                    hasContact = true;
+                    break;
+                }
+            }
+            return hasContact;
         }
     }
 }

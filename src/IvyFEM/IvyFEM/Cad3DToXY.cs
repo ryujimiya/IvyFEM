@@ -59,14 +59,12 @@ namespace IvyFEM
 
         public OpenTK.Vector2d Project(OpenTK.Vector3d p)
         {
-            double x = OpenTK.Vector3d.Dot((p - Origin), XDir);
-            double y = OpenTK.Vector3d.Dot((p - Origin), OpenTK.Vector3d.Cross(Normal, XDir));
-            return new OpenTK.Vector2d(x, y);
+            return CadUtils3D.ProjectToPlane(p, Origin, Normal, XDir);
         }
 
         public OpenTK.Vector3d UnProject(OpenTK.Vector2d p)
         {
-            return Origin + XDir * p.X + OpenTK.Vector3d.Cross(Normal, XDir) * p.Y;
+            return CadUtils3D.UnProjectFromPlane(p, Origin, Normal, XDir);
         }
 
         public uint GetVertexId3DFrom2D(uint vId)

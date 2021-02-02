@@ -66,6 +66,9 @@ namespace IvyFEM
             double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
             double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
             double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
+            co1 = AddDisplacement(0, co1);
+            co2 = AddDisplacement(1, co2);
+            co3 = AddDisplacement(2, co3);
             double area = CadUtils.TriArea(co1, co2, co3);
             return area;
         }
@@ -93,6 +96,42 @@ namespace IvyFEM
             return edgeLengths;
         }
 
+        public double[] GetNormal(double[] insideCo)
+        {
+            if (World.Dimension == 2)
+            {
+                System.Diagnostics.Debug.Assert(false);
+                return new double[] { 0.0, 0.0 };
+            }
+
+            System.Diagnostics.Debug.Assert(World.Dimension == 3);
+            double[] co1 = World.GetVertexCoord(VertexCoordIds[0]);
+            double[] co2 = World.GetVertexCoord(VertexCoordIds[1]);
+            double[] co3 = World.GetVertexCoord(VertexCoordIds[2]);
+            co1 = AddDisplacement(0, co1);
+            co2 = AddDisplacement(1, co2);
+            co3 = AddDisplacement(2, co3);
+            double[] normal;
+            normal = IvyFEM.CadUtils3D.TriNormal3D(co1, co2, co3);
+
+            if (insideCo != null)
+            {
+                OpenTK.Vector3d normalVec = new OpenTK.Vector3d(normal[0], normal[1], normal[2]);
+                OpenTK.Vector3d pt1 = new OpenTK.Vector3d(co1[0], co1[1], co1[2]);
+                OpenTK.Vector3d pt2 = new OpenTK.Vector3d(co2[0], co2[1], co2[2]);
+                OpenTK.Vector3d pt3 = new OpenTK.Vector3d(co3[0], co3[1], co3[2]);
+                OpenTK.Vector3d ptG = (pt1 + pt2 + pt3) / 3.0;
+                OpenTK.Vector3d ptI = new OpenTK.Vector3d(insideCo[0], insideCo[1], insideCo[2]);
+                OpenTK.Vector3d vecIG = ptI - ptG;
+                double dot = OpenTK.Vector3d.Dot(normalVec, vecIG);
+                // 内部点方向とは逆を正とする法線ベクトル
+                normalVec *= dot >= 0.0 ? -1.0 : 1.0;
+                normal = new double[3] { normalVec.X, normalVec.Y, normalVec.Z };
+            }
+
+            return normal;
+        }
+
         public void CalcTransMatrix(out double[] a, out double[] b, out double[] c)
         {
             a = new double[3];
@@ -106,6 +145,9 @@ namespace IvyFEM
                 co2D1 = World.GetVertexCoord(VertexCoordIds[0]);
                 co2D2 = World.GetVertexCoord(VertexCoordIds[1]);
                 co2D3 = World.GetVertexCoord(VertexCoordIds[2]);
+                co2D1 = AddDisplacement(0, co2D1);
+                co2D2 = AddDisplacement(1, co2D2);
+                co2D3 = AddDisplacement(2, co2D3);
             }
             else if (World.Dimension == 3)
             {
@@ -143,6 +185,7 @@ namespace IvyFEM
             {
                 int coId = coIds[iNode];
                 ptValue[iNode] = World.GetCoord((uint)QuantityId, coId);
+                ptValue[iNode] = AddDisplacement(iNode, ptValue[iNode]);
             }
 
             double[] N = CalcN(L);
