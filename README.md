@@ -59,11 +59,11 @@
 　　　　　　　　　　　　　(PML: Perfectly Matched Layers,完全整合層)  
 　　　　　　　　　　　　　(ABC: Absorbing Boundary Conditions,吸収境界条件)  
 　　　　　　　　　　　  
-　　　　　　　　　　　※SH wave：Shear Horizontal wave  
+　　　　　　　　　　　Note: SH wave：Shear Horizontal wave  
 　　　　　　　　　　　  
 　　　　流体力学　：Navier-Stokesの方程式  
-　　　　　　　　　　　標準  
-　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化  
+　　　　　　　　　　　標準(2D/3D)(ただし、3Dは※)  
+　　　　　　　　　　　SUPG [Streamline Upwind Petrov-Galerkin]安定化(2D/3D)  
 　　　　　　　　　　Vorticity / Stream Funciton定式化  
 　　　　　　　　　　　標準  
 　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
@@ -124,9 +124,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-02-02更新）**  
+　**バイナリ（2021-03-24更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.57  
+　　IvyFEM.dll version 0.0.0.58  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

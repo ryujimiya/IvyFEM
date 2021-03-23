@@ -632,16 +632,39 @@ namespace IvyFEM
             }
             else if (nodeType == FieldValueNodeType.Bubble)
             {
-                pointCnt = (uint)GetTriangleFEIds(quantityId).Count;
+                if (Is2DOrPlate())
+                {
+                    // 2D
+                    pointCnt = (uint)GetTriangleFEIds(quantityId).Count;
+                }
+                else
+                {
+                    // 3D
+                    pointCnt = (uint)GetTetrahedronFEIds(quantityId).Count;
+                }
             }
             else if (nodeType == FieldValueNodeType.ElementNode)
             {
-                IList<uint> feIds = GetTriangleFEIds(quantityId);
-                uint elemCnt = (uint)feIds.Count;
-                System.Diagnostics.Debug.Assert(elemCnt > 0);
-                TriangleFE triFE0 = GetTriangleFE(quantityId, feIds[0]);
-                uint elemNodeCnt = triFE0.NodeCount;
-                pointCnt = elemCnt * elemNodeCnt;
+                if (Is2DOrPlate())
+                {
+                    // 2D
+                    IList<uint> feIds = GetTriangleFEIds(quantityId);
+                    uint elemCnt = (uint)feIds.Count;
+                    System.Diagnostics.Debug.Assert(elemCnt > 0);
+                    TriangleFE triFE0 = GetTriangleFE(quantityId, feIds[0]);
+                    uint elemNodeCnt = triFE0.NodeCount;
+                    pointCnt = elemCnt * elemNodeCnt;
+                }
+                else
+                {
+                    // 3D
+                    IList<uint> feIds = GetTetrahedronFEIds(quantityId);
+                    uint elemCnt = (uint)feIds.Count;
+                    System.Diagnostics.Debug.Assert(elemCnt > 0);
+                    TetrahedronFE tetFE0 = GetTetrahedronFE(quantityId, feIds[0]);
+                    uint elemNodeCnt = tetFE0.NodeCount;
+                    pointCnt = elemCnt * elemNodeCnt;
+                }
             }
             else
             {
@@ -736,7 +759,7 @@ namespace IvyFEM
             }
             else
             {
-                throw new NotImplementedException();
+                UpdateBubbleFieldValueValuesFromNodeValues3D(valueId, dt, nodeValues);
             }
         }
 
@@ -794,6 +817,60 @@ namespace IvyFEM
             }
         }
 
+        private void UpdateBubbleFieldValueValuesFromNodeValues3D(
+            uint valueId, FieldDerivativeType dt, double[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            double[] values = fv.GetDoubleValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+
+            IList<uint> feIds = GetTetrahedronFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                int[] coIds = tetFE.NodeCoordIds;
+                uint elemNodeCnt = tetFE.NodeCount;
+                double[] bubbleValue = new double[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    if (nodeId == -1)
+                    {
+                        //for (int iDof = 0; iDof < dof; iDof++)
+                        //{
+                        //    bubbleValue[iDof] += 0;
+                        //}
+                    }
+                    else
+                    {
+                        for (int iDof = 0; iDof < dof; iDof++)
+                        {
+                            bubbleValue[iDof] += nodeValues[offsetNode + nodeId * dof + iDof];
+                        }
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
+            }
+        }
+
         public void UpdateBubbleFieldValueValuesFromNodeValues(
             uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
         {
@@ -803,7 +880,7 @@ namespace IvyFEM
             }
             else
             {
-                throw new NotImplementedException();
+                UpdateBubbleFieldValueValuesFromNodeValues3D(valueId, dt, nodeValues);
             }
         }
 
@@ -829,6 +906,60 @@ namespace IvyFEM
                 TriangleFE triFE = GetTriangleFE(quantityId, feId);
                 int[] coIds = triFE.NodeCoordIds;
                 uint elemNodeCnt = triFE.NodeCount;
+                System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    if (nodeId == -1)
+                    {
+                        //for (int iDof = 0; iDof < dof; iDof++)
+                        //{
+                        //    bubbleValue[iDof] += 0;
+                        //}
+                    }
+                    else
+                    {
+                        for (int iDof = 0; iDof < dof; iDof++)
+                        {
+                            bubbleValue[iDof] += nodeValues[offsetNode + nodeId * dof + iDof];
+                        }
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
+            }
+        }
+
+        private void UpdateBubbleFieldValueValuesFromNodeValues3D(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+
+            IList<uint> feIds = GetTetrahedronFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                int[] coIds = tetFE.NodeCoordIds;
+                uint elemNodeCnt = tetFE.NodeCount;
                 System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];
                 for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
@@ -894,7 +1025,7 @@ namespace IvyFEM
             }
             else
             {
-                throw new NotImplementedException();
+                UpdateBubbleFieldValueValuesFromCoordValues3D(valueId, dt, coordValues);
             }
         }
 
@@ -936,6 +1067,44 @@ namespace IvyFEM
             }
         }
 
+        private void UpdateBubbleFieldValueValuesFromCoordValues3D(
+            uint valueId, FieldDerivativeType dt, double[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            double[] values = fv.GetDoubleValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            System.Diagnostics.Debug.Assert(coCnt * dof == coordValues.Length);
+
+            IList<uint> feIds = GetTetrahedronFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                int[] coIds = tetFE.NodeCoordIds;
+                uint elemNodeCnt = tetFE.NodeCount;
+                double[] bubbleValue = new double[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        bubbleValue[iDof] += coordValues[coId * dof + iDof];
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
+            }
+        }
+
         public void UpdateBubbleFieldValueValuesFromCoordValues(
             uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] coordValues)
         {
@@ -945,7 +1114,7 @@ namespace IvyFEM
             }
             else
             {
-                throw new NotImplementedException();
+                UpdateBubbleFieldValueValuesFromCoordValues3D(valueId, dt, coordValues);
             }
         }
 
@@ -964,6 +1133,44 @@ namespace IvyFEM
             foreach (uint feId in feIds)
             {
                 TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                int[] coIds = triFE.NodeCoordIds;
+                uint elemNodeCnt = triFE.NodeCount;
+                System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = coIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        bubbleValue[iDof] += coordValues[coId * dof + iDof];
+                    }
+                }
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    bubbleValue[iDof] /= elemNodeCnt;
+                }
+
+                for (int iDof = 0; iDof < dof; iDof++)
+                {
+                    values[(feId - 1) * dof + iDof] = bubbleValue[iDof];
+                }
+            }
+        }
+
+        private void UpdateBubbleFieldValueValuesFromCoordValues3D(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] coordValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            uint coCnt = GetCoordCount(quantityId);
+            System.Diagnostics.Debug.Assert(coCnt * dof == coordValues.Length);
+
+            IList<uint> feIds = GetTetrahedronFEIds(quantityId);
+            foreach (uint feId in feIds)
+            {
+                TetrahedronFE triFE = GetTetrahedronFE(quantityId, feId);
                 int[] coIds = triFE.NodeCoordIds;
                 uint elemNodeCnt = triFE.NodeCount;
                 System.Numerics.Complex[] bubbleValue = new System.Numerics.Complex[dof];

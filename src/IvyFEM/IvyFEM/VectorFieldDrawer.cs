@@ -13,10 +13,14 @@ namespace IvyFEM
         private uint ValueId = 0;
         private FieldDerivativeType ValueDt = FieldDerivativeType.Value;
 
+        public double[] Color { get; set; } = new double[3] { 0.0, 0.0, 0.0 };
+
         public RotMode SutableRotMode { get; private set; } = RotMode.RotModeNotSet;
         public bool IsAntiAliasing { get; set; } = false;
 
         public VectorFieldDrawerType Type { get; private set; } = VectorFieldDrawerType.NotSet;
+
+        private uint Dimension = 0;
 
         public VectorFieldDrawer() : base()
         {
@@ -45,6 +49,7 @@ namespace IvyFEM
                     SutableRotMode = RotMode.RotMode3D;
                 }
             }
+            Dimension = dim;
             FieldValue fv = world.GetFieldValue(valueId);
             if (fv.Type == FieldValueType.Vector2 || fv.Type == FieldValueType.Vector3)
             {
@@ -112,18 +117,22 @@ namespace IvyFEM
             }
             double layerHeight = 1.0 / (maxLayer - minLayer + 1);
 
-            GL.LineWidth(1);
-            GL.Begin(PrimitiveType.Lines);
             for (int idp = 0; idp < DrawParts.Count; idp++)
             {
                 VectorFieldDrawPart dp = DrawParts[idp];
                 int layer = dp.Layer;
                 double height = (layer - minLayer) * layerHeight;
-                GL.Translate(0, 0, +height);
+                if (Dimension == 0)
+                {
+                    GL.Translate(0, 0, +height);
+                }
+                Color.CopyTo(dp.Color, 0);
                 dp.DrawElements();
-                GL.Translate(0, 0, -height);
+                if (Dimension == 0)
+                {
+                    GL.Translate(0, 0, -height);
+                }
             }
-            GL.End();
 
             if (isTexture)
             {

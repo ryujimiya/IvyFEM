@@ -12,39 +12,14 @@ namespace IvyFEM
         public uint MeshId { get; set; } = 0;
         public ElementType Type { get; private set; } = ElementType.NotSet;
         public int Layer { get; set; } = 0;
+        public double[] Color { get; set; } = new double[3] { 0.0, 0.0, 0.0 };
         public uint ElemCount { get; set; } = 0;
         public uint ValueDof { get; private set; } = 0;
         public double[] Coords { get; set; } = null;
         public double[] Values { get; set; } = null;
         public VectorFieldDrawerType DrawerType { get; private set; } = VectorFieldDrawerType.NotSet;
 
-        public uint Dimension
-        {
-            get
-            {
-                if (Type == ElementType.Point)
-                {
-                    return 0;
-                }
-                else if (Type == ElementType.Line)
-                {
-                    return 1;
-                }
-                else if (Type == ElementType.Tri)
-                {
-                    return 2;
-                }
-                else if (Type == ElementType.Tet)
-                {
-                    return 3;
-                }
-                else
-                {
-                    System.Diagnostics.Debug.Assert(false);
-                }
-                return 0;
-            }
-        }
+        public uint Dimension { get; set; } = 0; // Worldからとってくる
 
         public VectorFieldDrawPart()
         {
@@ -56,6 +31,7 @@ namespace IvyFEM
             MeshId = src.MeshId;
             Type = src.Type;
             Layer = src.Layer;
+            src.Color.CopyTo(Color, 0);
             ElemCount = src.ElemCount;
             ValueDof = src.ValueDof;
             Coords = null;
@@ -82,6 +58,8 @@ namespace IvyFEM
                 return;
             }
             MeshId = meshId;
+            //!!!!!!!!!!!
+            Dimension = world.Dimension;
 
             uint cadId;
             int layer;
@@ -100,30 +78,27 @@ namespace IvyFEM
             else if (meshType == MeshType.Bar)
             {
                 Type = ElementType.Line;
-                SetLine(world);
             }
             else if (meshType == MeshType.Tri)
             {
                 Type = ElementType.Tri;
-                SetTri(world);
+                if (Dimension == 2)
+                {
+                    SetTri(world);
+                }
+            }
+            else if (meshType == MeshType.Tet)
+            {
+                Type = ElementType.Tet;
+                if (Dimension == 3)
+                {
+                    SetTet(world);
+                }
             }
             else
             {
                 throw new NotImplementedException();
             }
-        }
-
-        private void SetLine(FEWorld world)
-        {
-            System.Diagnostics.Debug.Assert(Type == ElementType.Line);
-            if (Type != ElementType.Line)
-            {
-                return;
-            }
-            var mesh = world.Mesh;
-
-            // TODO: あとで
-            //throw new NotImplementedException();
         }
 
         private void SetTri(FEWorld world)
@@ -143,6 +118,45 @@ namespace IvyFEM
 
             uint dim = Dimension;
             System.Diagnostics.Debug.Assert(dim == 2);
+            Coords = new double[ElemCount * dim];
+            for (int iTri = 0; iTri < ElemCount; iTri++)
+            {
+                double[] bubbleCoord = new double[dim];
+                for (int iPt = 0; iPt < elemPtCount; iPt++)
+                {
+                    int coId = vertexs[iTri * elemPtCount + iPt];
+                    double[] coord = world.GetVertexCoord(coId);
+                    for (int iDimTmp = 0; iDimTmp < dim; iDimTmp++)
+                    {
+                        bubbleCoord[iDimTmp] += coord[iDimTmp];
+                    }
+                }
+                for (int iDim = 0; iDim < dim; iDim++)
+                {
+                    bubbleCoord[iDim] /= elemPtCount;
+
+                    Coords[iTri * dim + iDim] = bubbleCoord[iDim];
+                }
+            }
+        }
+
+        private void SetTet(FEWorld world)
+        {
+            System.Diagnostics.Debug.Assert(Type == ElementType.Tet);
+            if (Type != ElementType.Tet)
+            {
+                return;
+            }
+            var mesh = world.Mesh;
+
+            int elemPtCount = 4;
+            MeshType meshType;
+            int[] vertexs;
+            mesh.GetConnectivity(MeshId, out meshType, out vertexs);
+            System.Diagnostics.Debug.Assert(elemPtCount * ElemCount == vertexs.Length);
+
+            uint dim = Dimension;
+            System.Diagnostics.Debug.Assert(dim == 3);
             Coords = new double[ElemCount * dim];
             for (int iTri = 0; iTri < ElemCount; iTri++)
             {
@@ -185,7 +199,7 @@ namespace IvyFEM
 
         private void UpdateVector(uint valueId, FieldDerivativeType dt, FEWorld world)
         {
-            ValueDof = 2;
+            //ValueDof = 2; // for 2D
 
             FieldValue fv = world.GetFieldValue(valueId);
             uint quantityId = fv.QuantityId;
@@ -196,8 +210,9 @@ namespace IvyFEM
             int[] vertexs;
             mesh.GetConnectivity(MeshId, out meshType, out vertexs);
 
-            if (Type == ElementType.Tri)
+            if (Dimension == 2 && Type == ElementType.Tri)
             {
+                ValueDof = 2;
                 Values = new double[ElemCount * ValueDof];
                 for (int iTri = 0; iTri < ElemCount; iTri++)
                 {
@@ -209,6 +224,23 @@ namespace IvyFEM
                     {
                         double u = fv.GetShowValue((int)(feId - 1), iDof, dt);
                         Values[iTri * ValueDof + iDof] = u;
+                    }
+                }
+            }
+            else if (Dimension == 3 && Type == ElementType.Tet)
+            {
+                ValueDof = 3;
+                Values = new double[ElemCount * ValueDof];
+                for (int iTet = 0; iTet < ElemCount; iTet++)
+                {
+                    // Bubble
+                    uint feId = world.GetTetrahedronFEIdFromMesh(quantityId, MeshId, (uint)iTet);
+                    System.Diagnostics.Debug.Assert(feId != 0);
+                    System.Diagnostics.Debug.Assert(dof == ValueDof);
+                    for (int iDof = 0; iDof < ValueDof; iDof++)
+                    {
+                        double u = fv.GetShowValue((int)(feId - 1), iDof, dt);
+                        Values[iTet * ValueDof + iDof] = u;
                     }
                 }
             }
@@ -343,15 +375,14 @@ namespace IvyFEM
 
         public void DrawElements()
         {
-            if (Type != ElementType.Tri)
-            {
-                // TODO: あとで
-                return;
-            }
-
             uint dim = Dimension;
             if (dim == 2)
             {
+                if (Type != ElementType.Tri)
+                {
+                    return;
+                }
+
                 if (DrawerType == VectorFieldDrawerType.Vector)
                 {
                     System.Diagnostics.Debug.Assert(ValueDof == 2);
@@ -364,9 +395,12 @@ namespace IvyFEM
                             va[iDof] = Values[iElem * ValueDof + iDof];
                         }
 
-                        GL.Color3(0.0, 0.0, 0.0);
+                        GL.Color3(Color);
+                        GL.LineWidth(1);
+                        GL.Begin(PrimitiveType.Lines);
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] + va[0], co[1] + va[1]);
+                        GL.End();
 
                         double vaLen = Math.Sqrt(va[0] * va[0] + va[1] * va[1]);
                         double arrowTheta = Math.PI / 12.0;
@@ -390,10 +424,12 @@ namespace IvyFEM
                                 cPt[0] + arrowLen * Math.Sin(arrowTheta) * Math.Sin(vecTheta),
                                 cPt[1] - arrowLen * Math.Sin(arrowTheta) * Math.Cos(vecTheta)
                             };
+                            GL.Begin(PrimitiveType.Lines);
                             GL.Vertex2(co[0] + va[0], co[1] + va[1]);
                             GL.Vertex2(pt1[0], pt1[1]);
                             GL.Vertex2(co[0] + va[0], co[1] + va[1]);
                             GL.Vertex2(pt2[0], pt2[1]);
+                            GL.End();
                         }
                     }
                 }
@@ -417,11 +453,14 @@ namespace IvyFEM
                         {
                             GL.Color3(1.0, 0.0, 0.0);
                         }
+                        GL.LineWidth(1);
+                        GL.Begin(PrimitiveType.Lines);
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] + va[0], co[1] + va[1]);
 
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] - va[0], co[1] - va[1]);
+                        GL.End();
 
                         if (va[5] > 0)
                         {
@@ -431,19 +470,126 @@ namespace IvyFEM
                         {
                             GL.Color3(1.0, 0.0, 0.0);
                         }
+                        GL.Begin(PrimitiveType.Lines);
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] + va[3], co[1] + va[4]);
 
                         GL.Vertex2(co);
                         GL.Vertex2(co[0] - va[3], co[1] - va[4]);
+                        GL.End();
                     }
                 }
             }
             else if (dim == 3)
             {
-                // TODO: あとで
-                throw new NotImplementedException();
+                if (Type != ElementType.Tet)
+                {
+                    return;
+                }
+                if (DrawerType == VectorFieldDrawerType.Vector)
+                {
+                    System.Diagnostics.Debug.Assert(ValueDof == 3);
+                    for (int iElem = 0; iElem < ElemCount; iElem++)
+                    {
+                        double[] co = { Coords[iElem * dim], Coords[iElem * dim + 1], Coords[iElem * dim + 2] };
+                        double[] va = new double[ValueDof];
+                        for (int iDof = 0; iDof < ValueDof; iDof++)
+                        {
+                            va[iDof] = Values[iElem * ValueDof + iDof];
+                        }
+
+                        /*
+                        GL.LineWidth(1);
+                        GL.Begin(PrimitiveType.Lines);
+                        GL.Color3(Color);
+                        GL.Vertex3(co);
+                        GL.Vertex3(co[0] + va[0], co[1] + va[1], co[2] + va[2]);
+                        GL.End();
+
+                        {
+                            OpenTK.Vector3d p1 = new OpenTK.Vector3d(co[0], co[1], co[2]);
+                            OpenTK.Vector3d p2 = new OpenTK.Vector3d(co[0] + va[0], co[1] + va[1], co[2] + va[2]);
+                            OpenTK.Vector3d p3 = p1 + 0.8 * (p2 - p1);
+
+                            // arrowの代わり
+                            GL.LineWidth(4);
+                            GL.Begin(PrimitiveType.Lines);
+                            GL.Vertex3(p3);
+                            GL.Vertex3(p2);
+                            GL.End();
+                        }
+                        */
+                        DrawArrow3D(
+                            new OpenTK.Vector3d(co[0], co[1], co[2]),
+                            new OpenTK.Vector3d(co[0] + va[0], co[1] + va[1], co[2] + va[2]));
+                    }
+                }
             }
+        }
+
+        private void rightAngleVector(OpenTK.Vector3d src3, out OpenTK.Vector3d dst13, out OpenTK.Vector3d dst23)
+        {
+            var tmp = new OpenTK.Vector3d(1, 0, 0);
+
+            //tmpとsrc3の角度０またはそれに限りなく近いなら、別なベクトルを用意
+
+            if (OpenTK.Vector3d.CalculateAngle(tmp, src3) < 0.1 * Math.PI / 180.0)
+            {
+                tmp.X = 0;
+                tmp.Y = 1;
+                tmp.Z = 0;
+            }
+            //外積を求める
+            dst13 = OpenTK.Vector3d.Cross(tmp, src3);
+            dst23 = OpenTK.Vector3d.Cross(src3, dst13);
+        }
+
+        private void DrawArrow3D(OpenTK.Vector3d from, OpenTK.Vector3d to)
+        {
+            GL.LineWidth(1);
+            GL.Begin(PrimitiveType.Lines);
+            GL.Color3(Color);
+            GL.Vertex3(from);
+            GL.Vertex3(to);
+            GL.End();
+
+            var v = to - from;
+            double len = v.Length;
+
+            v *= 0.8;
+
+            OpenTK.Vector3d v1;
+            OpenTK.Vector3d v2;
+            rightAngleVector(v, out v1, out v2);
+
+            v1.Normalize();
+            v2.Normalize();
+            v1 *= len * 0.03;
+            v2 *= len * 0.03;
+
+            var f = from;
+            var t = to;
+
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Vertex3(f + v);
+            GL.Vertex3(f + v + v1);
+            GL.Vertex3(t);
+            GL.End();
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Vertex3(f + v);
+            GL.Vertex3(f + v + v2);
+            GL.Vertex3(t);
+            GL.End();
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Vertex3(f + v);
+            GL.Vertex3(f + v - v1);
+            GL.Vertex3(t);
+            GL.End();
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Vertex3(f + v);
+            GL.Vertex3(f + v - v2);
+            GL.Vertex3(t);
+            GL.End();
         }
     }
 }

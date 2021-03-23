@@ -93,7 +93,15 @@
     <Compile Include="Camera3D.cs" />
     <Compile Include="Elastic3DBaseFEM.TwoBodyContactMortar.cs" />
     <Compile Include="Elastic3DBaseFEM.TwoBodyContact.cs" />
-    <Compile Include="Elastic3DBaseFEM.TwoBodyContactNTS.cs" />
+    <Compile Include="Fluid3DTDFEM.SUPGNavierStokes.cs" />
+    <Compile Include="Fluid3DTDFEM.StdGNavierStokes.cs" />
+    <Compile Include="Fluid3DTDFEM.StdGNavierStokesByNewton.cs" />
+    <Compile Include="Fluid3DTDFEM.cs" />
+    <Compile Include="Fluid3DFEM.SUPGNavierStokes.cs" />
+    <Compile Include="Fluid3DFEM.StdGNavierStokes.cs" />
+    <Compile Include="Fluid3DFEM.StdGNavierStokesByNewton.cs" />
+    <Compile Include="Fluid3DFEM.cs" />
+    <Compile Include="Fluid3DBaseFEM.cs" />
     <Compile Include="SphereConstraint.cs" />
     <Compile Include="Diffusion3DTDFEM.cs" />
     <Compile Include="EddyCurrent2DTDFEM.cs" />

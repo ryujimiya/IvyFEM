@@ -17,7 +17,6 @@ namespace IvyFEM
                 int masterCnt = World.GetContactMasterCadIds(quantityId).Count;
                 if (slaveCnt > 0 && masterCnt > 0)
                 {
-                    //SetTwoBodyContactNTSSegmentationQuantitySpecialBC(quantityId, A, B);
                     SetTwoBodyContactMortarSegmentationQuantitySpecialBC(quantityId, A, B);
                 }
             }
