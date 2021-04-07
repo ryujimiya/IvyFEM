@@ -18,6 +18,7 @@ namespace IvyFEM
         private bool IsntDisplacementValue = false;
         private bool IsNsvDraw = false;
         private float[] ColorArray = null;
+        public double[] Color { get; set; } = new double[3] { 0.8, 0.8, 0.8 };
         public IColorMap ColorMap { get; private set; } = new ColorMap();
         private bool IsColorLegendDraw = false;
         private double[] NormalArray = null;
@@ -218,6 +219,13 @@ namespace IvyFEM
                 ptCnt = world.GetCoordCount(quantityId);
             }
             System.Diagnostics.Debug.Assert(VertexArray.PointCount == ptCnt);
+
+            // default color
+            for (int idp = 0; idp < DrawParts.Count; idp++)
+            {
+                FaceFieldDrawPart dp = DrawParts[idp];
+                Color.CopyTo(dp.Color, 0);
+            }
 
             if (!IsntDisplacementValue)
             {

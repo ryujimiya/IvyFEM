@@ -91,6 +91,11 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="FluidDisplacement2DBaseFEM.ExternalForce.cs" />
+    <Compile Include="FluidDisplacement2DTDFEM.cs" />
+    <Compile Include="FluidDisplacement2DTDFEM.Displacement.cs" />
+    <Compile Include="FluidDisplacement2DTDFEM.MultipointConstraint.cs" />
+    <Compile Include="FluidFIC2DTDFEM.MultipointConstraint.cs" />
     <Compile Include="Elastic3DBaseFEM.TwoBodyContactMortar.cs" />
     <Compile Include="Elastic3DBaseFEM.TwoBodyContact.cs" />
     <Compile Include="Fluid3DTDFEM.SUPGNavierStokes.cs" />
@@ -102,6 +107,9 @@
     <Compile Include="Fluid3DFEM.StdGNavierStokesByNewton.cs" />
     <Compile Include="Fluid3DFEM.cs" />
     <Compile Include="Fluid3DBaseFEM.cs" />
+    <Compile Include="FluidFIC2DTDFEM.FIC.cs" />
+    <Compile Include="FluidFIC2DTDFEM.cs" />
+    <Compile Include="LineSegConstraint.cs" />
     <Compile Include="SphereConstraint.cs" />
     <Compile Include="Diffusion3DTDFEM.cs" />
     <Compile Include="EddyCurrent2DTDFEM.cs" />

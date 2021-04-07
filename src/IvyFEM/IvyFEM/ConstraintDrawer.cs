@@ -32,6 +32,10 @@ namespace IvyFEM
             {
                 DrawLineConstraint();
             }
+            else if (Constraint is LineSegConstraint)
+            {
+                DrawLineSegConstraint();
+            }
             else if (Constraint is CircleConstraint)
             {
                 DrawCircleConstraint();
@@ -54,6 +58,19 @@ namespace IvyFEM
             var horizontal = new OpenTK.Vector2d(-normal.Y, normal.X);
             var pt1 = pt - horizontal * 1.0e+6;
             var pt2 = pt + horizontal * 1.0e+6;
+            GL.LineWidth(2);
+            GL.Color3(0.5, 0.5, 0.5);
+            GL.Begin(PrimitiveType.Lines);
+            GL.Vertex2(pt1.X, pt1.Y);
+            GL.Vertex2(pt2.X, pt2.Y);
+            GL.End();
+        }
+
+        private void DrawLineSegConstraint()
+        {
+            LineSegConstraint lineSegConstraint = Constraint as LineSegConstraint;
+            var pt1 = lineSegConstraint.Point1;
+            var pt2 = lineSegConstraint.Point2;
             GL.LineWidth(2);
             GL.Color3(0.5, 0.5, 0.5);
             GL.Begin(PrimitiveType.Lines);

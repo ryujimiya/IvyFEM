@@ -73,6 +73,7 @@
 　　　　　　　　　　　SUPG[Streamline Upwind Petrov-Galerkin]安定化※  
 　　　　　　　　　　　分離型解法(Runge-Kutta)(標準)  
 　　　　　　　　　　　分離型解法(Runge-Kutta)(SUPG[Streamline Upwind Petrov-Galerkin]安定化)※  
+　　　　　　　　　　Finite Calculus (FIC) Formulation  
 　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
@@ -124,9 +125,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-03-24更新）**  
+　**バイナリ（2021-04-07更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.58  
+　　IvyFEM.dll version 0.0.0.59  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
@@ -196,6 +197,11 @@
 　　![SUPG Back-step 5](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194029.jpg)  
 　　![SUPG Back-step 6](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194025.jpg)  
 　　![SUPG Back-step 7](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190430/20190430194022.jpg)  
+　　〇流体(Finite Calculus (FIC) Formulation)  
+　　![Water Column1](https://pbs.twimg.com/media/EyUc3LEUUAAvvXc?format=jpg&name=360x360)  
+　　![Water Column2](https://pbs.twimg.com/media/EyUc6V0VIAQx_T5?format=jpg&name=360x360)  
+　　![Water Column3](https://pbs.twimg.com/media/EyUc9DkVIAAzb_3?format=jpg&name=360x360)  
+　　![Water Column4](https://pbs.twimg.com/media/EyUc_uqVIAEw1cc?format=jpg&name=360x360)  
 　　〇電磁導波路の周波数領域FEM(固有モード展開)  
 　　H面導波路直角コーナーベンド  
 　　![ベンド](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20190421/20190421130127.jpg)  

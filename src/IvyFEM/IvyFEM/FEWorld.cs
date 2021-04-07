@@ -1563,21 +1563,31 @@ namespace IvyFEM
             IList<uint> feIds = GetLineFEIds(quantityId);
             foreach (uint feId in feIds)
             {
-                LineFE triFE = GetLineFE(quantityId, feId);
-                uint elemNodeCnt = triFE.NodeCount;
+                LineFE lineFE = GetLineFE(quantityId, feId);
+                LineFE lineFE0 = GetLineFE(quantityId0, feId);
+                uint elemNodeCnt = lineFE.NodeCount;
+                uint elemNodeCnt0 = lineFE.NodeCount;
+                System.Diagnostics.Debug.Assert(elemNodeCnt == elemNodeCnt0);
                 int[] nodes = new int[elemNodeCnt];
                 for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
-                    int coId = triFE.NodeCoordIds[iNode];
+                    int coId = lineFE.NodeCoordIds[iNode];
                     int nodeId = Coord2Node(quantityId, coId);
                     nodes[iNode] = nodeId;
                 }
+                int[] nodes0 = new int[elemNodeCnt0];
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
+                {
+                    int coId = lineFE0.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId0, coId);
+                    nodes0[iNode] = nodeId;
+                }
                 double[][] displacements = new double[elemNodeCnt][];
-                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
                 {
                     double[] u = new double[dof];
-                    int nodeId = nodes[iNode];
-                    if (nodeId == -1)
+                    int nodeId0 = nodes0[iNode];
+                    if (nodeId0 == -1)
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
@@ -1588,12 +1598,12 @@ namespace IvyFEM
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
-                            u[iDof] = U[nodeId * dof + iDof];
+                            u[iDof] = U[nodeId0 * dof + iDof];
                         }
                     }
                     displacements[iNode] = u;
                 }
-                triFE.SetDisplacements(displacements);
+                lineFE.SetDisplacements(displacements);
             }
         }
 
@@ -1605,7 +1615,10 @@ namespace IvyFEM
             foreach (uint feId in feIds)
             {
                 TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                TriangleFE triFE0 = GetTriangleFE(quantityId0, feId);
                 uint elemNodeCnt = triFE.NodeCount;
+                uint elemNodeCnt0 = triFE0.NodeCount;
+                System.Diagnostics.Debug.Assert(elemNodeCnt == elemNodeCnt0);
                 int[] nodes = new int[elemNodeCnt];
                 for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
@@ -1613,12 +1626,19 @@ namespace IvyFEM
                     int nodeId = Coord2Node(quantityId, coId);
                     nodes[iNode] = nodeId;
                 }
+                int[] nodes0 = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
+                {
+                    int coId = triFE0.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId0, coId);
+                    nodes0[iNode] = nodeId;
+                }
                 double[][] displacements = new double[elemNodeCnt][];
-                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
                 {
                     double[] u = new double[dof];
-                    int nodeId = nodes[iNode];
-                    if (nodeId == -1)
+                    int nodeId0 = nodes0[iNode];
+                    if (nodeId0 == -1)
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
@@ -1629,7 +1649,7 @@ namespace IvyFEM
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
-                            u[iDof] = U[nodeId * dof + iDof];
+                            u[iDof] = U[nodeId0 * dof + iDof];
                         }
                     }
                     displacements[iNode] = u;
@@ -1646,7 +1666,10 @@ namespace IvyFEM
             foreach (uint feId in feIds)
             {
                 TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                TetrahedronFE tetFE0 = GetTetrahedronFE(quantityId0, feId);
                 uint elemNodeCnt = tetFE.NodeCount;
+                uint elemNodeCnt0 = tetFE0.NodeCount;
+                System.Diagnostics.Debug.Assert(elemNodeCnt == elemNodeCnt0);
                 int[] nodes = new int[elemNodeCnt];
                 for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
@@ -1654,12 +1677,19 @@ namespace IvyFEM
                     int nodeId = Coord2Node(quantityId, coId);
                     nodes[iNode] = nodeId;
                 }
+                int[] nodes0 = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
+                {
+                    int coId = tetFE0.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId0, coId);
+                    nodes0[iNode] = nodeId;
+                }
                 double[][] displacements = new double[elemNodeCnt][];
-                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                for (int iNode = 0; iNode < elemNodeCnt0; iNode++)
                 {
                     double[] u = new double[dof];
-                    int nodeId = nodes[iNode];
-                    if (nodeId == -1)
+                    int nodeId0 = nodes0[iNode];
+                    if (nodeId0 == -1)
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
@@ -1670,7 +1700,7 @@ namespace IvyFEM
                     {
                         for (int iDof = 0; iDof < dof; iDof++)
                         {
-                            u[iDof] = U[nodeId * dof + iDof];
+                            u[iDof] = U[nodeId0 * dof + iDof];
                         }
                     }
                     displacements[iNode] = u;
