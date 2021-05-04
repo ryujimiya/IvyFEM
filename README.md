@@ -74,6 +74,8 @@
 　　　　　　　　　　　分離型解法(Runge-Kutta)(標準)  
 　　　　　　　　　　　分離型解法(Runge-Kutta)(SUPG[Streamline Upwind Petrov-Galerkin]安定化)※  
 　　　　　　　　　　Finite Calculus (FIC) Formulation  
+　　　　　　　　　　RANS(Reynolds Average Navier Stokes) 定式化  
+　　　　　　　　　　　RNG k-epsilonモデル  
 　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
@@ -125,9 +127,9 @@
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-04-07更新）**  
+　**バイナリ（2021-05-04更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.59  
+　　IvyFEM.dll version 0.0.0.60  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

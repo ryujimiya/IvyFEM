@@ -216,7 +216,6 @@ namespace IvyFEM
                 double mu = ma.Mu;
                 double[] g = { ma.GravityX, ma.GravityY };
 
-                double[] vSN = vTriFE.CalcSN();
                 IntegrationPoints ip = TriangleFE.GetIntegrationPoints(World.TriIntegrationPointCount);//Point7
                 for (int ipPt = 0; ipPt < ip.PointCount; ipPt++)
                 {
