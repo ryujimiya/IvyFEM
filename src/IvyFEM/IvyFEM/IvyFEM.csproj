@@ -91,6 +91,12 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="FluidLES2DTDFEM.cs" />
+    <Compile Include="FluidLES2DTDFEM.LES.cs" />
+    <Compile Include="FluidNSDroplet2DRKTDFEM.cs" />
+    <Compile Include="FluidLESDroplet2DRKTDFEM.cs" />
+    <Compile Include="PointsDrawer.cs" />
+    <Compile Include="FluidRANSDroplet2DRKTDFEM.cs" />
     <Compile Include="FluidRANS2DTDFEM.StandardKEpsilon.cs" />
     <Compile Include="FluidRANS2DTDFEM.RNGKEpsilon.cs" />
     <Compile Include="FluidRANS2DTDFEM.cs" />

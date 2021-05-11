@@ -585,7 +585,8 @@ namespace IvyFEM
             double v = (dot11 * dot23 - dot12 * dot13) * invDenom;
 
             // Check if point is in triangle
-            return (u >= 0) && (v >= 0) && (u + v < 1);
+            //return (u >= 0) && (v >= 0) && (u + v < 1);
+            return (u >= 0) && (v >= 0) && (u + v <= 1.0 + 1.0e-12);
         }
 
         public static bool GetTwoLineSegIntersectPoint(

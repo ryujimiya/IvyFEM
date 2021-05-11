@@ -142,7 +142,7 @@ namespace IvyFEM
                 X.CopyTo(U, 0);
                 //---------------------------------------------------
             }
-            System.Diagnostics.Debug.WriteLine("(RANS) Nonlinear iter = " + iter + " norm = " + convRatio);
+            System.Diagnostics.Debug.WriteLine("Nonlinear iter = " + iter + " norm = " + convRatio);
             System.Diagnostics.Debug.Assert(iter < maxIter);
         }
     }

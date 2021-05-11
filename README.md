@@ -76,6 +76,9 @@
 　　　　　　　　　　Finite Calculus (FIC) Formulation  
 　　　　　　　　　　RANS(Reynolds Average Navier Stokes) 定式化  
 　　　　　　　　　　　RNG k-epsilonモデル  
+　　　　　　　　　　LES(Large Eddy Simulation)※  
+　　　　　　　　　　　k equation model  
+　　　　　　　　　　乱流(turbulent)中の滴(droplet)の軌跡※  
 　　　　　　　　　　　  
 　　　　電磁気学　：電磁導波路の伝達問題  
 　　　　　　　　　　　H面TEモード/E面TEモード/2次元TMモードの導波路  
@@ -129,7 +132,7 @@
 　  
 　**バイナリ（2021-05-04更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.60  
+　　IvyFEM.dll version 0.0.0.61  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  
