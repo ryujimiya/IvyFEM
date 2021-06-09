@@ -246,9 +246,9 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].GetEdgeIdFromCoords(coId1, coId2, out isReverse);
         }
 
-        public int Edge2EdgeNode(uint quantityId, int coId)
+        public int Edge2EdgeNode(uint quantityId, int edgeId)
         {
-            return Quantitys[(int)quantityId].Edge2EdgeNode(coId);
+            return Quantitys[(int)quantityId].Edge2EdgeNode(edgeId);
         }
 
         public int EdgeNode2Edge(uint quantityId, int nodeId)
@@ -309,6 +309,21 @@ namespace IvyFEM
         public int PortNode2Coord(uint quantityId, uint portId, int nodeId)
         {
             return Quantitys[(int)quantityId].PortNode2Coord(portId, nodeId);
+        }
+
+        public uint GetPortEdgeNodeCount(uint quantityId, uint portId)
+        {
+            return Quantitys[(int)quantityId].GetPortEdgeNodeCount(portId);
+        }
+
+        public int PortEdge2EdgeNode(uint quantityId, uint portId, int edgeId)
+        {
+            return Quantitys[(int)quantityId].PortEdge2EdgeNode(portId, edgeId);
+        }
+
+        public int PortEdgeNode2Edge(uint quantityId, uint portId, int nodeId)
+        {
+            return Quantitys[(int)quantityId].PortEdgeNode2Edge(portId, nodeId);
         }
 
         public IList<int> GetPeriodicPortBcCoIds(uint quantityId, uint portId, uint bcIndex)
@@ -515,6 +530,11 @@ namespace IvyFEM
         public IList<uint> GetPeriodicPortTriangleFEIds(uint quantityId, uint portId)
         {
             return Quantitys[(int)quantityId].GetPeriodicPortTriangleFEIds(portId);
+        }
+
+        public IList<uint> GetPortTriangleFEIds(uint quantityId, uint portId)
+        {
+            return Quantitys[(int)quantityId].GetPortTriangleFEIds(portId);
         }
 
         public IList<uint> GetContactSlaveFEIds(uint quantityId)
@@ -1210,29 +1230,29 @@ namespace IvyFEM
             return curCo;
         }
 
-        public uint GetTriangleFEWithPointInside(uint quantityId, double[] coord)
+        public IList<uint> GetTriangleFEsWithPointInside(uint quantityId, double[] coord)
         {
-            uint feId = 0;
+            IList<uint> feIds = new List<uint>();
             if (coord.Length == 2)
             {
-                feId = GetTriangleFEWithPointInside2D(quantityId, coord);
+                feIds = GetTriangleFEWithPointInside2D(quantityId, coord);
             }
             else if (coord.Length == 3)
             {
                 // 3D plate
-                feId = GetTriangleFEWithPointInside3D(quantityId, coord);
+                feIds = GetTriangleFEWithPointInside3D(quantityId, coord);
             }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
             }
-            return feId;
+            return feIds;
         }
 
-        private uint GetTriangleFEWithPointInside2D(uint quantityId, double[] coord)
+        private IList<uint> GetTriangleFEWithPointInside2D(uint quantityId, double[] coord)
         {
             System.Diagnostics.Debug.Assert(coord.Length == 2);
-            uint hitFEId = 0;
+            IList<uint> hitFEIds = new List<uint>();
 
             OpenTK.Vector2d pt = new OpenTK.Vector2d(coord[0], coord[1]);
             IList<uint> feIds = GetTriangleFEIds(quantityId);
@@ -1252,17 +1272,16 @@ namespace IvyFEM
                 bool isInside = CadUtils2D.IsPointInsideTriangle(pt, v[0], v[1], v[2]);
                 if (isInside)
                 {
-                    hitFEId = feId;
-                    break;
+                    hitFEIds.Add(feId);
                 }
             }
-            return hitFEId;
+            return hitFEIds;
         }
 
-        private uint GetTriangleFEWithPointInside3D(uint quantityId, double[] coord)
+        private IList<uint> GetTriangleFEWithPointInside3D(uint quantityId, double[] coord)
         {
             System.Diagnostics.Debug.Assert(coord.Length == 3);
-            uint hitFEId = 0;
+            IList<uint> hitFEIds = new List<uint>();
 
             OpenTK.Vector3d pt = new OpenTK.Vector3d(coord[0], coord[1], coord[2]);
             IList<uint> feIds = GetTriangleFEIds(quantityId);
@@ -1282,17 +1301,16 @@ namespace IvyFEM
                 bool isInside = CadUtils3D.IsPointInsideTriangle(pt, v[0], v[1], v[2]);
                 if (isInside)
                 {
-                    hitFEId = feId;
-                    break;
+                    hitFEIds.Add(feId);
                 }
             }
-            return hitFEId;
+            return hitFEIds;
         }
 
-        public uint GetTetrahedronFEWithPointInside(uint quantityId, double[] coord)
+        public IList<uint> GetTetrahedronFEsWithPointInside(uint quantityId, double[] coord)
         {
             System.Diagnostics.Debug.Assert(coord.Length == 3);
-            uint hitFEId = 0;
+            IList<uint> hitFEIds = new List<uint>();
 
             OpenTK.Vector3d pt = new OpenTK.Vector3d(coord[0], coord[1], coord[2]);
             IList<uint> feIds = GetTetrahedronFEIds(quantityId);
@@ -1312,11 +1330,10 @@ namespace IvyFEM
                 bool isInside = CadUtils3D.IsPointInsideTetrahedron(pt, v[0], v[1], v[2], v[3]);
                 if (isInside)
                 {
-                    hitFEId = feId;
-                    break;
+                    hitFEIds.Add(feId);
                 }
             }
-            return hitFEId;
+            return hitFEIds;
         }
 
         public double[] GetDoublePointValueFromNodeValues(
@@ -1341,44 +1358,53 @@ namespace IvyFEM
             uint dof = GetDof(quantityId);
             int offset = GetOffset(quantityId);
 
-            uint feId = GetTriangleFEWithPointInside(quantityId, coord);
-            if (feId == 0)
+            IList<uint> feIds = GetTriangleFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
             {
                 return retValue;
             }
-            TriangleFE triFE = GetTriangleFE(quantityId, feId);
-            uint elemNodeCnt = triFE.NodeCount;
-            int[] nodes = new int[elemNodeCnt];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int coId = triFE.NodeCoordIds[iNode];
-                int nodeId = Coord2Node(quantityId, coId);
-                nodes[iNode] = nodeId;
-            }
-            double[] values = new double[elemNodeCnt * dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int nodeId = nodes[iNode];
-                if (nodeId == -1)
-                {
-                    continue;
-                }
-                for (int iDof = 0; iDof < dof; iDof++)
-                {
-                    values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
-                }
-            }
-
-            double[] L = triFE.Coord2L(coord);
-            double[] N = triFE.CalcN(L);
-
+            int cnt = 0;
             retValue = new double[dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+            foreach (uint feId in feIds)
             {
-                for (int iDof = 0; iDof < dof; iDof++)
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                uint elemNodeCnt = triFE.NodeCount;
+                int[] nodes = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
-                    retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    int coId = triFE.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    nodes[iNode] = nodeId;
                 }
+                double[] values = new double[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int nodeId = nodes[iNode];
+                    if (nodeId == -1)
+                    {
+                        continue;
+                    }
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = triFE.Coord2L(coord);
+                double[] N = triFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++;
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
             }
 
             return retValue;
@@ -1391,44 +1417,53 @@ namespace IvyFEM
             uint dof = GetDof(quantityId);
             int offset = GetOffset(quantityId);
  
-            uint feId = GetTetrahedronFEWithPointInside(quantityId, coord);
-            if (feId == 0)
+            IList<uint> feIds = GetTetrahedronFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
             {
                 return retValue;
             }
-            TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
-            uint elemNodeCnt = tetFE.NodeCount;
-            int[] nodes = new int[elemNodeCnt];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int coId = tetFE.NodeCoordIds[iNode];
-                int nodeId = Coord2Node(quantityId, coId);
-                nodes[iNode] = nodeId;
-            }
-            double[] values = new double[elemNodeCnt * dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int nodeId = nodes[iNode];
-                if (nodeId == -1)
-                {
-                    continue;
-                }
-                for (int iDof = 0; iDof < dof; iDof++)
-                {
-                    values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
-                }
-            }
-
-            double[] L = tetFE.Coord2L(coord);
-            double[] N = tetFE.CalcN(L);
-
+            int cnt = 0;
             retValue = new double[dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+            foreach (uint feId in feIds)
             {
-                for (int iDof = 0; iDof < dof; iDof++)
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                uint elemNodeCnt = tetFE.NodeCount;
+                int[] nodes = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
-                    retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    int coId = tetFE.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    nodes[iNode] = nodeId;
                 }
+                double[] values = new double[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int nodeId = nodes[iNode];
+                    if (nodeId == -1)
+                    {
+                        continue;
+                    }
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = tetFE.Coord2L(coord);
+                double[] N = tetFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++; 
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
             }
 
             return retValue;
@@ -1456,44 +1491,53 @@ namespace IvyFEM
             uint dof = GetDof(quantityId);
             int offset = GetOffset(quantityId);
 
-            uint feId = GetTriangleFEWithPointInside(quantityId, coord);
-            if (feId == 0)
+            IList<uint> feIds = GetTriangleFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
             {
                 return retValue;
             }
-            TriangleFE triFE = GetTriangleFE(quantityId, feId);
-            uint elemNodeCnt = triFE.NodeCount;
-            int[] nodes = new int[elemNodeCnt];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int coId = triFE.NodeCoordIds[iNode];
-                int nodeId = Coord2Node(quantityId, coId);
-                nodes[iNode] = nodeId;
-            }
-            System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int nodeId = nodes[iNode];
-                if (nodeId == -1)
-                {
-                    continue;
-                }
-                for (int iDof = 0; iDof < dof; iDof++)
-                {
-                    values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
-                }
-            }
-
-            double[] L = triFE.Coord2L(coord);
-            double[] N = triFE.CalcN(L);
-
+            int cnt = 0;
             retValue = new System.Numerics.Complex[dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+            foreach (uint feId in feIds)
             {
-                for (int iDof = 0; iDof < dof; iDof++)
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                uint elemNodeCnt = triFE.NodeCount;
+                int[] nodes = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
-                    retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    int coId = triFE.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    nodes[iNode] = nodeId;
                 }
+                System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int nodeId = nodes[iNode];
+                    if (nodeId == -1)
+                    {
+                        continue;
+                    }
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = triFE.Coord2L(coord);
+                double[] N = triFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++;
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
             }
 
             return retValue;
@@ -1506,44 +1550,53 @@ namespace IvyFEM
             uint dof = GetDof(quantityId);
             int offset = GetOffset(quantityId);
 
-            uint feId = GetTetrahedronFEWithPointInside(quantityId, coord);
-            if (feId == 0)
+            IList<uint> feIds = GetTetrahedronFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
             {
                 return retValue;
             }
-            TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
-            uint elemNodeCnt = tetFE.NodeCount;
-            int[] nodes = new int[elemNodeCnt];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int coId = tetFE.NodeCoordIds[iNode];
-                int nodeId = Coord2Node(quantityId, coId);
-                nodes[iNode] = nodeId;
-            }
-            System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
-            {
-                int nodeId = nodes[iNode];
-                if (nodeId == -1)
-                {
-                    continue;
-                }
-                for (int iDof = 0; iDof < dof; iDof++)
-                {
-                    values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
-                }
-            }
-
-            double[] L = tetFE.Coord2L(coord);
-            double[] N = tetFE.CalcN(L);
-
+            int cnt = 0;
             retValue = new System.Numerics.Complex[dof];
-            for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+            foreach (uint feId in feIds)
             {
-                for (int iDof = 0; iDof < dof; iDof++)
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                uint elemNodeCnt = tetFE.NodeCount;
+                int[] nodes = new int[elemNodeCnt];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
                 {
-                    retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    int coId = tetFE.NodeCoordIds[iNode];
+                    int nodeId = Coord2Node(quantityId, coId);
+                    nodes[iNode] = nodeId;
                 }
+                System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int nodeId = nodes[iNode];
+                    if (nodeId == -1)
+                    {
+                        continue;
+                    }
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = nodeValues[nodeId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = tetFE.Coord2L(coord);
+                double[] N = tetFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++;
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
             }
 
             return retValue;

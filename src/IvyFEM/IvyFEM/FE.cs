@@ -8,7 +8,7 @@ namespace IvyFEM
 {
     public class FE : IObject
     {
-        internal FEWorld World { get; set; }
+        public FEWorld World { get; set; }
         public int QuantityId { get; set; } = -1;
         public int QuantityIdBaseOffset { get; set; } = 0;
         public ElementType Type { get; protected set; } = ElementType.NotSet;
@@ -318,6 +318,22 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(false);
                 }
             }
+            else if (this is TetrahedronFE)
+            {
+                TetrahedronFE thisTetFE = this as TetrahedronFE;
+                if (Order == 1)
+                {
+                    Interpolate = new TetrahedronFEEdge1stInterpolate(thisTetFE);
+                }
+                //else if (Order == 2)
+                //{
+                //    Interpolate = new TetrahedronFEEdge2ndInterpolate(thisTetFE);
+                //}
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+            }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
@@ -340,14 +356,26 @@ namespace IvyFEM
 
         public void SetEdgeCoordIdsFromNodeCoordIds()
         {
-            if (!(Interpolate is IEdgeInterpolate))
+            int edgeCnt;
+            int[][] edgePointId;
+            if (Interpolate is IEdgeInterpolate)
+            {
+                IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+                edgeCnt = (int)edgeInterpolate.GetEdgeCount();
+                System.Diagnostics.Debug.Assert(edgeCnt == EdgeCount);
+                edgePointId = edgeInterpolate.GetEdgePointIdss();
+            }
+            else if (Interpolate is IEdgeInterpolate3D)
+            {
+                IEdgeInterpolate3D edgeInterpolate = Interpolate as IEdgeInterpolate3D;
+                edgeCnt = (int)edgeInterpolate.GetEdgeCount();
+                System.Diagnostics.Debug.Assert(edgeCnt == EdgeCount);
+                edgePointId = edgeInterpolate.GetEdgePointIdss();
+            }
+            else
             {
                 return;
             }
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
-            int edgeCnt = (int)edgeInterpolate.GetEdgeCount();
-            System.Diagnostics.Debug.Assert(edgeCnt == EdgeCount);
-            int[][] edgePointId = edgeInterpolate.GetEdgePointIdss();
             EdgeCoordIdss = new int[edgeCnt][];
             for (int i = 0; i < edgeCnt; i++)
             {

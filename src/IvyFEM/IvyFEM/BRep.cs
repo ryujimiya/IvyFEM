@@ -204,6 +204,23 @@ namespace IvyFEM
             return res;
         }
 
+        //-----------------------------------------------------
+        public IList<uint> FindHalfEdgeByUseVertex(uint uVId)
+        {
+            IList<uint> res = new List<uint>();
+            IList<uint> hEIds = HalfEdgeArray.GetObjectIds();
+            foreach (uint hEId in hEIds)
+            {
+                HalfEdge hE = HalfEdgeArray.GetObject(hEId);
+                if (hE.UVId == uVId)
+                {
+                    res.Add(hEId);
+                }
+            }
+            return res;
+        }
+        //-----------------------------------------------------
+
         /// <summary>
         /// heidの起点を消去して２つの辺を１つにする
         /// </summary>
@@ -2202,8 +2219,15 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(uV.Id == uVId1);
                 }
 
-                uint uVId2;
+                uint uVId2 = 0;
+                if (hEdge.RadialHEId != 0)
                 {
+                    // FIXME:
+                    // uVId2をOHEIdからとってくることは出来る
+                }
+                else
+                {
+                    // original
                     uint fHEId = hEdge.FHEId;
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(fHEId));
                     HalfEdge cwEdge = HalfEdgeArray.GetObject(fHEId);
@@ -2225,7 +2249,13 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(ccwEdge.ULId == hEdge.ULId);
                 }
 
+                if (hEdge.RadialHEId != 0)
                 {
+                    // FIXME:
+                }
+                else
+                {
+                    // original
                     uint oHEId = hEdge.OHEId;
                     System.Diagnostics.Debug.Assert(HalfEdgeArray.IsObjectId(oHEId));
                     HalfEdge oEdge = HalfEdgeArray.GetObject(oHEId);

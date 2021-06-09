@@ -33,6 +33,8 @@ namespace IvyFEM
         public IList<PortCondition> PortConditions { get; private set; } = new List<PortCondition>();
         private IList<Dictionary<int, int>> PortCo2Nodes = new List<Dictionary<int, int>>();
         private IList<Dictionary<int, int>> PortNode2Cos = new List<Dictionary<int, int>>();
+        private IList<Dictionary<int, int>> PortEdge2ENodes = new List<Dictionary<int, int>>();
+        private IList<Dictionary<int, int>> PortENode2Edges = new List<Dictionary<int, int>>();
         private IList<IList<IList<int>>> PeriodicPortBcCosss = new List<IList<IList<int>>>();
         private IList<IList<uint>> PortLineFEIdss = new List<IList<uint>>();
         private IList<IList<IList<uint>>> PeriodicPortLineFEIdsss = new List<IList<IList<uint>>>();
@@ -49,6 +51,7 @@ namespace IvyFEM
         private Dictionary<int, IList<uint>> Co2TriangleFE = new Dictionary<int, IList<uint>>();
         private Dictionary<string, IList<uint>> EdgeCos2TriangleFE = new Dictionary<string, IList<uint>>();
         private Dictionary<int, IList<uint>> Co2TetrahedronFE = new Dictionary<int, IList<uint>>();
+        private Dictionary<string, IList<uint>> EdgeCos2TetrahedronFE = new Dictionary<string, IList<uint>>();
         private IList<uint> ContactSlaveFEIds = new List<uint>();
         private IList<uint> ContactMasterFEIds = new List<uint>();
         private ObjectArray<LineFE> LineFEArray = new ObjectArray<LineFE>();
@@ -82,16 +85,10 @@ namespace IvyFEM
             Co2FixedCads.Clear();
             Co2ForceFixedCads.Clear();
             Co2MultipointConstraints.Clear();
-            foreach (var portCo2Node in PortCo2Nodes)
-            {
-                portCo2Node.Clear();
-            }
             PortCo2Nodes.Clear();
-            foreach (var portNode2Co in PortNode2Cos)
-            {
-                portNode2Co.Clear();
-            }
             PortNode2Cos.Clear();
+            PortEdge2ENodes.Clear();
+            PortENode2Edges.Clear();
             PeriodicPortBcCosss.Clear();
             Co2Node.Clear();
             Node2Co.Clear();
@@ -104,6 +101,7 @@ namespace IvyFEM
             Co2TriangleFE.Clear();
             Co2TetrahedronFE.Clear();
             EdgeCos2TriangleFE.Clear();
+            EdgeCos2TetrahedronFE.Clear();
             ContactSlaveFEIds.Clear();
             ContactMasterFEIds.Clear();
             LineFEArray.Clear();
@@ -136,7 +134,7 @@ namespace IvyFEM
             MultipointConstraints.Clear();
         }
 
-        internal uint GetCoordCount()
+        public uint GetCoordCount()
         {
             return (uint)Coords.Count / Dimension;
         }
@@ -286,6 +284,32 @@ namespace IvyFEM
                 return -1;
             }
             return portNode2Co[nodeId];
+        }
+
+        public uint GetPortEdgeNodeCount(uint portId)
+        {
+            System.Diagnostics.Debug.Assert(portId < PortEdge2ENodes.Count);
+            return (uint)PortEdge2ENodes[(int)portId].Count;
+        }
+
+        public int PortEdge2EdgeNode(uint portId, int edgeId)
+        {
+            var portEdge2ENode = PortEdge2ENodes[(int)portId];
+            if (!portEdge2ENode.ContainsKey(edgeId))
+            {
+                return -1;
+            }
+            return portEdge2ENode[edgeId];
+        }
+
+        public int PortEdgeNode2Edge(uint portId, int nodeId)
+        {
+            var portENode2Edge = PortENode2Edges[(int)portId];
+            if (!portENode2Edge.ContainsKey(nodeId))
+            {
+                return -1;
+            }
+            return portENode2Edge[nodeId];
         }
 
         public IList<int> GetPeriodicPortBcCoIds(uint portId, uint bcIndex)
@@ -455,59 +479,122 @@ namespace IvyFEM
             return coIds;
         }
 
-        public IList<int[]> GetEdgeCoordIdssFromCadId(FEWorld world, uint cadId)
+        public IList<int[]> GetEdgeCoordIdssFromCadId(FEWorld world, uint cadId, CadElementType cadElemType)
+        {
+            IList<int[]> ret = new List<int[]>();
+            if (FEType != FiniteElementType.Edge)
+            {
+                return ret;
+            }
+
+            if (cadElemType == CadElementType.Edge)
+            {
+                ret = GetEdgeCoordIdssFromEdgeCadId(world, cadId);
+            }
+            else if (cadElemType == CadElementType.Loop)
+            {
+                ret = GetEdgeCoordIdssFromLoopCadId(world, cadId);
+            }
+            else
+            {
+                // nothing
+            }
+            return ret;
+        }
+
+        private IList<int[]> GetEdgeCoordIdssFromEdgeCadId(FEWorld world, uint cadId)
         {
             var mesh = world.Mesh;
-            IList<int[]> edgeCoIdss = null;
+            IList<int[]> edgeCoIdss = new List<int[]>();
+
+            IList<uint> feIds = LineFEArray.GetObjectIds();
+            foreach (uint feId in feIds)
             {
-                edgeCoIdss = new List<int[]>();
-                IList<uint> feIds = LineFEArray.GetObjectIds();
-                foreach (uint feId in feIds)
+                LineFE lineFE = LineFEArray.GetObject(feId);
+                uint cadIdTmp;
                 {
-                    LineFE lineFE = LineFEArray.GetObject(feId);
-                    uint cadIdTmp;
+                    uint meshId = lineFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadIdTmp);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+                }
+                if (cadIdTmp == cadId)
+                {
+                    var nodeCoIds = lineFE.NodeCoordIds;
+                    if (lineFE.Order == 1)
                     {
-                        uint meshId = lineFE.MeshId;
-                        uint elemCnt;
-                        MeshType meshType;
-                        int loc;
-                        mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadIdTmp);
-                        System.Diagnostics.Debug.Assert(meshType == MeshType.Bar);
+                        int coId1 = nodeCoIds[0];
+                        int coId2 = nodeCoIds[1];
+                        int[] edgeCoIds = coId1 < coId2 ?
+                            new int[] { coId1, coId2 } :
+                            new int[] { coId2, coId1 };
+                        edgeCoIdss.Add(edgeCoIds);
                     }
-                    if (cadIdTmp == cadId)
+                    else if (lineFE.Order == 2)
                     {
-                        var nodeCoIds = lineFE.NodeCoordIds;
-                        if (lineFE.Order == 1)
+                        int coId1 = nodeCoIds[0];
+                        int coId2 = nodeCoIds[1];
+                        int coId3 = nodeCoIds[2];
                         {
-                            int coId1 = nodeCoIds[0];
-                            int coId2 = nodeCoIds[1];
-                            int[] edgeCoIds = coId1 < coId2 ?
-                                new int[] { coId1, coId2 } :
-                                new int[] { coId2, coId1 };
+                            int[] edgeCoIds = coId1 < coId3 ?
+                                new int[] { coId1, coId3 } :
+                                new int[] { coId3, coId1 };
                             edgeCoIdss.Add(edgeCoIds);
                         }
-                        else if (lineFE.Order == 2)
                         {
-                            int coId1 = nodeCoIds[0];
-                            int coId2 = nodeCoIds[1];
-                            int coId3 = nodeCoIds[2];
-                            {
-                                int[] edgeCoIds = coId1 < coId3 ?
-                                    new int[] { coId1, coId3 } :
-                                    new int[] { coId3, coId1 };
-                                edgeCoIdss.Add(edgeCoIds);
-                            }
-                            {
-                                int[] edgeCoIds = coId3 < coId2 ?
-                                    new int[] { coId3, coId2 } :
-                                    new int[] { coId2, coId3 };
-                                edgeCoIdss.Add(edgeCoIds);
-                            }
+                            int[] edgeCoIds = coId3 < coId2 ?
+                                new int[] { coId3, coId2 } :
+                                new int[] { coId2, coId3 };
+                            edgeCoIdss.Add(edgeCoIds);
                         }
-                        else
+                    }
+                    else
+                    {
+                        // TODO:
+                        System.Diagnostics.Debug.Assert(false);
+                    }
+                }
+            }
+
+            return edgeCoIdss;
+        }
+
+        private IList<int[]> GetEdgeCoordIdssFromLoopCadId(FEWorld world, uint cadId)
+        {
+            var mesh = world.Mesh;
+            IList<int[]> edgeCoIdss = new List<int[]>();
+
+            IList<string> edgeKeys = new List<string>();
+            IList<uint> feIds = TriangleFEArray.GetObjectIds();
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = TriangleFEArray.GetObject(feId);
+                uint cadIdTmp;
+                {
+                    uint meshId = triFE.MeshId;
+                    uint elemCnt;
+                    MeshType meshType;
+                    int loc;
+                    mesh.GetMeshInfo(meshId, out elemCnt, out meshType, out loc, out cadIdTmp);
+                    System.Diagnostics.Debug.Assert(meshType == MeshType.Tri);
+                }
+                if (cadIdTmp == cadId)
+                {
+                    int[][] edgeCoordIdss = triFE.EdgeCoordIdss;
+                    foreach (int[] edgeCoordIds in edgeCoordIdss)
+                    {
+                        int coId1 = edgeCoordIds[0];
+                        int coId2 = edgeCoordIds[1];
+                        int[] edgeCoIds = coId1 < coId2 ?
+                            new int[] { coId1, coId2 } :
+                            new int[] { coId2, coId1 };
+                        string edgeKey = edgeCoIds[0] + "_" + edgeCoIds[1];
+                        if (!edgeKeys.Contains(edgeKey))
                         {
-                            // TODO:
-                            System.Diagnostics.Debug.Assert(false);
+                            edgeKeys.Add(edgeKey);
+                            edgeCoIdss.Add(edgeCoIds);
                         }
                     }
                 }
@@ -621,6 +708,26 @@ namespace IvyFEM
             if (EdgeCos2TriangleFE.ContainsKey(edgeKey))
             {
                 feIds = EdgeCos2TriangleFE[edgeKey];
+            }
+            return feIds;
+        }
+
+        public IList<uint> GetTetrahedronFEIdsFromEdgeCoord(int coId1, int coId2)
+        {
+            IList<uint> feIds = new List<uint>();
+            int v1 = coId1;
+            int v2 = coId2;
+            if (v1 > v2)
+            {
+                int tmp = v1;
+                v1 = v2;
+                v2 = tmp;
+            }
+            string edgeKey = v1 + "_" + v2;
+
+            if (EdgeCos2TetrahedronFE.ContainsKey(edgeKey))
+            {
+                feIds = EdgeCos2TetrahedronFE[edgeKey];
             }
             return feIds;
         }
@@ -770,6 +877,10 @@ namespace IvyFEM
         private IList<int> GetZeroCoordIds(FEWorld world)
         {
             IList<int> zeroCoIds = new List<int>();
+            if (FEType == FiniteElementType.Edge)
+            {
+                return zeroCoIds;
+            }
 
             foreach (var fixedCad in ZeroFieldFixedCads)
             {
@@ -788,14 +899,14 @@ namespace IvyFEM
         private IList<int> GetZeroEdgeIds(FEWorld world)
         {
             IList<int> zeroEdgeIds = new List<int>();
+            if (FEType != FiniteElementType.Edge)
+            {
+                return zeroEdgeIds;
+            }
 
             foreach (var fixedCad in ZeroFieldFixedCads)
             {
-                if (fixedCad.CadElemType != CadElementType.Edge)
-                {
-                    continue;
-                }
-                IList<int[]> edgeCoIdss = GetEdgeCoordIdssFromCadId(world, fixedCad.CadId);
+                IList<int[]> edgeCoIdss = GetEdgeCoordIdssFromCadId(world, fixedCad.CadId, fixedCad.CadElemType);
                 foreach (int[] edgeCoIds in edgeCoIdss)
                 {
                     // 並び替えはすでに済んでいる
@@ -803,6 +914,7 @@ namespace IvyFEM
                     int coId2 = edgeCoIds[1];
                     bool isReverse;
                     int edgeId = GetEdgeIdFromCoords(coId1, coId2, out isReverse);
+                    System.Diagnostics.Debug.Assert(edgeId != -1);
                     if (!zeroEdgeIds.Contains(edgeId))
                     {
                         zeroEdgeIds.Add(edgeId);
@@ -931,6 +1043,17 @@ namespace IvyFEM
         private void MakeENode2EdgeFromEdge2ENode()
         {
             // 逆参照
+            foreach (var portEdge2ENode in PortEdge2ENodes)
+            {
+                var portENode2Edge = new Dictionary<int, int>();
+                PortENode2Edges.Add(portENode2Edge);
+                foreach (var pair in portEdge2ENode)
+                {
+                    int tmpPortCoId = pair.Key;
+                    int tmpPortNodeId = pair.Value;
+                    portENode2Edge[tmpPortNodeId] = tmpPortCoId;
+                }
+            }
             foreach (var pair in Edge2ENode)
             {
                 int tmpEdgeId = pair.Key;

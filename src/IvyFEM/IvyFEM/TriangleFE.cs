@@ -8,6 +8,10 @@ namespace IvyFEM
 {
     public partial class TriangleFE : FE
     {
+        public double[] FixedOrigin3D { get; set; } = null;
+        public double[] FixedNormal3D { get; set; } = null;
+        public double[] FixedXDir3D { get; set; } = null;
+
         public TriangleFE() : base()
         {
             Type = ElementType.Tri;

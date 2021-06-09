@@ -131,18 +131,18 @@ namespace IvyFEM
             }
             
             double[][] gradLs = new double[3][];
-            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            for (int vIndex = 0; vIndex < 2; vIndex++)
             {
                 double[] gradL = new double[2];
-                gradLs[vEIndex] = gradL;
+                gradLs[vIndex] = gradL;
 
-                gradL[0] = b[vEIndex];
-                gradL[1] = c[vEIndex];
+                gradL[0] = b[vIndex];
+                gradL[1] = c[vIndex];
             }
             {
-                int vEIndex = 2;
+                int vIndex = 2;
                 double[] gradL = new double[2];
-                gradLs[vEIndex] = gradL;
+                gradLs[vIndex] = gradL;
 
                 for (int idim = 0; idim < 2; idim++)
                 {
@@ -287,18 +287,18 @@ namespace IvyFEM
             }
 
             double[][] gradLs = new double[3][];
-            for (int eIndex = 0; eIndex < 2; eIndex++)
+            for (int i = 0; i < 2; i++)
             {
                 double[] gradL = new double[2];
-                gradLs[eIndex] = gradL;
+                gradLs[i] = gradL;
 
-                gradL[0] = b[eIndex];
-                gradL[1] = c[eIndex];
+                gradL[0] = b[i];
+                gradL[1] = c[i];
             }
             {
-                int eIndex = 2;
+                int i = 2;
                 double[] gradL = new double[2];
-                gradLs[eIndex] = gradL;
+                gradLs[i] = gradL;
 
                 for (int idim = 0; idim < 2; idim++)
                 {

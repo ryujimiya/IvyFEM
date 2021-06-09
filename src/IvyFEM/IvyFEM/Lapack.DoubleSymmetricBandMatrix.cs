@@ -118,8 +118,6 @@ namespace IvyFEM.Lapack
                     }
                 }
             }
-            System.Diagnostics.Debug.WriteLine("rowcolLength: {0} superdiaLength: {1}",
-                rowColLength, superdiaLength);
 
             // バッファの確保
             Resize(rowColLength, superdiaLength);
@@ -138,6 +136,9 @@ namespace IvyFEM.Lapack
                     }
                 }
             }
+
+            System.Diagnostics.Debug.WriteLine("cast to (double symmetric band matrix): rowcolLength: {0} superdiaLength: {1}",
+                rowColLength, superdiaLength);
         }
 
         public void Resize(int rowColLength, int superdiaLength)

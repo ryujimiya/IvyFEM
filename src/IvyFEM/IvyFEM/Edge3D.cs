@@ -19,6 +19,13 @@ namespace IvyFEM
             Color = new double[3] { 0.0, 0.0, 0.0 };
         }
 
+        public Edge3D(uint sVId, uint eVId)
+        {
+            SVId = sVId;
+            EVId = eVId;
+            Color = new double[3] { 0.0, 0.0, 0.0 };
+        }
+
         public Edge3D(Edge3D src)
         {
             Copy(src);
@@ -82,6 +89,37 @@ namespace IvyFEM
                 }
                 System.Diagnostics.Debug.Assert(pts.Count <= div);
             }
+            return true;
+        }
+
+        public OpenTK.Vector3d GetNearestPoint(OpenTK.Vector3d pt)
+        {
+            double t = CadUtils3D.FindNearestPointParameterLinePoint(pt, SPt, EPt);
+            if (t < 0)
+            {
+                return SPt;
+            }
+            if (t > 1)
+            {
+                return EPt;
+            }
+            else
+            {
+                return SPt + (EPt - SPt) * t;
+            }
+
+            /*
+            System.Diagnostics.Debug.Assert(false);
+            OpenTK.Vector3d zeroV = new OpenTK.Vector3d();
+            return zeroV;
+            */
+            throw new InvalidOperationException();
+        }
+
+        public bool Split(Edge3D addEdge, OpenTK.Vector3d addPt)
+        {
+            // TODO:
+
             return true;
         }
     }

@@ -301,7 +301,8 @@ namespace IvyFEM
                 {
                     return res;
                 }
-                Edge2D oldEdge = GetEdge(eId);
+                Edge2D e = GetEdge(eId);
+                Edge2D oldEdge = new Edge2D(e);
                 //t = System.Environment.TickCount;
                 OpenTK.Vector2d addVec = oldEdge.GetNearestPoint(vec);
                 //System.Diagnostics.Debug.WriteLine("AddVertex 3-1 t: {0}", System.Environment.TickCount - t);

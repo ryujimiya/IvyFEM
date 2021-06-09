@@ -65,98 +65,109 @@ namespace IvyFEM
             //
             double[] xd = PosXd;
             {
-                uint feId = World.GetTriangleFEWithPointInside(vQuantityId, xd);
-                System.Diagnostics.Debug.Assert(feId != 0);
-                TriangleFE vTriFE = World.GetTriangleFE(vQuantityId, feId);
-                TriangleFE pTriFE = World.GetTriangleFE(pQuantityId, feId);
-                int[] vCoIds = vTriFE.NodeCoordIds;
-                uint vElemNodeCnt = vTriFE.NodeCount;
-                int[] vNodes = new int[vElemNodeCnt];
-                for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
+                int cnt = 0;
+                IList<uint> feIds = World.GetTriangleFEsWithPointInside(vQuantityId, xd);
+                System.Diagnostics.Debug.Assert(feIds.Count != 0);
+                foreach (uint feId in feIds)
                 {
-                    int coId = vCoIds[iNode];
-                    int nodeId = World.Coord2Node(vQuantityId, coId);
-                    vNodes[iNode] = nodeId;
-                }
-                int[] pCoIds = pTriFE.NodeCoordIds;
-                uint pElemNodeCnt = pTriFE.NodeCount;
-                int[] pNodes = new int[pElemNodeCnt];
-                for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
-                {
-                    int coId = pCoIds[iNode];
-                    int nodeId = World.Coord2Node(pQuantityId, coId);
-                    pNodes[iNode] = nodeId;
-                }
-
-                double[] L = vTriFE.Coord2L(xd);
-                double[] vN = vTriFE.CalcN(L);
-                double[][] vNu = vTriFE.CalcNu(L);
-                double[] vNx = vNu[0];
-                double[] vNy = vNu[1];
-                double[] pN = pTriFE.CalcN(L);
-                double[][] pNu = pTriFE.CalcNu(L);
-                double[] pNx = pNu[0];
-                double[] pNy = pNu[1];
-
-                double[] v = new double[vDof];
-                double[] vx = new double[vDof];
-                double[] vy = new double[vDof];
-                for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
-                {
-                    int nodeId = vNodes[iNode];
-                    if (nodeId == -1)
+                    TriangleFE vTriFE = World.GetTriangleFE(vQuantityId, feId);
+                    TriangleFE pTriFE = World.GetTriangleFE(pQuantityId, feId);
+                    int[] vCoIds = vTriFE.NodeCoordIds;
+                    uint vElemNodeCnt = vTriFE.NodeCount;
+                    int[] vNodes = new int[vElemNodeCnt];
+                    for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
                     {
-                        continue;
+                        int coId = vCoIds[iNode];
+                        int nodeId = World.Coord2Node(vQuantityId, coId);
+                        vNodes[iNode] = nodeId;
+                    }
+                    int[] pCoIds = pTriFE.NodeCoordIds;
+                    uint pElemNodeCnt = pTriFE.NodeCount;
+                    int[] pNodes = new int[pElemNodeCnt];
+                    for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
+                    {
+                        int coId = pCoIds[iNode];
+                        int nodeId = World.Coord2Node(pQuantityId, coId);
+                        pNodes[iNode] = nodeId;
                     }
 
-                    for (int iDof = 0; iDof < vDof; iDof++)
+                    double[] L = vTriFE.Coord2L(xd);
+                    double[] vN = vTriFE.CalcN(L);
+                    double[][] vNu = vTriFE.CalcNu(L);
+                    double[] vNx = vNu[0];
+                    double[] vNy = vNu[1];
+                    double[] pN = pTriFE.CalcN(L);
+                    double[][] pNu = pTriFE.CalcNu(L);
+                    double[] pNx = pNu[0];
+                    double[] pNy = pNu[1];
+
+                    double[] v = new double[vDof];
+                    double[] vx = new double[vDof];
+                    double[] vy = new double[vDof];
+                    for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
                     {
-                        double vValue = U[nodeId * vDof + iDof];
-                        v[iDof] += vValue * vN[iNode];
-                        vx[iDof] += vValue * vNx[iNode];
-                        vy[iDof] += vValue * vNy[iNode];
-                    }
-                }
-                double[][] vu = { vx, vy };
+                        int nodeId = vNodes[iNode];
+                        if (nodeId == -1)
+                        {
+                            continue;
+                        }
 
-                double press = 0.0;
-                double pressX = 0.0;
-                double pressY = 0.0;
-                for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
-                {
-                    int nodeId = pNodes[iNode];
-                    if (nodeId == -1)
+                        for (int iDof = 0; iDof < vDof; iDof++)
+                        {
+                            double vValue = U[nodeId * vDof + iDof];
+                            v[iDof] += vValue * vN[iNode];
+                            vx[iDof] += vValue * vNx[iNode];
+                            vy[iDof] += vValue * vNy[iNode];
+                        }
+                    }
+                    double[][] vu = { vx, vy };
+
+                    double press = 0.0;
+                    double pressX = 0.0;
+                    double pressY = 0.0;
+                    for (int iNode = 0; iNode < pElemNodeCnt; iNode++)
                     {
-                        continue;
+                        int nodeId = pNodes[iNode];
+                        if (nodeId == -1)
+                        {
+                            continue;
+                        }
+
+                        double pValue = U[pOffset + nodeId];
+                        press += pValue * pN[iNode];
+                        pressX += pValue * pNx[iNode];
+                        pressY += pValue * pNy[iNode];
                     }
 
-                    double pValue = U[pOffset + nodeId];
-                    press += pValue * pN[iNode];
-                    pressX += pValue * pNx[iNode];
-                    pressY += pValue * pNy[iNode];
-                }
-
-                double[] velov = new double[vDof];
-                for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
-                {
-                    int coId = vCoIds[iNode];
-                    double[] u = FV.GetDoubleValue(coId, FieldDerivativeType.Value);
-                    double[] vel = FV.GetDoubleValue(coId, FieldDerivativeType.Velocity);
-                    double[] acc = FV.GetDoubleValue(coId, FieldDerivativeType.Acceleration);
-
-                    for (int iDof = 0; iDof < vDof; iDof++)
+                    double[] velov = new double[vDof];
+                    for (int iNode = 0; iNode < vElemNodeCnt; iNode++)
                     {
-                        velov[iDof] += vel[iDof] * vN[iNode];
-                    }
-                }
+                        int coId = vCoIds[iNode];
+                        double[] u = FV.GetDoubleValue(coId, FieldDerivativeType.Value);
+                        double[] vel = FV.GetDoubleValue(coId, FieldDerivativeType.Velocity);
+                        double[] acc = FV.GetDoubleValue(coId, FieldDerivativeType.Acceleration);
 
-                ///////////////////
-                uf[0] = v[0];
-                uf[1] = v[1];
-                dotUf[0] = velov[0];
-                dotUf[1] = velov[1];
-                gradP[0] = pressX;
-                gradP[1] = pressY;
+                        for (int iDof = 0; iDof < vDof; iDof++)
+                        {
+                            velov[iDof] += vel[iDof] * vN[iNode];
+                        }
+                    }
+
+                    ///////////////////
+                    uf[0] += v[0];
+                    uf[1] += v[1];
+                    dotUf[0] += velov[0];
+                    dotUf[1] += velov[1];
+                    gradP[0] += pressX;
+                    gradP[1] += pressY;
+                    cnt++;
+                }
+                uf[0] /= cnt;
+                uf[1] /= cnt;
+                dotUf[0] /= cnt;
+                dotUf[1] /= cnt;
+                gradP[0] /= cnt;
+                gradP[1] /= cnt;
             }
 
             up[0] = particleU[0];

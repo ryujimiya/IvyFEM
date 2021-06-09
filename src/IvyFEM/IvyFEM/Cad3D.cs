@@ -129,7 +129,12 @@ namespace IvyFEM
                     return res;
                 }
 
-                throw new NotImplementedException();
+                uint addVId = BRep.AddVertexToLoop(lId);
+                uint tmpId = VertexArray.AddObject(addVId, new Vertex3D(vec));
+                System.Diagnostics.Debug.Assert(tmpId == (int)addVId);
+                System.Diagnostics.Debug.Assert(AssertValid() == 0);
+                res.AddVId = addVId;
+                return res;
             }
             else if (type == CadElementType.Edge)
             {
@@ -140,7 +145,49 @@ namespace IvyFEM
                     return res;
                 }
 
-                throw new NotImplementedException();
+                Edge3D e = GetEdge(eId);
+                Edge3D oldEdge = new Edge3D(e);
+                OpenTK.Vector3d addVec = oldEdge.GetNearestPoint(vec);
+                if (CadUtils3D.SquareLength(addVec - oldEdge.GetVertexCoord(false)) < 1.0e-20 ||
+                    CadUtils3D.SquareLength(addVec - oldEdge.GetVertexCoord(true)) < 1.0e-20)
+                {
+                    return res;
+                }
+
+                uint addVId = BRep.AddVertexToEdge(eId);
+                uint addEId;
+                {
+                    VertexEdgeItr vItr = BRep.GetVertexEdgeItr(addVId);
+                    bool isSameDir0;
+                    bool isSameDir1;
+                    uint bEId;
+                    uint aEId;
+                    vItr.GetBehindEdgeId(out bEId, out isSameDir0);
+                    vItr.GetAheadEdgeId(out aEId, out isSameDir1);
+                    addEId = (bEId == eId) ? aEId : bEId;
+                }
+                {
+                    uint tmpId = VertexArray.AddObject(addVId, new Vertex3D(addVec));
+                    System.Diagnostics.Debug.Assert(tmpId == addVId);
+                }
+                {
+                    uint tmpId = EdgeArray.AddObject(addEId, new Edge3D(addVId, oldEdge.GetVertexId(false)));
+                    System.Diagnostics.Debug.Assert(tmpId == addEId);
+                }
+                {
+                    Edge3D addEdge = GetEdge(addEId);
+
+                    oldEdge.Split(addEdge, addVec);
+
+                    Edge3D edge = GetEdge(eId);
+
+                    System.Diagnostics.Debug.Assert(edge.GetVertexId(false) == addVId);
+                    edge.Copy(oldEdge);
+                }
+                System.Diagnostics.Debug.Assert(AssertValid() == 0);
+                res.AddVId = addVId;
+                res.AddEId = addEId;
+                return res;
             }
             else if (type == CadElementType.Solid)
             {
@@ -265,58 +312,75 @@ namespace IvyFEM
         {
             AddSurfaceRes res = new AddSurfaceRes();
 
-            System.Diagnostics.Debug.Assert(pts.Count == 8);
-            uint[] vIds = new uint[8];
-            uint[] eIds = new uint[12];
-            uint[] lIds = new uint[6];
+            int polyPtCnt = pts.Count / 2;
+            System.Diagnostics.Debug.Assert(pts.Count == polyPtCnt * 2);
+            IList<uint> vIds = new List<uint>();
+            IList<uint> eIds = new List<uint>();
+            IList<uint> lIds = new List<uint>();
 
             IList<OpenTK.Vector3d> pts1 = new List<OpenTK.Vector3d>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < polyPtCnt; i++)
             {
                 pts1.Add(pts[i]);
             }
             for (int i = 0; i < pts1.Count; i++)
             {
                 var pt = pts1[i];
-                vIds[i] = AddVertex(CadElementType.Solid, 0, pt).AddVId;
+                uint vId1 = AddVertex(CadElementType.Solid, 0, pt).AddVId;
+                System.Diagnostics.Debug.Assert(vId1 != 0);
+                vIds.Add(vId1);
             }
 
             IList<OpenTK.Vector3d> pts2 = new List<OpenTK.Vector3d>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < polyPtCnt; i++)
             {
-                pts2.Add(pts[i + 4]);
+                pts2.Add(pts[i + polyPtCnt]);
             }
             for (int i = 0; i < pts2.Count; i++)
             {
                 var pt = pts2[i];
-                vIds[i + 4] = AddVertex(CadElementType.Solid, 0, pt).AddVId;
+                uint vId1 = AddVertex(CadElementType.Solid, 0, pt).AddVId;
+                System.Diagnostics.Debug.Assert(vId1 != 0);
+                vIds.Add(vId1);
             }
 
-            eIds[0] = ConnectVertexLine(vIds[0], vIds[1]).AddEId;
-            eIds[1] = ConnectVertexLine(vIds[1], vIds[2]).AddEId;
-            eIds[2] = ConnectVertexLine(vIds[2], vIds[3]).AddEId;
-            var res1 = ConnectVertexLine(vIds[3], vIds[0]);
-            eIds[3] = res1.AddEId;
-            lIds[0] = res1.AddLId;
+            for (int i = 0; i < polyPtCnt; i++)
+            {
+                var res1 = ConnectVertexLine(vIds[i], vIds[(i + 1) % polyPtCnt]);
+                uint eId1 = res1.AddEId;
+                System.Diagnostics.Debug.Assert(eId1 != 0);
+                eIds.Add(eId1);
+                if (i == polyPtCnt - 1)
+                {
+                    uint lId1 = res1.AddLId;
+                    System.Diagnostics.Debug.Assert(lId1 != 0);
+                    lIds.Add(lId1);
+                }
+            }
 
-            eIds[4] = ConnectVertexLine(vIds[0], vIds[4]).AddEId;
-            eIds[5] = ConnectVertexLine(vIds[1], vIds[5]).AddEId;
-            eIds[6] = ConnectVertexLine(vIds[2], vIds[6]).AddEId;
-            eIds[7] = ConnectVertexLine(vIds[3], vIds[7]).AddEId;
+            for (int i = 0; i < polyPtCnt; i++)
+            {
+                uint eId1 = ConnectVertexLine(vIds[i], vIds[i + polyPtCnt]).AddEId;
+                System.Diagnostics.Debug.Assert(eId1 != 0);
+                eIds.Add(eId1);
+            }
 
-            var res2 = ConnectVertexLine(vIds[4], vIds[5]);
-            eIds[8] = res2.AddEId;
-            lIds[1] = res2.AddLId;
-            var res3 = ConnectVertexLine(vIds[5], vIds[6]);
-            eIds[9] = res3.AddEId;
-            lIds[2] = res3.AddLId;
-            var res4 = ConnectVertexLine(vIds[6], vIds[7]);
-            eIds[10] = res4.AddEId;
-            lIds[3] = res4.AddLId;
-            var res5 = ConnectVertexLine(vIds[7], vIds[4]);
-            eIds[11] = res5.AddEId;
-            lIds[4] = res5.AddLId;
-            lIds[5] = SealHole(eIds[11], false);
+            for (int i = 0; i < polyPtCnt; i++)
+            {
+                var res1 = ConnectVertexLine(vIds[i + polyPtCnt], vIds[(i + 1) % polyPtCnt + polyPtCnt]);
+                uint eId1 = res1.AddEId;
+                uint lId1 = res1.AddLId;
+                System.Diagnostics.Debug.Assert(eId1 != 0);
+                System.Diagnostics.Debug.Assert(lId1 != 0);
+                eIds.Add(eId1);
+                lIds.Add(lId1);
+            }
+            {
+                uint lastEId = eIds[eIds.Count - 1];
+                uint lId1 = SealHole(lastEId, false);
+                System.Diagnostics.Debug.Assert(lId1 != 0);
+                lIds.Add(lId1);
+            }
 
             res.AddVIds = vIds;
             res.AddEIds = eIds;
@@ -324,11 +388,13 @@ namespace IvyFEM
             return res;
         }
 
-        public AddSurfaceRes AddCubeWithMultiLayers(IList<OpenTK.Vector3d> pts, uint layerCnt)
+        public AddSurfaceRes AddCubeWithMultiLayers(
+            IList<OpenTK.Vector3d> pts, uint layerCnt, bool isMakeRadialLoop = true)
         {
             AddSurfaceRes res = new AddSurfaceRes();
 
-            System.Diagnostics.Debug.Assert(pts.Count == 4 * (layerCnt + 1));
+            int polyPtCnt = pts.Count / (int)(layerCnt + 1);
+            System.Diagnostics.Debug.Assert(pts.Count == polyPtCnt * (layerCnt + 1));
             IList<uint> vIds = new List<uint>();
             IList<uint> eIds = new List<uint>();
             IList<uint> lIds = new List<uint>();
@@ -336,9 +402,9 @@ namespace IvyFEM
             for (int layer = 0; layer < (layerCnt + 1); layer++)
             {
                 IList<OpenTK.Vector3d> pts1 = new List<OpenTK.Vector3d>();
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < polyPtCnt; i++)
                 {
-                    pts1.Add(pts[i + layer * 4]);
+                    pts1.Add(pts[i + layer * polyPtCnt]);
                 }
                 for (int i = 0; i < pts1.Count; i++)
                 {
@@ -351,14 +417,15 @@ namespace IvyFEM
 
             for (int layer = 0; layer < (layerCnt + 1); layer++)
             {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < polyPtCnt; i++)
                 {
-                    var res1 = ConnectVertexLine(vIds[i + layer * 4], vIds[(i + 1) % 4 + layer * 4]);
+                    var res1 = ConnectVertexLine(
+                        vIds[i + layer * polyPtCnt], vIds[(i + 1) % polyPtCnt + layer * polyPtCnt]);
                     uint addEId1 = res1.AddEId;
                     uint addLId1 = res1.AddLId;
                     System.Diagnostics.Debug.Assert(addEId1 != 0);
                     eIds.Add(addEId1);
-                    if (layer == 0 && i != 3)
+                    if (layer == 0 && i != polyPtCnt - 1)
                     {
                         System.Diagnostics.Debug.Assert(addLId1 == 0);
                     }
@@ -385,9 +452,10 @@ namespace IvyFEM
                 }
                 if (layer <= (layerCnt - 1))
                 {
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < polyPtCnt; i++)
                     {
-                        var res1 = ConnectVertexLine(vIds[i + layer * 4], vIds[(i + 4) + layer * 4]);
+                        var res1 = ConnectVertexLine(
+                            vIds[i + layer * polyPtCnt], vIds[(i + polyPtCnt) + layer * polyPtCnt]);
                         uint addEId1 = res1.AddEId;
                         uint addLId1 = res1.AddLId;
                         System.Diagnostics.Debug.Assert(addEId1 != 0);
@@ -396,16 +464,19 @@ namespace IvyFEM
                     }
                 }
             }
-            for (int layer = 1; layer < layerCnt; layer++)
+            if (isMakeRadialLoop)
             {
-                IList<uint> eIds1 = new List<uint>();
-                for (int i = 0; i < 4; i++)
+                for (int layer = 1; layer < layerCnt; layer++)
                 {
-                    eIds1.Add(eIds[i + layer * 8]);
+                    IList<uint> eIds1 = new List<uint>();
+                    for (int i = 0; i < polyPtCnt; i++)
+                    {
+                        eIds1.Add(eIds[i + layer * (polyPtCnt * 2)]);
+                    }
+                    uint addLId1 = MakeRadialLoop(eIds1);
+                    System.Diagnostics.Debug.Assert(addLId1 != 0);
+                    lIds.Add(addLId1);
                 }
-                uint addLId1 = MakeRadialLoop(eIds1);
-                System.Diagnostics.Debug.Assert(addLId1 != 0);
-                lIds.Add(addLId1);
             }
 
             res.AddVIds = vIds;
@@ -904,17 +975,23 @@ namespace IvyFEM
                         vIds.Add(eVId);
                     }
                 }
-
-                uint vId1 = vIds[0];
-                uint vId2 = vIds[1];
-                uint vId3 = vIds[2];
-                OpenTK.Vector3d pt1 = GetVertexCoord(vId1);
-                OpenTK.Vector3d pt2 = GetVertexCoord(vId2);
-                OpenTK.Vector3d pt3 = GetVertexCoord(vId3);
-                origin = pt1;
-                xdir = pt2 - pt1;
-                normal = CadUtils3D.TriNormal(pt1, pt2, pt3);
             }
+
+            uint vId1 = vIds[0];
+            uint vId2 = vIds[1];
+            //uint vId3 = vIds[2]; //これだと3点目も同一直線の場合normalが計算できない NG
+            uint vId3 = vIds[vIds.Count - 1];
+            OpenTK.Vector3d pt1 = GetVertexCoord(vId1);
+            OpenTK.Vector3d pt2 = GetVertexCoord(vId2);
+            OpenTK.Vector3d pt3 = GetVertexCoord(vId3);
+            origin = pt1;
+            xdir = pt2 - pt1;
+            normal = CadUtils3D.TriNormal(pt1, pt2, pt3);
+            //--------------------------------------
+            //DEBUG
+            System.Diagnostics.Debug.Assert(!double.IsNaN(normal.X));
+            System.Diagnostics.Debug.Assert(!double.IsNaN(normal.Y));
+            //--------------------------------------
         }
 
         private bool FindIntersectionEdge(

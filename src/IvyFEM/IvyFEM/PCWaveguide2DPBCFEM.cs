@@ -408,7 +408,7 @@ namespace IvyFEM
                 int incidentModeId = -1;
                 if (incidentPortId == portId)
                 {
-                    incidentModeId = (int)World.GetIncidentModeId(QuantityId);
+                    incidentModeId = World.GetIncidentModeId(QuantityId);
                     // 現状0固定
                     System.Diagnostics.Debug.Assert(incidentModeId == 0);
                 }

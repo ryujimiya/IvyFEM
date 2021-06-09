@@ -91,6 +91,9 @@
     <Compile Include="CadUtils3D.cs" />
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
+    <Compile Include="EMWaveguide2DEigenFEMForPort.cs" />
+    <Compile Include="EMWaveguide3DFEM.cs" />
+    <Compile Include="EMCavity3DEigenFEM.cs" />
     <Compile Include="FluidLES2DTDFEM.cs" />
     <Compile Include="FluidLES2DTDFEM.LES.cs" />
     <Compile Include="FluidNSDroplet2DRKTDFEM.cs" />
@@ -385,6 +388,7 @@
     <Compile Include="TriangleFE.3D.cs" />
     <Compile Include="TetrahedronFE1stInterpolate.cs" />
     <Compile Include="TriangleFEConstantInterpolate.cs" />
+    <Compile Include="TetrahedronFEEdge1stInterpolate.cs" />
     <Compile Include="TriangleFEEdge2ndInterpolate.cs" />
     <Compile Include="TriangleFEEdge1stInterpolate.cs" />
     <Compile Include="TriangleFEBellInterpolate.cs" />

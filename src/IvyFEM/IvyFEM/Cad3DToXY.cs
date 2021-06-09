@@ -214,6 +214,7 @@ namespace IvyFEM
             Normal = new OpenTK.Vector3d(loop.Normal.X, loop.Normal.Y, loop.Normal.Z);
             XDir = new OpenTK.Vector3d(loop.XDir.X, loop.XDir.Y, loop.XDir.Z);
 
+            // ループを囲む辺
             int loopCounter = 0;
             uint parentLId = 0;
             for (LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop(), loopCounter++)
@@ -284,6 +285,33 @@ namespace IvyFEM
                     }
                 }
             }
+
+            //---------------------------------------------------------------------------
+            // 全節点から孤立節点のみを抽出
+            for (LoopEdgeItr lItr = cad.GetLoopEdgeItr(lId); !lItr.IsChildEnd; lItr.ShiftChildLoop(), loopCounter++)
+            {
+                for (lItr.Begin(); !lItr.IsEnd(); lItr.Next())
+                {
+                    uint vId = lItr.GetVertexId();
+
+                    OpenTK.Vector3d vec = cad.GetVertexCoord(vId);
+                    OpenTK.Vector2d vec2D = Project(vec);
+                    uint vId2D;
+                    if (VId3D2D.ContainsKey(vId))
+                    {
+                        vId2D = VId3D2D[vId];
+                    }
+                    else
+                    {
+                        // 孤立節点
+                        vId2D = AddVertex(CadElementType.Loop, parentLId, vec2D).AddVId;
+                        System.Diagnostics.Debug.Assert(vId2D != 0);
+                        VId3D2D[vId] = vId2D;
+                        VId2D3D[vId2D] = vId;
+                    }
+                }
+            }
+            //---------------------------------------------------------------------------
         }
     }
 }

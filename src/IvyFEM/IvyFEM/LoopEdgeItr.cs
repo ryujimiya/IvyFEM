@@ -81,22 +81,6 @@ namespace IvyFEM
             HEId = uL.HEId;
         }
 
-        /*
-        public static LoopEdgeItr operator++ (LoopEdgeItr src)
-        {
-            LoopEdgeItr dest = new LoopEdgeItr(src);
-            if (!src.IsValid)
-            {
-                return dest;
-            }
-            dest.IsInitial = false;
-            System.Diagnostics.Debug.Assert(dest.BRep2D.BRep.IsHalfEdgeId(dest.HEId));
-            HalfEdge hE = dest.BRep2D.BRep.GetHalfEdge(dest.HEId);
-            dest.HEId = hE.FHEId;
-            return dest;
-        }
-        */
-
         // ++のオブジェクト生成をしないバージョン
         public void Next()
         {

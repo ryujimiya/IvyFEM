@@ -47,11 +47,11 @@ namespace IvyFEM
 
         protected uint GetEdgeCount()
         {
-            if (!(Interpolate is IEdgeInterpolate))
+            if (!(Interpolate is IEdgeInterpolate3D))
             {
                 return 0;
             }
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            IEdgeInterpolate3D edgeInterpolate = Interpolate as IEdgeInterpolate3D;
             return edgeInterpolate.GetEdgeCount();
         }
 
@@ -71,11 +71,31 @@ namespace IvyFEM
 
         public double[] GetEdgeLengths()
         {
-            double[] edgeLengths = new double[4];
+            double[] edgeLengths = new double[6];
+            int[][] edgePointId = new int[6][]
+            {
+                new int[]{ 0, 1 },
+                new int[]{ 1, 2 },
+                new int[]{ 0, 2 },
+                new int[]{ 0, 3 },
+                new int[]{ 3, 1 },
+                new int[]{ 2, 3 }
+            };
 
-            // TODO
-            System.Diagnostics.Debug.Assert(false);
-
+            for (int eIndex = 0; eIndex < 6; eIndex++)
+            {
+                int[] edgePointId1 = edgePointId[eIndex];
+                int iPtId = edgePointId1[0];
+                int jPtId = edgePointId1[1];
+                int coId1 = NodeCoordIds[iPtId];
+                int coId2 = NodeCoordIds[jPtId];
+                double[] co1 = World.GetCoord((uint)QuantityId, coId1);
+                double[] co2 = World.GetCoord((uint)QuantityId, coId2);
+                edgeLengths[eIndex] = Math.Sqrt(
+                    (co2[0] - co1[0]) * (co2[0] - co1[0]) +
+                    (co2[1] - co1[1]) * (co2[1] - co1[1]) +
+                    (co2[2] - co1[2]) * (co2[2] - co1[2]));
+            }
             return edgeLengths;
         }
 
@@ -174,7 +194,7 @@ namespace IvyFEM
 
         public double[] GetEdgeL(int edgeId)
         {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            IEdgeInterpolate3D edgeInterpolate = Interpolate as IEdgeInterpolate3D;
             double[] ret = edgeInterpolate.GetEdgeL(edgeId);
             return ret;
         }
@@ -277,7 +297,7 @@ namespace IvyFEM
         /// <returns></returns>
         public double[][] CalcEdgeN(double[] L)
         {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
+            IEdgeInterpolate3D edgeInterpolate = Interpolate as IEdgeInterpolate3D;
             double[][] ret = edgeInterpolate.CalcEdgeN(L);
             return ret;
         }
@@ -287,22 +307,10 @@ namespace IvyFEM
         /// </summary>
         /// <param name="L"></param>
         /// <returns></returns>
-        public double[] CalcRotEdgeN(double[] L)
+        public double[][] CalcRotEdgeN(double[] L)
         {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
-            double[] ret = edgeInterpolate.CalcRotEdgeN(L);
-            return ret;
-        }
-
-        /// <summary>
-        /// d(vecN)/du (u=x,y)
-        /// </summary>
-        /// <param name="L"></param>
-        /// <returns></returns>
-        public double[][][] CalcEdgeNu(double[] L)
-        {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
-            double[][][] ret = edgeInterpolate.CalcEdgeNu(L);
+            IEdgeInterpolate3D edgeInterpolate = Interpolate as IEdgeInterpolate3D;
+            double[][] ret = edgeInterpolate.CalcRotEdgeN(L);
             return ret;
         }
     }

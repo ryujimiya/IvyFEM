@@ -82,7 +82,7 @@ namespace IvyFEM
             return res;
         }
 
-        internal uint GetUseLoopType(uint uLId)
+        public uint GetUseLoopType(uint uLId)
         {
             System.Diagnostics.Debug.Assert(BRep.IsUseLoopId(uLId));
             uint hEId0;
@@ -313,6 +313,9 @@ namespace IvyFEM
             {
                 return false;
             }
+
+            /*
+            // original
             System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
             HalfEdge hE = BRep.GetHalfEdge(hEId);
             vId1 = hE.UVId;
@@ -320,6 +323,17 @@ namespace IvyFEM
             System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(fHEId));
             HalfEdge fHE = BRep.GetHalfEdge(fHEId);
             vId2 = fHE.UVId;
+            */
+
+            // FIXME:
+            System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(hEId));
+            HalfEdge hE = BRep.GetHalfEdge(hEId);
+            vId1 = hE.UVId;
+            uint oHEId = hE.OHEId;
+            System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(oHEId));
+            HalfEdge oHE = BRep.GetHalfEdge(oHEId);
+            vId2 = oHE.UVId;
+
             return true;
         }
 
@@ -334,6 +348,8 @@ namespace IvyFEM
                 return 0;
             }
             HalfEdge hE = BRep.GetHalfEdge(hEId);
+            /*
+            // original
             uint vId1 = hE.UVId;
             uint fHEId = hE.FHEId;
             if (!BRep.IsHalfEdgeId(fHEId))
@@ -342,6 +358,22 @@ namespace IvyFEM
             }
             HalfEdge fHE = BRep.GetHalfEdge(fHEId);
             uint vId2 = fHE.UVId;
+            if (isRoot)
+            {
+                return vId1;
+            }
+            return vId2;
+            */
+
+            // FIXME:
+            uint vId1 = hE.UVId;
+            uint oHEId = hE.OHEId;
+            if (!BRep.IsHalfEdgeId(oHEId))
+            {
+                return 0;
+            }
+            HalfEdge oHE = BRep.GetHalfEdge(oHEId);
+            uint vId2 = oHE.UVId;
             if (isRoot)
             {
                 return vId1;
@@ -991,6 +1023,7 @@ namespace IvyFEM
         public uint MakeRadialLoop(IList<uint> eIds, IList<bool> isSameDirs)
         {
             uint uLId = BRep.MakeRadialUseLoop(eIds, isSameDirs);
+            System.Diagnostics.Debug.Assert(BRep.AssertValidUse() == 0);
 
             System.Diagnostics.Debug.Assert(GetUseLoopType(uLId) == 2);
             uint newLId = GetFreeKey(Loop2UseLoop);
@@ -1069,8 +1102,10 @@ namespace IvyFEM
                     vId1 = uV.VId;
                 }
 
+                /*
                 uint vId2;
                 {
+                    // original
                     uint fHEId = hEdge.FHEId;
                     System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(fHEId));
                     HalfEdge cwEdge = BRep.GetHalfEdge(fHEId);
@@ -1078,6 +1113,20 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(cwEdge.BHEId == hEId);
                     System.Diagnostics.Debug.Assert(cwEdge.ULId == hEdge.ULId);
                     uint uvId2 = cwEdge.UVId;
+                    System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uvId2));
+                    UseVertex uV = BRep.GetUseVertex(uvId2);
+                    System.Diagnostics.Debug.Assert(uV.Id == uvId2);
+                    vId2 = uV.VId;
+                }
+                */
+                uint vId2;
+                {
+                    // FIXME:
+                    uint oHEId = hEdge.OHEId;
+                    System.Diagnostics.Debug.Assert(BRep.IsHalfEdgeId(oHEId));
+                    HalfEdge oEdge = BRep.GetHalfEdge(oHEId);
+                    System.Diagnostics.Debug.Assert(oEdge.Id == oHEId);
+                    uint uvId2 = oEdge.UVId;
                     System.Diagnostics.Debug.Assert(BRep.IsUseVertexId(uvId2));
                     UseVertex uV = BRep.GetUseVertex(uvId2);
                     System.Diagnostics.Debug.Assert(uV.Id == uvId2);
@@ -1093,6 +1142,8 @@ namespace IvyFEM
                     System.Diagnostics.Debug.Assert(hEdge.FHEId == hEId);
                     continue;
                 }
+                /*
+                // FIXME;
                 // Radial Edge対応
                 if (hEdge.RadialHEId != 0 &&
                     hEdge.FHEId == hEId &&
@@ -1100,6 +1151,7 @@ namespace IvyFEM
                 {
                     continue;
                 }
+                */
 
                 System.Diagnostics.Debug.Assert(Edge2HalfEdge.ContainsKey(eId));
 

@@ -342,7 +342,7 @@ namespace IvyFEM
                 int incidentModeId = -1;
                 if (World.GetIncidentPortId(UQuantityId) == portId)
                 {
-                    incidentModeId = (int)World.GetIncidentModeId(UQuantityId);
+                    incidentModeId = World.GetIncidentModeId(UQuantityId);
                 }
                 System.Numerics.Complex[] S1 = eigenFEM.CalcSMatrix(
                     omega, incidentModeId, betas, hUEVecs, hSigmaEVecs, portHU, portHSigma);

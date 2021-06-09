@@ -28,6 +28,11 @@ namespace IvyFEM
             Origin = new OpenTK.Vector3d(origin.X, origin.Y, origin.Z);
             Normal = OpenTK.Vector3d.Normalize(normal);
             XDir = OpenTK.Vector3d.Normalize(xdir);
+            //--------------------------------------
+            //DEBUG
+            System.Diagnostics.Debug.Assert(!double.IsNaN(Normal.X));
+            System.Diagnostics.Debug.Assert(!double.IsNaN(Normal.Y));
+            //--------------------------------------
         }
 
         public Loop3D(Loop3D src)

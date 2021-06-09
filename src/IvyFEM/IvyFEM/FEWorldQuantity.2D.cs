@@ -362,7 +362,10 @@ namespace IvyFEM
                             string edgeKey = coId1 < coId2 ?
                                 string.Format("{0}_{1}", coId1, coId2) :
                                 string.Format("{0}_{1}", coId2, coId1);
-                            Edges.Add(edgeKey);
+                            if (!Edges.Contains(edgeKey))
+                            {
+                                Edges.Add(edgeKey);
+                            }
                         }
                     }
                     fe.MaterialId = maId;
@@ -599,11 +602,6 @@ namespace IvyFEM
 
             // ポート上の線要素の抽出と節点ナンバリング
             uint portCnt = GetPortCount();
-            PortLineFEIdss.Clear();
-            PortCo2Nodes.Clear();
-            PeriodicPortLineFEIdsss.Clear();
-            PeriodicPortBcCosss.Clear();
-            PeriodicPortTriangleFEIdss.Clear();
             for (int portId = 0; portId < portCnt; portId++)
             {
                 PortLineFEIdss.Add(new List<uint>());

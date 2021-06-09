@@ -260,7 +260,8 @@ namespace IvyFEM
 			double v = (dot11 * dot23 - dot12 * dot13) * invDenom;
 
 			// Check if point is in triangle
-			return (u >= 0) && (v >= 0) && (u + v < 1);
+			//return (u >= 0) && (v >= 0) && (u + v < 1);
+			return (u >= 0) && (v >= 0) && (u + v <= 1.0 + 1.0e-12);
 		}
 
 		private static bool IsPointSameSideOfFace(
@@ -347,6 +348,16 @@ namespace IvyFEM
 			double t = b / a;
 			intersectPoint = lineOrigin + lineDir * t;
 			return true;
+		}
+
+		public static double FindNearestPointParameterLinePoint(
+			OpenTK.Vector3d cPt, OpenTK.Vector3d sPt, OpenTK.Vector3d ePt)
+		{
+			OpenTK.Vector3d es = ePt - sPt;
+			OpenTK.Vector3d sc = sPt - cPt;
+			double a = SquareLength(es);
+			double b = OpenTK.Vector3d.Dot(es, sc);
+			return -b / a;
 		}
 	}
 }

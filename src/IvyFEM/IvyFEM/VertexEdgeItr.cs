@@ -12,6 +12,12 @@ namespace IvyFEM
         private bool IsInitial = false;
         private uint UVId = 0;
         private uint HEId = 0;
+
+        //---------------------------
+        private int HEPos = 0;
+        private IList<uint> HEIds = null;
+        //---------------------------
+
         private BRep2D BRep2D = new BRep2D();
 
         public VertexEdgeItr(BRep2D bRep2D, uint vId)
@@ -19,9 +25,20 @@ namespace IvyFEM
             BRep2D = bRep2D;
             IsValid = false;
             UVId = vId;
+            /*
+            //------------------------------------------------------
+            // original
             UseVertex uV = BRep2D.BRep.GetUseVertex(UVId);
             System.Diagnostics.Debug.Assert(uV.Id == UVId);
             HEId = uV.HEId;
+            //------------------------------------------------------
+            */
+            //------------------------------------------------------
+            HEIds = BRep2D.BRep.FindHalfEdgeByUseVertex(UVId);
+            HEPos = 0;
+            HEId = HEIds[HEPos];
+            //------------------------------------------------------
+
             IsInitial = true;
             IsValid = true;
         }
@@ -42,29 +59,19 @@ namespace IvyFEM
                 return;
             }
             IsInitial = true;
+            /*
+            //------------------------------------------------------
+            // original
             UseVertex uV = BRep2D.BRep.GetUseVertex(UVId);
             System.Diagnostics.Debug.Assert(uV.Id == UVId);
             HEId = uV.HEId;
+            //------------------------------------------------------
+            */
+            //------------------------------------------------------
+            HEPos = 0;
+            HEId = HEIds[HEPos];
+            //------------------------------------------------------
         }
-
-        /*
-        public static VertexEdgeItr operator ++(VertexEdgeItr src)
-        {
-            VertexEdgeItr dest = new VertexEdgeItr(src);
-            if (!src.IsValid)
-            {
-                return dest;
-            }
-            dest.IsInitial = false;
-            System.Diagnostics.Debug.Assert(dest.BRep2D.BRep.IsHalfEdgeId(dest.HEId));
-            HalfEdge hE = dest.BRep2D.BRep.GetHalfEdge(dest.HEId);
-            uint bHEId = hE.BHEId;
-            System.Diagnostics.Debug.Assert(dest.BRep2D.BRep.IsHalfEdgeId(bHEId));
-            HalfEdge bHE = dest.BRep2D.BRep.GetHalfEdge(bHEId);
-            dest.HEId = bHE.OHEId;
-            return dest;
-        }
-        */
 
         // ++のオブジェクトを生成しないバージョン
         public void Next()
@@ -74,12 +81,24 @@ namespace IvyFEM
                 return;
             }
             IsInitial = false;
+            /*
+            //------------------------------------------------------
+            // original
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(HEId));
             HalfEdge hE = BRep2D.BRep.GetHalfEdge(HEId);
             uint bHEId = hE.BHEId;
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsHalfEdgeId(bHEId));
             HalfEdge bHE = BRep2D.BRep.GetHalfEdge(bHEId);
             HEId = bHE.OHEId;
+            //------------------------------------------------------
+            */
+            //------------------------------------------------------
+            HEPos++;
+            if (HEPos < HEIds.Count)
+            {
+                HEId = HEIds[HEPos];
+            }
+            //------------------------------------------------------
         }
 
         public bool IsEnd()
@@ -89,12 +108,25 @@ namespace IvyFEM
                 return false;
             }
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsUseVertexId(UVId));
+            /*
+            //------------------------------------------------------
+            // original
             UseVertex uV = BRep2D.BRep.GetUseVertex(UVId);
             if (HEId == uV.HEId)
             {
                 return true;
             }
             return false;
+            //------------------------------------------------------
+            */
+            //------------------------------------------------------
+            if (HEIds.Count == 0 ||
+                HEPos > HEIds.Count - 1)
+            {
+                return true;
+            }
+            return false;
+            //------------------------------------------------------
         }
 
         public uint GetHalfEdgeId()
@@ -118,7 +150,7 @@ namespace IvyFEM
             uint uLId = hE.ULId;
             if (!BRep2D.BRep.IsUseLoopId(uLId))
             {
-                System.Diagnostics.Debug.Assert(false);
+                //System.Diagnostics.Debug.Assert(false);
                 return 0;
             }
             UseLoop uL = BRep2D.BRep.GetUseLoop(uLId);
@@ -131,6 +163,9 @@ namespace IvyFEM
             {
                 return 0;
             }
+            /*
+            //------------------------------------------------------
+            // original
             System.Diagnostics.Debug.Assert(BRep2D.BRep.IsUseVertexId(UVId));
             UseVertex uV = BRep2D.BRep.GetUseVertex(UVId);
             uint hEId0 = uV.HEId;
@@ -155,6 +190,12 @@ namespace IvyFEM
                 }
             }
             return iCnt;
+            //------------------------------------------------------
+            */
+            //------------------------------------------------------
+            uint iCnt = (uint)HEIds.Count;
+            return iCnt;
+            //------------------------------------------------------
         }
 
         public bool IsParent()

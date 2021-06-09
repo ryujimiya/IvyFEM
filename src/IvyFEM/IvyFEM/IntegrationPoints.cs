@@ -286,7 +286,7 @@ namespace IvyFEM
         private static double[] TetrahedronIP4Alpha = { 0.58541020, 0.13819660 };
         // α, β, γ
         private static double[] TetrahedronIP5Alpha =
-            { 1.0 / 4.0, 1.0 / 3.0, 1.0 / 6.0};
+            { 1.0 / 4.0, 1.0 / 2.0, 1.0 / 6.0 };
 
         public static IntegrationPoints[] TetrahedronIntegrationPoints =
         {

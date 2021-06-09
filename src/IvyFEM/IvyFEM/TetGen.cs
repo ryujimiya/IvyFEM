@@ -117,7 +117,9 @@ namespace IvyFEM
             string fileName = FileNameBase + ".poly";
             string dir = Path.GetDirectoryName(FileNameBase);
             string processFileName = dir + "\\tetgen.exe";
-            string arg = string.Format("-pYqi {0}", fileName);
+            //string arg = string.Format("-pYqi {0}", fileName);
+            double vol = ELen * ELen * ELen * 0.5;
+            string arg = string.Format("-pYqia{0} {1}", vol, fileName);
 
             if (!File.Exists(processFileName))
             {
@@ -218,6 +220,8 @@ namespace IvyFEM
                     }
                 }
             }
+
+            System.Diagnostics.Debug.Assert(Tets.Count > 0);
             return true;
         }
 
