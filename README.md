@@ -131,6 +131,7 @@
 　　　　　　　　　　edge element(1次、2次)  
 　　　　　　　　　　  
 　　　　四面体要素：Lagrange (1次、2次)  
+　　　　　　　　　　edge element(1次)  
 　　　　  
 　　　　※印：実験的または未完  
 　  
@@ -235,6 +236,11 @@
 　　〇電磁導波路のベクトル波固有モード(full-wave eigenmode)  
 　　![異方性誘電体導波路(図面)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205184519.jpg)  
 　　![異方性誘電体導波路](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200205/20200205185121.jpg)  
+　　〇3次元電磁導波路の伝達問題  
+　　![誘電体装荷導波管1](https://pbs.twimg.com/media/E3b0QESVgAUFdSJ?format=jpg&name=360x360)  
+　　![誘電体装荷導波管2](https://pbs.twimg.com/media/E3b0aYRUUAUUEXV?format=jpg&name=360x360)  
+　　![誘電体装荷導波管3](https://pbs.twimg.com/media/E3b0nv2UYAEQVQm?format=jpg&name=360x360)  
+　　![誘電体装荷導波管4](https://pbs.twimg.com/media/E3b0rKiVUAI0SQj?format=jpg&name=360x360)  
 　　〇渦電流(eddy current)場  
 　　![swtiched reluctance motor(SRM)](https://cdn-ak.f.st-hatena.com/images/fotolife/r/ryujimiya/20200701/20200701202349.jpg)  
 　  
