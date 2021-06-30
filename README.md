@@ -109,6 +109,8 @@
 　　　　　　　　　　　　edge/nodal elements  
 　　　　　　　　　　　　(遮蔽形, closed waveguides)  
 　　　　　　　　　　　　(開放形, open or unbounded waveguides)  
+　　　　　　　　　　  
+　　　　　　　　　　共振器の固有値問題(3D)  
 　　　　　　　　　　　　  
 　　　　　　　　　　電磁導波路の伝達問題(3D)  
 　　　　　　　　　　　周波数領域FEM  
@@ -131,13 +133,13 @@
 　　　　　　　　　　edge element(1次、2次)  
 　　　　　　　　　　  
 　　　　四面体要素：Lagrange (1次、2次)  
-　　　　　　　　　　edge element(1次)  
+　　　　　　　　　　edge element(1次、2次)  
 　　　　  
 　　　　※印：実験的または未完  
 　  
-　**バイナリ（2021-06-09更新）**  
+　**バイナリ（2021-06-30更新）**  
 　  
-　　IvyFEM.dll version 0.0.0.62  
+　　IvyFEM.dll version 0.0.0.63  
 　  
 　　**プラットフォームターゲット:　x64**  
 　　[IvyFEM](https://github.com/ryujimiya/IvyFEM/blob/master/publish/)  

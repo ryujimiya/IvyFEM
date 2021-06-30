@@ -325,10 +325,10 @@ namespace IvyFEM
                 {
                     Interpolate = new TetrahedronFEEdge1stInterpolate(thisTetFE);
                 }
-                //else if (Order == 2)
-                //{
-                //    Interpolate = new TetrahedronFEEdge2ndInterpolate(thisTetFE);
-                //}
+                else if (Order == 2)
+                {
+                    Interpolate = new TetrahedronFEEdge2ndInterpolate(thisTetFE);
+                }
                 else
                 {
                     System.Diagnostics.Debug.Assert(false);

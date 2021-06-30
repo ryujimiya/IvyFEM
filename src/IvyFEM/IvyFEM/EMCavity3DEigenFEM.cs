@@ -10,6 +10,8 @@ namespace IvyFEM
     {
         // 磁界？
         public bool IsMagneticField { get; set; } = false;
+        // 固有値ソルバー
+        public bool IsSymmetricBandSolver { get; set; } = true;
 
         // Solve
         // output
@@ -136,13 +138,71 @@ namespace IvyFEM
 
             CalcMatrixs(K, M);
 
-            /*
-            //--------------------------------------------------
-            System.Numerics.Complex[] eVals = null;
-            System.Numerics.Complex[][] eVecs = null;
+            System.Numerics.Complex[] eVals;
+            System.Numerics.Complex[][] eVecs;
+            if (IsSymmetricBandSolver)
+            {
+                //--------------------------------------------------
+                var A = K;
+                var B = M;
+                double[] doubleEVals;
+                double[][] doubleEVecs;
+                SolveDoubleSymmetricDefiniteBandGeneralizedEigen(A, B, out doubleEVals, out doubleEVecs);
+
+                // 互換性のため複素数にする
+                eVals = new System.Numerics.Complex[doubleEVals.Length];
+                eVecs = new System.Numerics.Complex[doubleEVals.Length][];
+                for (int iMode = 0; iMode < doubleEVals.Length; iMode++)
+                {
+                    eVals[iMode] = new System.Numerics.Complex(doubleEVals[iMode], 0.0);
+                    eVecs[iMode] = new System.Numerics.Complex[doubleEVecs[iMode].Length];
+                    for (int nodeIdB = 0; nodeIdB < doubleEVecs[iMode].Length; nodeIdB++)
+                    {
+                        eVecs[iMode][nodeIdB] = new System.Numerics.Complex(doubleEVecs[iMode][nodeIdB], 0.0);
+                    }
+                }
+                //--------------------------------------------------
+            }
+            else
+            {
+                //--------------------------------------------------
+                var A = K;
+                var B = M;
+                SolveDoubleGeneralizedEigen(A, B, out eVals, out eVecs);
+                //--------------------------------------------------
+            }
+
+            SortEVals(eVals, eVecs);
+            AdjustPhaseAndVecDirEVecs(eVecs);
+
+            //--------------------------------------------
+            int modeCnt = eVals.Length;
+            Frequencys = new System.Numerics.Complex[modeCnt];
+            EVecs = new System.Numerics.Complex[modeCnt][];
+            CoordExyzEVecs = new System.Numerics.Complex[modeCnt][];
+            for (int iMode = 0; iMode < modeCnt; iMode++)
+            {
+                System.Numerics.Complex k0 = System.Numerics.Complex.Sqrt(eVals[iMode]);
+                System.Numerics.Complex omega = k0 * Constants.C0;
+                System.Numerics.Complex freq = omega / (2.0 * Math.PI);
+                Frequencys[iMode] = freq;
+                EVecs[iMode] = eVecs[iMode];
+
+                System.Numerics.Complex[] coordExyzEVec;
+                CalcModeCoordExyz(eVecs[iMode], out coordExyzEVec);
+                CoordExyzEVecs[iMode] = coordExyzEVec;
+            }
+            //--------------------------------------------
+        }
+
+        private void SolveDoubleGeneralizedEigen(
+            IvyFEM.Lapack.DoubleMatrix A, IvyFEM.Lapack.DoubleMatrix B,
+            out System.Numerics.Complex[] eVals, out System.Numerics.Complex[][] eVecs)
+        {
+            eVals = null;
+            eVecs = null;
+            
             int ret = -1;
-            var A = K;
-            var B = M;
             try
             {
                 ret = IvyFEM.Lapack.Functions.dggev_dirty(A.Buffer, A.RowLength, A.ColumnLength,
@@ -169,50 +229,6 @@ namespace IvyFEM
                     eVecs[iMode] = new System.Numerics.Complex[n];
                 }
             }
-            //--------------------------------------------------
-            */
-            //--------------------------------------------------
-            var A = K;
-            var B = M;
-            double[] doubleEVals;
-            double[][] doubleEVecs;
-            SolveDoubleSymmetricDefiniteBandGeneralizedEigen(A, B, out doubleEVals, out doubleEVecs);
-
-            // 互換性のため複素数にする
-            System.Numerics.Complex[] eVals = new System.Numerics.Complex[doubleEVals.Length];
-            System.Numerics.Complex[][] eVecs = new System.Numerics.Complex[doubleEVals.Length][];
-            for (int iMode = 0; iMode < doubleEVals.Length; iMode++)
-            {
-                eVals[iMode] = new System.Numerics.Complex(doubleEVals[iMode], 0.0);
-                eVecs[iMode] = new System.Numerics.Complex[doubleEVecs[iMode].Length];
-                for (int nodeIdB = 0; nodeIdB < doubleEVecs[iMode].Length; nodeIdB++)
-                {
-                    eVecs[iMode][nodeIdB] = new System.Numerics.Complex(doubleEVecs[iMode][nodeIdB], 0.0);
-                }
-            }
-            //--------------------------------------------------
-
-            SortEVals(eVals, eVecs);
-            AdjustPhaseAndVecDirEVecs(eVecs);
-
-            //--------------------------------------------
-            int modeCnt = eVals.Length;
-            Frequencys = new System.Numerics.Complex[modeCnt];
-            EVecs = new System.Numerics.Complex[modeCnt][];
-            CoordExyzEVecs = new System.Numerics.Complex[modeCnt][];
-            for (int iMode = 0; iMode < modeCnt; iMode++)
-            {
-                System.Numerics.Complex k0 = System.Numerics.Complex.Sqrt(eVals[iMode]);
-                System.Numerics.Complex omega = k0 * Constants.C0;
-                System.Numerics.Complex freq = omega / (2.0 * Math.PI);
-                Frequencys[iMode] = freq;
-                EVecs[iMode] = eVecs[iMode];
-
-                System.Numerics.Complex[] coordExyzEVec;
-                CalcModeCoordExyz(eVecs[iMode], out coordExyzEVec);
-                CoordExyzEVecs[iMode] = coordExyzEVec;
-            }
-            //--------------------------------------------
         }
 
         private void SolveDoubleSymmetricDefiniteBandGeneralizedEigen(
@@ -441,13 +457,37 @@ namespace IvyFEM
                 }
 
                 // 節点のL
-                double[][] nodeL = new double[4][]
+                double[][] nodeL = null;
+                if (elemNodeCnt == 4)
                 {
-                    new double[4] { 1.0, 0.0, 0.0, 0.0 },
-                    new double[4] { 0.0, 1.0, 0.0, 0.0 },
-                    new double[4] { 0.0, 0.0, 1.0, 0.0 },
-                    new double[4] { 0.0, 0.0, 0.0, 1.0 }
-                };
+                    nodeL = new double[4][]
+                    {
+                        new double[4] { 1.0, 0.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 1.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 1.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 0.0, 1.0 }
+                    };
+                }
+                else if (elemNodeCnt == 10)
+                {
+                    nodeL = new double[10][]
+                    {
+                        new double[4] { 1.0, 0.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 1.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 1.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 0.0, 1.0 },
+                        new double[4] { 0.5, 0.5, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.5, 0.5, 0.0 },
+                        new double[4] { 0.5, 0.0, 0.5, 0.0 },
+                        new double[4] { 0.5, 0.0, 0.0, 0.5 },
+                        new double[4] { 0.0, 0.5, 0.0, 0.5 },
+                        new double[4] { 0.0, 0.0, 0.5, 0.5 }
+                    };
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
                 System.Diagnostics.Debug.Assert(nodeL.Length == elemNodeCnt);
                 // 節点におけるEx,Ey,Ezを求める
                 System.Numerics.Complex[][] exyz = new System.Numerics.Complex[elemNodeCnt][];

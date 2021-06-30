@@ -316,13 +316,37 @@ namespace IvyFEM
                 }
 
                 // 節点のL
-                double[][] nodeL = new double[4][]
+                double[][] nodeL = null;
+                if (elemNodeCnt == 4)
                 {
-                    new double[4] { 1.0, 0.0, 0.0, 0.0 },
-                    new double[4] { 0.0, 1.0, 0.0, 0.0 },
-                    new double[4] { 0.0, 0.0, 1.0, 0.0 },
-                    new double[4] { 0.0, 0.0, 0.0, 1.0 }
-                };
+                    nodeL = new double[4][]
+                    {
+                        new double[4] { 1.0, 0.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 1.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 1.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 0.0, 1.0 }
+                    };
+                }
+                else if (elemNodeCnt == 10)
+                {
+                    nodeL = new double[10][]
+                    {
+                        new double[4] { 1.0, 0.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 1.0, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 1.0, 0.0 },
+                        new double[4] { 0.0, 0.0, 0.0, 1.0 },
+                        new double[4] { 0.5, 0.5, 0.0, 0.0 },
+                        new double[4] { 0.0, 0.5, 0.5, 0.0 },
+                        new double[4] { 0.5, 0.0, 0.5, 0.0 },
+                        new double[4] { 0.5, 0.0, 0.0, 0.5 },
+                        new double[4] { 0.0, 0.5, 0.0, 0.5 },
+                        new double[4] { 0.0, 0.0, 0.5, 0.5 }
+                    };
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
                 System.Diagnostics.Debug.Assert(nodeL.Length == elemNodeCnt);
                 // 節点におけるEx,Ey,Ezを求める
                 System.Numerics.Complex[][] exyz = new System.Numerics.Complex[elemNodeCnt][];

@@ -233,13 +233,6 @@ namespace IvyFEM
             return L;
         }
 
-        public double[] GetEdgeL(int edgeId)
-        {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
-            double[] ret = edgeInterpolate.GetEdgeL(edgeId);
-            return ret;
-        }
-
         public static IntegrationPoints GetIntegrationPoints(TriangleIntegrationPointCount integrationPointCount)
         {
             foreach (var ip in IntegrationPoints.TriangleIntegrationPoints)

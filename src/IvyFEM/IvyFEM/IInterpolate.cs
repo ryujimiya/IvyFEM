@@ -22,7 +22,6 @@ namespace IvyFEM
     public interface IEdgeInterpolate : IInterpolate 
     {
         uint GetEdgeCount();
-        double[] GetEdgeL(int edgeId);
         int[][] GetEdgePointIdss();
         double[][] CalcEdgeN(double[] L);
         double[] CalcRotEdgeN(double[] L);
@@ -32,7 +31,6 @@ namespace IvyFEM
     public interface IEdgeInterpolate3D : IInterpolate
     {
         uint GetEdgeCount();
-        double[] GetEdgeL(int edgeId);
         int[][] GetEdgePointIdss();
         double[][] CalcEdgeN(double[] L);
         double[][] CalcRotEdgeN(double[] L);

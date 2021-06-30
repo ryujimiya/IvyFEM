@@ -96,6 +96,10 @@ namespace IvyFEM
             {
                 Coords = new List<double>(vertexCoords);
             }
+            else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+            {
+                Coords = new List<double>(vertexCoords);
+            }
             else
             {
                 System.Diagnostics.Debug.Assert(false);
@@ -147,6 +151,10 @@ namespace IvyFEM
                 else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                 {
                     elemNodeCnt = 4;
+                }
+                else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                {
+                    elemNodeCnt = 10;
                 }
                 else
                 {
@@ -226,6 +234,55 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
                         elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
+                    else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                    {
+                        for (int i = 0; i < elemVertexCnt; i++)
+                        {
+                            elemNodeCoIds[i] = elemVertexCoIds[i];
+                        }
+
+                        for (int iEdge = 0; iEdge < 6; iEdge++)
+                        {
+                            uint[] edgeNode = tetEdgeNodes[iEdge];
+                            int v1 = elemVertexCoIds[edgeNode[0]];
+                            int v2 = elemVertexCoIds[edgeNode[1]];
+                            if (v1 > v2)
+                            {
+                                int tmp = v1;
+                                v1 = v2;
+                                v2 = tmp;
+                            }
+                            string edgeKey = v1 + "_" + v2;
+                            int midPtCoId = -1;
+                            if (edge2MidPt.ContainsKey(edgeKey))
+                            {
+                                midPtCoId = edge2MidPt[edgeKey][0];
+                            }
+                            else
+                            {
+                                double[] vPt1 = world.GetVertexCoord(v1);
+                                double[] vPt2 = world.GetVertexCoord(v2);
+                                uint dim = Dimension;
+                                System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                                System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                                double[] midPt = new double[dim];
+                                for (int idim = 0; idim < dim; idim++)
+                                {
+                                    midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                                }
+                                midPtCoId = (int)(Coords.Count / dim);
+                                for (int idim = 0; idim < dim; idim++)
+                                {
+                                    Coords.Add(midPt[idim]);
+                                }
+                                var list = new List<int>();
+                                list.Add(midPtCoId);
+                                edge2MidPt[edgeKey] = list;
+                            }
+
+                            elemNodeCoIds[iEdge + elemVertexCnt] = midPtCoId;
+                        }
+                    }
                     else
                     {
                         System.Diagnostics.Debug.Assert(false);
@@ -292,8 +349,11 @@ namespace IvyFEM
                 }
                 else if (FEType == FiniteElementType.Edge && FEOrder == 1)
                 {
-                    // 暫定: Lagrange線要素で代用
                     elemNodeCnt = 3;
+                }
+                else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                {
+                    elemNodeCnt = 6;
                 }
                 else
                 {
@@ -375,6 +435,53 @@ namespace IvyFEM
                         System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
                         elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
                     }
+                    else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                    {
+                        for (int i = 0; i < elemVertexCnt; i++)
+                        {
+                            elemNodeCoIds[i] = elemVertexCoIds[i];
+
+                            {
+                                int v1 = elemVertexCoIds[i];
+                                int v2 = elemVertexCoIds[(i + 1) % elemVertexCnt];
+                                if (v1 > v2)
+                                {
+                                    int tmp = v1;
+                                    v1 = v2;
+                                    v2 = tmp;
+                                }
+                                string edgeKey = v1 + "_" + v2;
+                                int midPtCoId = -1;
+                                if (edge2MidPt.ContainsKey(edgeKey))
+                                {
+                                    midPtCoId = edge2MidPt[edgeKey][0];
+                                }
+                                else
+                                {
+                                    double[] vPt1 = world.GetVertexCoord(v1);
+                                    double[] vPt2 = world.GetVertexCoord(v2);
+                                    uint dim = Dimension;
+                                    System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                                    System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                                    double[] midPt = new double[dim];
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                                    }
+                                    midPtCoId = (int)(Coords.Count / dim);
+                                    for (int idim = 0; idim < dim; idim++)
+                                    {
+                                        Coords.Add(midPt[idim]);
+                                    }
+                                    var list = new List<int>();
+                                    list.Add(midPtCoId);
+                                    edge2MidPt[edgeKey] = list;
+                                }
+
+                                elemNodeCoIds[i + elemVertexCnt] = midPtCoId;
+                            }
+                        }
+                    }
                     else
                     {
                         System.Diagnostics.Debug.Assert(false);
@@ -447,6 +554,11 @@ namespace IvyFEM
                 {
                     // 暫定: Lagrange線要素で代用
                     elemNodeCnt = 2;
+                }
+                else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                {
+                    // 暫定: Lagrange線要素で代用
+                    elemNodeCnt = 3;
                 }
                 else
                 {
@@ -525,6 +637,51 @@ namespace IvyFEM
                         // 暫定：Lagrange線要素で代用
                         System.Diagnostics.Debug.Assert(elemNodeCoIds.Length == elemVertexCoIds.Length);
                         elemVertexCoIds.CopyTo(elemNodeCoIds, 0);
+                    }
+                    else if (FEType == FiniteElementType.Edge && FEOrder == 2)
+                    {
+                        // 暫定: Lagrange線要素で代用
+                        for (int i = 0; i < 2; i++)
+                        {
+                            elemNodeCoIds[i] = elemVertexCoIds[i];
+                        }
+                        // 線要素上の中点
+                        int v1 = elemVertexCoIds[0];
+                        int v2 = elemVertexCoIds[1];
+                        if (v1 > v2)
+                        {
+                            int tmp = v1;
+                            v1 = v2;
+                            v2 = tmp;
+                        }
+                        string edgeKey = v1 + "_" + v2;
+                        int midPtCoId = -1;
+                        if (edge2MidPt.ContainsKey(edgeKey))
+                        {
+                            midPtCoId = edge2MidPt[edgeKey][0];
+                        }
+                        else
+                        {
+                            double[] vPt1 = world.GetVertexCoord(v1);
+                            double[] vPt2 = world.GetVertexCoord(v2);
+                            uint dim = Dimension;
+                            System.Diagnostics.Debug.Assert(vPt1.Length == dim);
+                            System.Diagnostics.Debug.Assert(vPt2.Length == dim);
+                            double[] midPt = new double[dim];
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                midPt[idim] = (vPt1[idim] + vPt2[idim]) / 2.0;
+                            }
+                            midPtCoId = (int)(Coords.Count / dim);
+                            for (int idim = 0; idim < dim; idim++)
+                            {
+                                Coords.Add(midPt[idim]);
+                            }
+                            var list = new List<int>();
+                            list.Add(midPtCoId);
+                            edge2MidPt[edgeKey] = list;
+                        }
+                        elemNodeCoIds[2] = midPtCoId;
                     }
                     else
                     {
@@ -970,7 +1127,7 @@ namespace IvyFEM
                 TetrahedronFE tetFE = GetTetrahedronFE(feId);
                 if (FEType == FiniteElementType.Edge)
                 {
-                    System.Diagnostics.Debug.Assert(FEOrder == 1);
+                    System.Diagnostics.Debug.Assert(FEOrder == 1 || FEOrder == 2);
                     int elemEdgeCnt = (int)tetFE.EdgeCount;
                     for (int eIndex = 0; eIndex < elemEdgeCnt; eIndex++)
                     {

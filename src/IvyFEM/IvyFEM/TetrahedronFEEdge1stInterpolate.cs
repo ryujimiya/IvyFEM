@@ -73,20 +73,6 @@ namespace IvyFEM
             throw new NotImplementedException();
         }
 
-        public double[] GetEdgeL(int edgeId)
-        {
-            double[][] edgeL = new double[6][]
-            {
-                new double[] { 0.5, 0.5, 0.0, 0.0 }, // 1-2の中点
-                new double[] { 0.5, 0.0, 0.5, 0.0 }, // 1-3の中点
-                new double[] { 0.5, 0.0, 0.0, 0.5 }, // 1-4の中点
-                new double[] { 0.0, 0.5, 0.5, 0.0 }, // 2-3の中点
-                new double[] { 0.0, 0.5, 0.0, 0.5 }, // 4-2の中点
-                new double[] { 0.0, 0.0, 0.5, 0.5 } // 3-4の中点
-            };
-            return edgeL[edgeId];
-        }
-
         public int[][] GetEdgePointIdss()
         {
             int[][] edgePointId = new int[6][]
@@ -197,6 +183,7 @@ namespace IvyFEM
                     (co2[1] - co1[1]) * (co2[1] - co1[1]) +
                     (co2[2] - co1[2]) * (co2[2] - co1[2]));
             }
+
             double[][] gradLs = new double[4][];
             for (int i = 0; i < 3; i++)
             {

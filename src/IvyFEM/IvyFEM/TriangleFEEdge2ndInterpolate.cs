@@ -73,25 +73,38 @@ namespace IvyFEM
             throw new NotImplementedException();
         }
 
-        public double[] GetEdgeL(int edgeId)
-        {
-            double[][] edgeL = new double[8][]
-            {
-                new double[] { 0.0, 1.0, 0.0 }, // 2-5の2
-                new double[] { 0.0, 0.0, 1.0 }, // 5-3の3
-                new double[] { 0.0, 0.0, 1.0 }, // 3-6の3
-                new double[] { 1.0, 0.0, 0.0 }, // 6-1の1
-                new double[] { 1.0, 0.0, 0.0 }, // 1-4の1
-                new double[] { 0.0, 1.0, 0.0 }, // 4-2の2
-                new double[] { 0.0, 0.5, 0.5 }, // 5-1の5
-                new double[] { 0.5, 0.0, 0.5 }, // 6-2の6
-
-            };
-            return edgeL[edgeId];
-        }
-
         public int[][] GetEdgePointIdss()
         {
+            IList<int> vNos;
+            {
+                var list = new List<KeyValuePair<int, int>>();
+                for (int i = 0; i < 3; i++)
+                {
+                    list.Add(new KeyValuePair<int, int>(Owner.VertexCoordIds[i], i));
+                }
+                list.Sort((a, b) =>
+                {
+                    double diff = a.Key - b.Key;
+                    if (diff > 0)
+                    {
+                        return 1;
+                    }
+                    else if (diff < 0)
+                    {
+                        return -1;
+                    }
+                    return 0;
+                });
+
+                vNos = new List<int>();
+                foreach (var pair in list)
+                {
+                    int coId = pair.Key;
+                    int vNo = pair.Value;
+                    vNos.Add(vNo);
+                }
+            }
+
             int[][] edgePointId = new int[8][]
             {
                 new int[]{ 1, 4 },
@@ -100,9 +113,32 @@ namespace IvyFEM
                 new int[]{ 5, 0 },
                 new int[]{ 0, 3 },
                 new int[]{ 3, 1 },
-                new int[]{ 4, 0 },
-                new int[]{ 5, 1 }
+                null,
+                null
             };
+
+            for (int eIndex = 6; eIndex < 8; eIndex++)
+            {
+                int vNo = vNos[eIndex - 6];
+                int[] pointIds = null;
+                if (vNo == 0)
+                {
+                    pointIds = new int[] { 4, 0 };
+                }
+                else if (vNo == 1)
+                {
+                    pointIds = new int[] { 5, 1 };
+                }
+                else if (vNo == 2)
+                {
+                    pointIds = new int[] { 3, 2 };
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+                edgePointId[eIndex] = pointIds;
+            }
             return edgePointId;
         }
 
@@ -152,12 +188,14 @@ namespace IvyFEM
                 }
             }
 
+            int[][] edgePointId = GetEdgePointIdss();
+
             // t1...t6
-            for (int vEIndex = 0; vEIndex < 3; vEIndex++)
+            for (int vIndex = 0; vIndex < 3; vIndex++)
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    int eIndex = vEIndex * 2 + i;
+                    int eIndex = vIndex * 2 + i;
                     double[] edgeN = new double[2];
                     edgeNs[eIndex] = edgeN;
                     // x,y成分
@@ -165,28 +203,34 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeN[idim] = lens[vEIndex] * L[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim]; 
+                            edgeN[idim] = lens[vIndex] * L[(vIndex + 1) % 3] * gradLs[(vIndex + 2) % 3][idim]; 
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeN[idim] = -lens[vEIndex] * L[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeN[idim] = -lens[vIndex] * L[(vIndex + 2) % 3] * gradLs[(vIndex + 1) % 3][idim];
                         }
                     }
                 }
             }
+            
             // t7,t8
-            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            for (int iVNo = 0; iVNo < 2; iVNo++)
             {
-                int eIndex = 6 + vEIndex;
+                int eIndex = 6 + iVNo;
+                int vIndex = edgePointId[eIndex][1];
+                System.Diagnostics.Debug.Assert(vIndex >= 0 && vIndex < 3);
                 double[] edgeN = new double[2];
                 edgeNs[eIndex] = edgeN;
+
+                double[] n = CadUtils2D.Normalize2D(gradLs[vIndex]);
+
                 // x,y成分
                 for (int idim = 0; idim < 2; idim++)
                 {
-                    edgeN[idim] = 4.0 * L[(vEIndex + 1) % 3] * L[(vEIndex + 2) % 3] * gradLs[vEIndex][idim];
+                    edgeN[idim] = 4.0 * L[(vIndex + 1) % 3] * L[(vIndex + 2) % 3] * n[idim];
                 }
             }
 
@@ -216,6 +260,30 @@ namespace IvyFEM
             {
                 lens[i] = Math.Sqrt(barB[i] * barB[i] + barC[i] * barC[i]);
             }
+
+            double[][] gradLs = new double[3][];
+            for (int vIndex = 0; vIndex < 2; vIndex++)
+            {
+                double[] gradL = new double[2];
+                gradLs[vIndex] = gradL;
+
+                gradL[0] = b[vIndex];
+                gradL[1] = c[vIndex];
+            }
+            {
+                int vIndex = 2;
+                double[] gradL = new double[2];
+                gradLs[vIndex] = gradL;
+
+                for (int idim = 0; idim < 2; idim++)
+                {
+                    double[] gradL0 = gradLs[0];
+                    double[] gradL1 = gradLs[1];
+                    gradL[idim] = -gradL0[idim] - gradL1[idim];
+                }
+            }
+
+            int[][] edgePointId = GetEdgePointIdss();
 
             double gradLigradLiplus1 = 1.0 / (2.0 * A);
             {
@@ -248,17 +316,41 @@ namespace IvyFEM
                 // z成分
                 rotEdgeNs[eIndex] = lens[2] * gradLigradLiplus1;
             }
+            for (int iVNo = 0; iVNo < 2; iVNo++)
             {
-                int eIndex = 6;
-                rotEdgeNs[eIndex] = 
-                    4.0 * L[2] * (-gradLigradLiplus1) +
-                    4.0 * L[1] * gradLigradLiplus1;
-            }
-            {
-                int eIndex = 7;
-                rotEdgeNs[eIndex] =
-                    4.0 * L[0] * (-gradLigradLiplus1) +
-                    4.0 * L[2] * gradLigradLiplus1;
+                int eIndex = 6 + iVNo;
+                int vIndex = edgePointId[eIndex][1];
+                System.Diagnostics.Debug.Assert(vIndex >= 0 && vIndex < 3);
+                double value = 0.0;
+                double gradLAbs = Math.Sqrt(
+                    gradLs[vIndex][0] * gradLs[vIndex][0] +
+                    gradLs[vIndex][1] * gradLs[vIndex][1]);
+                if (vIndex == 0)
+                {
+                    value =
+                        4.0 * L[2] * (-gradLigradLiplus1) +
+                        4.0 * L[1] * gradLigradLiplus1;
+                    value /= gradLAbs;
+                }
+                else if (vIndex == 1)
+                {
+                    value =
+                        4.0 * L[0] * (-gradLigradLiplus1) +
+                        4.0 * L[2] * gradLigradLiplus1;
+                    value /= gradLAbs;
+                }
+                else if (vIndex == 2)
+                {
+                    value =
+                        4.0 * L[1] * (-gradLigradLiplus1) +
+                        4.0 * L[0] * gradLigradLiplus1;
+                    value /= gradLAbs;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(false);
+                }
+                rotEdgeNs[eIndex] = value;
             }
             return rotEdgeNs;
         }
@@ -308,15 +400,17 @@ namespace IvyFEM
                 }
             }
 
+            int[][] edgePointId = GetEdgePointIdss();
+
             double[][][] edgeNus = new double[2][][];
             double[][] edgeNxs = new double[8][];
             edgeNus[0] = edgeNxs;
             // t1...t6
-            for (int vEIndex = 0; vEIndex < 3; vEIndex++)
+            for (int vIndex = 0; vIndex < 3; vIndex++)
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    int eIndex = vEIndex * 2 + i;
+                    int eIndex = vIndex * 2 + i;
                     double[] edgeNx = new double[2];
                     edgeNxs[eIndex] = edgeNx;
                     // x,y成分
@@ -324,42 +418,47 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNx[idim] = lens[vEIndex] * b[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                            edgeNx[idim] = lens[vIndex] * b[(vIndex + 1) % 3] * gradLs[(vIndex + 2) % 3][idim];
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNx[idim] = -lens[vEIndex] * b[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeNx[idim] = -lens[vIndex] * b[(vIndex + 2) % 3] * gradLs[(vIndex + 1) % 3][idim];
                         }
                     }
                 }
             }
             // t7,t8
-            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            for (int iVNo = 0; iVNo < 2; iVNo++)
             {
-                int eIndex = 6 + vEIndex;
+                int eIndex = 6 + iVNo;
+                int vIndex = edgePointId[eIndex][1];
+                System.Diagnostics.Debug.Assert(vIndex >= 0 && vIndex < 3);
                 double[] edgeNx = new double[2];
                 edgeNxs[eIndex] = edgeNx;
+
+                double[] n = CadUtils2D.Normalize2D(gradLs[vIndex]);
+
                 // x,y成分
                 for (int idim = 0; idim < 2; idim++)
                 {
                     edgeNx[idim] = 4.0 * (
-                        b[(vEIndex + 1) % 3] * L[(vEIndex + 2) % 3] +
-                        b[(vEIndex + 2) % 3] * L[(vEIndex + 1) % 3]
-                        )* gradLs[vEIndex][idim];
+                        b[(vIndex + 1) % 3] * L[(vIndex + 2) % 3] +
+                        b[(vIndex + 2) % 3] * L[(vIndex + 1) % 3]
+                        ) * n[idim];
                 }
             }
 
             double[][] edgeNys = new double[8][];
             edgeNus[1] = edgeNys;
             // t1...t6
-            for (int vEIndex = 0; vEIndex < 3; vEIndex++)
+            for (int vIndex = 0; vIndex < 3; vIndex++)
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    int eIndex = vEIndex * 2 + i;
+                    int eIndex = vIndex * 2 + i;
                     double[] edgeNy = new double[2];
                     edgeNys[eIndex] = edgeNy;
                     // x,y成分
@@ -367,31 +466,36 @@ namespace IvyFEM
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNy[idim] = lens[vEIndex] * c[(vEIndex + 1) % 3] * gradLs[(vEIndex + 2) % 3][idim];
+                            edgeNy[idim] = lens[vIndex] * c[(vIndex + 1) % 3] * gradLs[(vIndex + 2) % 3][idim];
                         }
                     }
                     else
                     {
                         for (int idim = 0; idim < 2; idim++)
                         {
-                            edgeNy[idim] = -lens[vEIndex] * c[(vEIndex + 2) % 3] * gradLs[(vEIndex + 1) % 3][idim];
+                            edgeNy[idim] = -lens[vIndex] * c[(vIndex + 2) % 3] * gradLs[(vIndex + 1) % 3][idim];
                         }
                     }
                 }
             }
             // t7,t8
-            for (int vEIndex = 0; vEIndex < 2; vEIndex++)
+            for (int iVNo = 0; iVNo < 2; iVNo++)
             {
-                int eIndex = 6 + vEIndex;
+                int eIndex = 6 + iVNo;
+                int vIndex = edgePointId[eIndex][1];
+                System.Diagnostics.Debug.Assert(vIndex >= 0 && vIndex < 3);
                 double[] edgeNy = new double[2];
                 edgeNys[eIndex] = edgeNy;
+
+                double[] n = CadUtils2D.Normalize2D(gradLs[vIndex]);
+
                 // x,y成分
                 for (int idim = 0; idim < 2; idim++)
                 {
                     edgeNy[idim] = 4.0 * (
-                        c[(vEIndex + 1) % 3] * L[(vEIndex + 2) % 3] +
-                        c[(vEIndex + 2) % 3] * L[(vEIndex + 1) % 3]
-                        ) * gradLs[vEIndex][idim];
+                        c[(vIndex + 1) % 3] * L[(vIndex + 2) % 3] +
+                        c[(vIndex + 2) % 3] * L[(vIndex + 1) % 3]
+                        ) * n[idim];
                 }
             }
             return edgeNus;

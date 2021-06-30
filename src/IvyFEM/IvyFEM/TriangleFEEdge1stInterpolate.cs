@@ -73,17 +73,6 @@ namespace IvyFEM
             throw new NotImplementedException();
         }
 
-        public double[] GetEdgeL(int edgeId)
-        {
-            double[][] edgeL = new double[3][]
-            {
-                new double[] { 0.0, 0.5, 0.5 }, // 2-3の中点
-                new double[] { 0.5, 0.0, 0.5 }, // 3-1の中点
-                new double[] { 0.5, 0.5, 0.0 }  // 1-2の中点
-            };
-            return edgeL[edgeId];
-        }
-
         public int[][] GetEdgePointIdss()
         {
             int[][] edgePointId = new int[3][]

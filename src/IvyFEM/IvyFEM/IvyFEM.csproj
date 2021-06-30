@@ -204,6 +204,7 @@
     <Compile Include="TetGen.cs" />
     <Compile Include="TetrahedronFE.cs" />
     <Compile Include="TetrahedronFE2ndInterpolate.cs" />
+    <Compile Include="TetrahedronFEEdge2ndInterpolate.cs" />
     <Compile Include="TimoshenkoCorotationalFrameMaterial.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoCorotationalFrame.cs" />
     <Compile Include="Elastic2DFEM.TimoshenkoTLFrame.cs" />

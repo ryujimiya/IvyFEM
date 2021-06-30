@@ -160,13 +160,6 @@ namespace IvyFEM
             return L;
         }
 
-        public double[] GetEdgeL(int edgeId)
-        {
-            IEdgeInterpolate edgeInterpolate = Interpolate as IEdgeInterpolate;
-            double[] ret = edgeInterpolate.GetEdgeL(edgeId);
-            return ret;
-        }
-
         // ξ([-1, 1])からL1,L2に変換
         public static double[] GetLFromXi(double xi)
         {
