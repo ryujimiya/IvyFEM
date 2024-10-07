@@ -75,7 +75,8 @@ namespace IvyFEM
     {
         Node,
         Bubble,
-        ElementNode
+        ElementNode,
+        ElementEdge
     }
 
     [Flags]

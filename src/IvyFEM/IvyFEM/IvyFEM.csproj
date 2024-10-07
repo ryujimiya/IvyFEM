@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>IvyFEM</RootNamespace>
     <AssemblyName>IvyFEM</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,6 +93,11 @@
     <Compile Include="CadRes.cs" />
     <Compile Include="Camera3D.cs" />
     <Compile Include="EMWaveguide2DEigenFEMForPort.cs" />
+    <Compile Include="EMWaveguide3DPMLFEM.cs" />
+    <Compile Include="EMWaveguide3DPMLTDFEM.cs" />
+    <Compile Include="EMWaveguide3DPMLTDFEMTmp.cs" />
+    <Compile Include="EMWaveguide3DFirstOrderABCTDFEMWithRefCenterPoints.cs" />
+    <Compile Include="EMWaveguide3DFirstOrderABCTDFEM.cs" />
     <Compile Include="EMWaveguide3DFEM.cs" />
     <Compile Include="EMCavity3DEigenFEM.cs" />
     <Compile Include="FluidLES2DTDFEM.cs" />

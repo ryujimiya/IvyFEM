@@ -18,7 +18,8 @@ namespace IvyFEM
         public double DistanceOrder { get => Values[7]; set => Values[7] = value; }
         protected double OriginPointX { get => Values[8]; set => Values[8] = value; }
         protected double OriginPointY { get => Values[9]; set => Values[9] = value; }
-        public OpenTK.Vector2d OriginPoint 
+        protected double OriginPointZ { get => Values[10]; set => Values[10] = value; } // 未使用
+        public OpenTK.Vector2d OriginPoint
         {
             get
             {
@@ -28,13 +29,28 @@ namespace IvyFEM
             {
                 OriginPointX = value.X;
                 OriginPointY = value.Y;
-            } 
+            }
         }
-        public double XThickness { get => Values[10]; set => Values[10] = value; }
-        public double YThickness { get => Values[11]; set => Values[11] = value; }
+        public OpenTK.Vector3d OriginPoint3D
+        {
+            get
+            {
+                return new OpenTK.Vector3d(OriginPointX, OriginPointY, OriginPointZ);
+            }
+            set
+            {
+                OriginPointX = value.X;
+                OriginPointY = value.Y;
+                OriginPointZ = value.Z;
+            }
+        }
+        public double XThickness { get => Values[11]; set => Values[11] = value; }
+        public double YThickness { get => Values[12]; set => Values[12] = value; }
+        public double ZThickness { get => Values[13]; set => Values[13] = value; }
         // 回転
-        protected double RotOriginPointX { get => Values[12]; set => Values[12] = value; }
-        protected double RotOriginPointY { get => Values[13]; set => Values[13] = value; }
+        protected double RotOriginPointX { get => Values[14]; set => Values[14] = value; }
+        protected double RotOriginPointY { get => Values[15]; set => Values[15] = value; }
+        protected double RotOriginPointZ { get => Values[16]; set => Values[16] = value; }
         public OpenTK.Vector2d RotOriginPoint
         {
             get
@@ -47,11 +63,23 @@ namespace IvyFEM
                 RotOriginPointY = value.Y;
             }
         }
+        public OpenTK.Vector3d RotOriginPoint3D
+        {
+            get
+            {
+                return new OpenTK.Vector3d(RotOriginPointX, RotOriginPointY, RotOriginPointZ);
+            }
+            set
+            {
+                RotOriginPointX = value.X;
+                RotOriginPointY = value.Y;
+            }
+        }
         public double RotAngle { get => Values[14]; set => Values[14] = value; }
 
         public DielectricPMLMaterial() : base()
         {
-            int len = 15;
+            int len = 17;
             Values = new double[len];
             for (int i = 0; i < len; i++)
             {
@@ -86,12 +114,17 @@ namespace IvyFEM
 
         public bool IsXDirection()
         {
-            return Math.Abs(XThickness) >= Constants.PrecisionLowerLimit; 
+            return Math.Abs(XThickness) >= Constants.PrecisionLowerLimit;
         }
 
         public bool IsYDirection()
         {
             return Math.Abs(YThickness) >= Constants.PrecisionLowerLimit;
+        }
+
+        public bool IsZDirection()
+        {
+            return Math.Abs(ZThickness) >= Constants.PrecisionLowerLimit;
         }
 
         private double CalcSigma(
@@ -253,5 +286,98 @@ namespace IvyFEM
                 out c1PY, out c2PY,
                 out c1VY);
         }
+
+        public double CalcSigmaXFor3D(OpenTK.Vector3d pt)
+        {
+            double sigmaX = 0.0;
+            if (!IsXDirection())
+            {
+                return sigmaX;
+            }
+
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY, OriginPointZ };
+            //double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY, RotOriginPointZ };
+            //pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
+            double thickness = XThickness;
+            double ep = Epxx;
+            double mu = Muxx;
+            double pos = pt.X;
+            double origin = pmlOriginCoord[0]; // X
+            sigmaX = CalcSigma(
+                thickness,
+                ep, mu,
+                pos, origin);
+
+            return sigmaX;
+        }
+
+        /*同じなので削除
+        // 3D Time Domain
+        // X方向PMLのみ対応
+        private void CalcSigmaFor3DTD(
+            double thickness,
+            double ep, double mu,
+            double pos, double origin,
+            double dt,
+            out double sigma,
+            out double c1P, out double c2P,
+            out double c1V)
+        {
+            sigma = CalcSigma(thickness, ep, mu, pos, origin);
+
+            // c1ψ,c2ψ
+            c1P = 1.0 - Math.Exp(-1.0 * (sigma / (Constants.Ep0 * ep)) * dt);
+            c2P = Math.Exp(-1.0 * (sigma / (Constants.Ep0 * ep)) * dt);
+
+            // c1v
+            c1V = (sigma / (Constants.Ep0 * ep)) * dt;
+        }
+        */
+
+        // 3D Time Domain
+        public void CalcSigmaXFor3DTD(
+            OpenTK.Vector3d pt,
+            double dt,
+            out double sigmaX,
+            out double c1PX, out double c2PX,
+            out double c1VX)
+        {
+            sigmaX = 0.0;
+            c1PX = 0.0;
+            c2PX = 0.0;
+            c1VX = 0.0;
+            if (!IsXDirection())
+            {
+                return;
+            }
+
+            double[] pmlOriginCoord = { OriginPointX, OriginPointY, OriginPointZ };
+            //double[] rotOriginCoord = { RotOriginPointX, RotOriginPointY };
+            //pmlOriginCoord = CadUtils2D.GetRotCoord2D(pmlOriginCoord, RotAngle, rotOriginCoord);
+            double thickness = XThickness;
+            double ep = Epxx;
+            double mu = Muxx;
+            double pos = pt.X;
+            double origin = pmlOriginCoord[0]; // X
+            /*同じなので削除
+            CalcSigmaFor3DTD(
+                thickness,
+                ep, mu,
+                pos, origin,
+                dt,
+                out sigmaX,
+                out c1PX, out c2PX,
+                out c1VX);
+            */
+            CalcSigmaForTD(
+                thickness,
+                ep, mu,
+                pos, origin,
+                dt,
+                out sigmaX,
+                out c1PX, out c2PX,
+                out c1VX);
+        }
+
     }
 }

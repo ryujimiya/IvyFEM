@@ -123,6 +123,11 @@ namespace IvyFEM
             return Quantitys[(int)quantityId].FEOrder;
         }
 
+        public FiniteElementType GetFEType(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].FEType;
+        }
+
         public IList<FieldFixedCad> GetZeroFieldFixedCads(uint quantityId)
         {
             return Quantitys[(int)quantityId].ZeroFieldFixedCads;
@@ -329,6 +334,11 @@ namespace IvyFEM
         public IList<int> GetPeriodicPortBcCoIds(uint quantityId, uint portId, uint bcIndex)
         {
             return Quantitys[(int)quantityId].GetPeriodicPortBcCoIds(portId, bcIndex);
+        }
+
+        public uint GetEdgeCount(uint quantityId)
+        {
+            return Quantitys[(int)quantityId].GetEdgeCount();
         }
 
         public uint GetDof(uint quantityId)
@@ -665,6 +675,7 @@ namespace IvyFEM
             }
             else if (nodeType == FieldValueNodeType.ElementNode)
             {
+                /* 間違いだ
                 if (Is2DOrPlate())
                 {
                     // 2D
@@ -685,6 +696,15 @@ namespace IvyFEM
                     uint elemNodeCnt = tetFE0.NodeCount;
                     pointCnt = elemCnt * elemNodeCnt;
                 }
+                */
+                //------------------------------
+                // FIX
+                pointCnt = GetCoordCount(quantityId);
+                //------------------------------
+            }
+            else if (nodeType == FieldValueNodeType.ElementEdge)
+            {
+                pointCnt = GetEdgeCount(quantityId);
             }
             else
             {
@@ -700,6 +720,23 @@ namespace IvyFEM
         }
 
         public void UpdateFieldValueValuesFromNodeValues(
+            uint valueId, FieldDerivativeType dt, double[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            if (fv.NodeType == FieldValueNodeType.ElementEdge)
+            {
+                // ElementEdge
+                _UpdateFieldValueValuesFromNodeValuesElementEdge(valueId, dt, nodeValues);
+            }
+            else
+            {
+                // ElementNode
+                _UpdateFieldValueValuesFromNodeValuesElementNode(valueId, dt, nodeValues);
+            }
+        }
+
+        private void _UpdateFieldValueValuesFromNodeValuesElementNode(
             uint valueId, FieldDerivativeType dt, double[] nodeValues)
         {
             System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
@@ -735,7 +772,62 @@ namespace IvyFEM
             }
         }
 
+        private void _UpdateFieldValueValuesFromNodeValuesElementEdge(
+            uint valueId, FieldDerivativeType dt, double[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            System.Diagnostics.Debug.Assert(fv.NodeType == FieldValueNodeType.ElementEdge);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            double[] values = fv.GetDoubleValues(dt);
+            uint edgeCnt = GetEdgeCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+
+            for (int edgeId = 0; edgeId < edgeCnt; edgeId++)
+            {
+                int edgeNodeId = Edge2EdgeNode(quantityId, edgeId);
+                if (edgeNodeId == -1)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[edgeId * dof + iDof] = 0;
+                    }
+                }
+                else
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[edgeId * dof + iDof] = nodeValues[offsetNode + edgeNodeId * dof + iDof];
+                    }
+                }
+            }
+        }
+
         public void UpdateFieldValueValuesFromNodeValues(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            if (fv.NodeType == FieldValueNodeType.ElementEdge)
+            {
+                // ElementEdge
+                _UpdateFieldValueValuesFromNodeValuesElementEdge(valueId, dt, nodeValues);
+            }
+            else
+            {
+                // ElementNode
+                _UpdateFieldValueValuesFromNodeValuesElementNode(valueId, dt, nodeValues);
+            }
+
+        }
+
+        private void _UpdateFieldValueValuesFromNodeValuesElementNode(
             uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
         {
             System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
@@ -765,6 +857,42 @@ namespace IvyFEM
                     for (int iDof = 0; iDof < dof; iDof++)
                     {
                         values[coId * dof + iDof] = nodeValues[offsetNode + nodeId * dof + iDof];
+                    }
+                }
+            }
+        }
+
+        private void _UpdateFieldValueValuesFromNodeValuesElementEdge(
+            uint valueId, FieldDerivativeType dt, System.Numerics.Complex[] nodeValues)
+        {
+            System.Diagnostics.Debug.Assert(FieldValueArray.IsObjectId(valueId));
+            FieldValue fv = FieldValueArray.GetObject(valueId);
+            System.Diagnostics.Debug.Assert(fv.NodeType == FieldValueNodeType.ElementEdge);
+            uint quantityId = fv.QuantityId;
+            uint dof = fv.Dof;
+            System.Diagnostics.Debug.Assert(fv.Dof == GetDof(quantityId));
+            System.Numerics.Complex[] values = fv.GetComplexValues(dt);
+            uint edgeCnt = GetEdgeCount(quantityId);
+            uint offsetNode = 0;
+            for (uint qId = 0; qId < quantityId; qId++)
+            {
+                offsetNode += GetNodeCount(qId) * GetDof(qId);
+            }
+            for (int edgeId = 0; edgeId < edgeCnt; edgeId++)
+            {
+                int edgeNodeId = Edge2EdgeNode(quantityId, edgeId);
+                if (edgeNodeId == -1)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[edgeId * dof + iDof] = 0;
+                    }
+                }
+                else
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[edgeId * dof + iDof] = nodeValues[offsetNode + edgeNodeId * dof + iDof];
                     }
                 }
             }
@@ -1601,6 +1729,119 @@ namespace IvyFEM
 
             return retValue;
         }
+
+        // Note: 辺要素形状関数でなく、x,y,zスカラー形状関数で補間
+        public System.Numerics.Complex[] GetComplexPointValueFromCoordValues(
+            uint quantityId, double[] coord, System.Numerics.Complex[] coordValues)
+        {
+            System.Numerics.Complex[] value = null;
+            if (Is2DOrPlate())
+            {
+                value = GetComplexPointValueFromCoordValues2D(quantityId, coord, coordValues);
+            }
+            else
+            {
+                value = GetComplexPointValueFromCoordValues3D(quantityId, coord, coordValues);
+            }
+            return value;
+        }
+
+        private System.Numerics.Complex[] GetComplexPointValueFromCoordValues2D(
+            uint quantityId, double[] coord, System.Numerics.Complex[] coordValues)
+        {
+            System.Numerics.Complex[] retValue = null;
+            uint dof = GetDof(quantityId);
+            int offset = GetOffset(quantityId);
+
+            IList<uint> feIds = GetTriangleFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
+            {
+                return retValue;
+            }
+            int cnt = 0;
+            retValue = new System.Numerics.Complex[dof];
+            foreach (uint feId in feIds)
+            {
+                TriangleFE triFE = GetTriangleFE(quantityId, feId);
+                uint elemNodeCnt = triFE.NodeCount;
+                System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = triFE.NodeCoordIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = coordValues[coId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = triFE.Coord2L(coord);
+                double[] N = triFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++;
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
+            }
+
+            return retValue;
+        }
+
+        private System.Numerics.Complex[] GetComplexPointValueFromCoordValues3D(
+            uint quantityId, double[] coord, System.Numerics.Complex[] coordValues)
+        {
+            System.Numerics.Complex[] retValue = null;
+            uint dof = GetDof(quantityId);
+            int offset = GetOffset(quantityId);
+
+            IList<uint> feIds = GetTetrahedronFEsWithPointInside(quantityId, coord);
+            if (feIds.Count == 0)
+            {
+                return retValue;
+            }
+            int cnt = 0;
+            retValue = new System.Numerics.Complex[dof];
+            foreach (uint feId in feIds)
+            {
+                TetrahedronFE tetFE = GetTetrahedronFE(quantityId, feId);
+                uint elemNodeCnt = tetFE.NodeCount;
+                System.Numerics.Complex[] values = new System.Numerics.Complex[elemNodeCnt * dof];
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    int coId = tetFE.NodeCoordIds[iNode];
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        values[iNode * dof + iDof] = coordValues[coId * dof + iDof + offset];
+                    }
+                }
+
+                double[] L = tetFE.Coord2L(coord);
+                double[] N = tetFE.CalcN(L);
+
+                for (int iNode = 0; iNode < elemNodeCnt; iNode++)
+                {
+                    for (int iDof = 0; iDof < dof; iDof++)
+                    {
+                        retValue[iDof] += N[iNode] * values[iNode * dof + iDof];
+                    }
+                }
+                cnt++;
+            }
+            for (int iDof = 0; iDof < dof; iDof++)
+            {
+                retValue[iDof] /= cnt;
+            }
+
+            return retValue;
+        }
+
 
         public void UpdateFEDisplacements(uint quantityId, double[] U)
         {

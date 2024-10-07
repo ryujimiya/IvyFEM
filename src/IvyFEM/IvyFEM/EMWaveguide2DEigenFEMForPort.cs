@@ -718,6 +718,49 @@ namespace IvyFEM
             return S;
         }
 
+        public System.Numerics.Complex CalcModeAmp(
+            double omega, int modeIndex,
+            System.Numerics.Complex[] betas,
+            System.Numerics.Complex[][] etEVecs,
+            System.Numerics.Complex[][] ezEVecs,
+            System.Numerics.Complex[] Et)
+        {
+            System.Numerics.Complex b = 0;
+
+            System.Diagnostics.Debug.Assert(!IsMagneticField);
+
+            var SztZ = new IvyFEM.Lapack.ComplexMatrix(Szt);
+            var RttZ = new IvyFEM.Lapack.ComplexMatrix(Rtt);
+
+            uint tQuantityId = 0;
+            uint zQuantityId = 1;
+            int edgeNodeCnt = (int)World.GetPortEdgeNodeCount(tQuantityId, PortId);
+            int nodeCnt = (int)World.GetPortNodeCount(zQuantityId, PortId);
+            int sumNodeCnt = edgeNodeCnt + nodeCnt;
+            int offset = edgeNodeCnt;
+
+            System.Diagnostics.Debug.Assert(Et.Length == edgeNodeCnt);
+            int modeCnt = betas.Length;
+
+            {
+                int iMode = modeIndex;
+                var beta = betas[iMode];
+                var et = etEVecs[iMode];
+                var ez = ezEVecs[iMode];
+
+                var work1 = SztZ * Et;
+                var work2 = IvyFEM.Lapack.Functions.zdotc(ez, work1);
+                var work3 = RttZ * Et;
+                var work4 = IvyFEM.Lapack.Functions.zdotc(et, work3);
+
+                b = (beta.Magnitude / System.Numerics.Complex.Conjugate(beta)) *
+                    (1.0 / (System.Numerics.Complex.ImaginaryOne * omega * Constants.Mu0)) *
+                    (-work2 +
+                    System.Numerics.Complex.ImaginaryOne * System.Numerics.Complex.Conjugate(beta) * work4);
+            }
+            return b;
+        }
+
         public System.Numerics.Complex[] CalcModeCoordExyzByCoord(
             double[] coord,
             System.Numerics.Complex beta, System.Numerics.Complex[] etEVec, System.Numerics.Complex[] ezEVec)

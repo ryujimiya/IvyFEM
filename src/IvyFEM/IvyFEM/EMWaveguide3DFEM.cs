@@ -98,31 +98,32 @@ namespace IvyFEM
                 Material ma0 = World.GetMaterial(tetFE.MaterialId);
                 System.Diagnostics.Debug.Assert(ma0 is DielectricMaterial);
                 var ma = ma0 as DielectricMaterial;
-                double maPxx = 0.0;
-                double maPyy = 0.0;
-                double maPzz = 0.0;
-                double maQxx = 0.0;
-                double maQyy = 0.0;
-                double maQzz = 0.0;
+                // 複素誘電率対応
+                System.Numerics.Complex maPxx = 0.0;
+                System.Numerics.Complex maPyy = 0.0;
+                System.Numerics.Complex maPzz = 0.0;
+                System.Numerics.Complex maQxx = 0.0;
+                System.Numerics.Complex maQyy = 0.0;
+                System.Numerics.Complex maQzz = 0.0;
                 if (IsMagneticField)
                 {
                     // 磁界
-                    maPxx = 1.0 / ma.Epxx;
-                    maPyy = 1.0 / ma.Epyy;
-                    maPzz = 1.0 / ma.Epzz;
-                    maQxx = ma.Muxx;
-                    maQyy = ma.Muyy;
-                    maQzz = ma.Muzz;
+                    maPxx = 1.0 / ma.ComplexEpxx;
+                    maPyy = 1.0 / ma.ComplexEpyy;
+                    maPzz = 1.0 / ma.ComplexEpzz;
+                    maQxx = ma.ComplexMuxx;
+                    maQyy = ma.ComplexMuyy;
+                    maQzz = ma.ComplexMuzz;
                 }
                 else
                 {
                     // 電界
-                    maPxx = 1.0 / ma.Muxx;
-                    maPyy = 1.0 / ma.Muyy;
-                    maPzz = 1.0 / ma.Muzz;
-                    maQxx = ma.Epxx;
-                    maQyy = ma.Epyy;
-                    maQzz = ma.Epzz;
+                    maPxx = 1.0 / ma.ComplexMuxx;
+                    maPyy = 1.0 / ma.ComplexMuyy;
+                    maPzz = 1.0 / ma.ComplexMuzz;
+                    maQxx = ma.ComplexEpxx;
+                    maQyy = ma.ComplexEpyy;
+                    maQzz = ma.ComplexEpzz;
                 }
 
                 IntegrationPoints ip = TetrahedronFE.GetIntegrationPoints(World.TetIntegrationPointCount);//Point5
@@ -153,11 +154,11 @@ namespace IvyFEM
                             }
                             double colEdgeSgn = isReverses[col] ? -1.0 : 1.0;
 
-                            double kVal = detJWeight * (
+                            System.Numerics.Complex kVal = detJWeight * (
                                 rotN[row][0] * maPxx * rotN[col][0] +
                                 rotN[row][1] * maPyy * rotN[col][1] +
                                 rotN[row][2] * maPzz * rotN[col][2]);
-                            double mVal = detJWeight * (
+                            System.Numerics.Complex mVal = detJWeight * (
                                 N[row][0] * maQxx * N[col][0] +
                                 N[row][1] * maQyy * N[col][1] +
                                 N[row][2] * maQzz * N[col][2]);

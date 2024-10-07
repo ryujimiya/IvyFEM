@@ -31,12 +31,21 @@ namespace IvyFEM
             double[] prevVel = prevFV.GetDoubleValues(FieldDerivativeType.Velocity);
             double[] prevAcc = prevFV.GetDoubleValues(FieldDerivativeType.Acceleration);
 
-            uint coCnt = FV.GetPointCount();
+            uint pointCnt = FV.GetPointCount();
             uint quantityId = FV.QuantityId;
             int dof = (int)FV.Dof;
-            System.Diagnostics.Debug.Assert(coCnt == World.GetCoordCount(quantityId));
-            System.Diagnostics.Debug.Assert(u.Length == coCnt * dof);
-            for (int iPt = 0; iPt < coCnt; iPt++)
+            if (FV.NodeType == FieldValueNodeType.ElementEdge)
+            {
+                // ElementEdge
+                System.Diagnostics.Debug.Assert(pointCnt == World.GetEdgeCount(quantityId));
+            }
+            else
+            {
+                // ElementNode
+                System.Diagnostics.Debug.Assert(pointCnt == World.GetCoordCount(quantityId));
+            }
+            System.Diagnostics.Debug.Assert(u.Length == pointCnt * dof);
+            for (int iPt = 0; iPt < pointCnt; iPt++)
             {
                 for (int iDof = 0; iDof < dof; iDof++)
                 {
